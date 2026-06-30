@@ -1,8 +1,7 @@
 import paho.mqtt.client as mqtt
 import json
 import time
-import MIP_Monitoring_Project.Monitoring_Server.log.log as log
-import MIP_Monitoring_Project.Monitoring_Server.main as main
+from Monitoring_Server.log import log as log
 
 BROKER_HOST = "localhost"
 BROKER_PORT = 1883
@@ -38,7 +37,7 @@ def on_message(client, userdata, message):
     
     
 # monitoring server mqtt entry methond
-def start_mqtt(latest_data, lock):
+def main(latest_data, lock):
     monitoring_client = mqtt.Client() 
 
     monitoring_client.user_data_set({

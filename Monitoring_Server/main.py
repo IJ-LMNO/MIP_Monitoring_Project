@@ -1,5 +1,6 @@
 import threading as thread
-import MIP_Monitoring_Project.Monitoring_Server.mqtt.mqtt_subscriber as mqtt_subscriber
+from Monitoring_Server.mqtt.mqtt_subscriber import main as monitoring_server_main
+from Monitoring_Server.api.api_entry_point import main as fast_api_main
 
 # shared data using in multi thread(mqtt thread and fast api thread)
 shared_data = {
@@ -14,11 +15,16 @@ lock = thread.Lock()
 def run_mqtt_thread():
 
     thread_mqtt = thread.Thread(
-        target = mqtt_subscriber.start_mqtt,
+        target = monitoring_server_main.start_mqtt,
         args = (shared_data, lock) )
 
     thread_mqtt.start()
 
+def run_fast_api():
+    fast_api_main()
+
+
 def main():
     run_mqtt_thread()
+    run_fast_api()
 
