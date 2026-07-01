@@ -1,6 +1,6 @@
 import threading as thread
 from Monitoring_Server.mqtt.mqtt_subscriber import main as monitoring_server_main
-from Monitoring_Server.api.api_entry_point import main as fast_api_main
+from Monitoring_Server.api import main as fast_api_main
 
 # shared data using in multi thread(mqtt thread and fast api thread)
 shared_data = {
