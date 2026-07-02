@@ -1,0 +1,13 @@
+body {
+    margin: 0;
+    background: #0b1220;
+    font-family: sans-serif;
+}
+
+.dashboard-test-page {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    flex-wrap: wrap;
+    flex-direction: row;
+}

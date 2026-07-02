@@ -1,0 +1,83 @@
+.speed-panel {
+    width: 280px;
+    height: 160px;
+    background: #070b12;
+    border: 1px solid #1f2937;
+    border-radius: 8px;
+    position: relative;
+    color: #e5e7eb;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.speed-value {
+    position: absolute;
+    top: 10px;
+    font-size: 20px;
+    color: #f9fafb;
+}
+
+.speed-gauge {
+    position: relative;
+    width: 220px;
+    height: 110px;
+    margin-top: 35px;
+    border-top-left-radius: 220px;
+    border-top-right-radius: 220px;
+    overflow: hidden;
+}
+
+.gauge-arc {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    border: 3px solid #374151;
+    border-bottom-color: transparent;
+    border-left-color: #2563eb;
+    border-right-color: #ef4444;
+}
+
+.speed-needle {
+    position: absolute;
+    width: 4px;
+    height: 92px;
+    background: #f9fafb;
+    bottom: 0;
+    left: 50%;
+    transform-origin: bottom center;
+    border-radius: 999px;
+}
+
+.needle-center {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    border: 2px solid #f9fafb;
+    border-radius: 50%;
+    bottom: -12px;
+    left: calc(50% - 12px);
+    background: #070b12;
+}
+
+.speed-label {
+    position: absolute;
+    font-size: 12px;
+    color: #e5e7eb;
+}
+
+.speed-label.left {
+    left: 0;
+    bottom: 0;
+}
+
+.speed-label.top {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.speed-label.right {
+    right: 0;
+    bottom: 0;
+}

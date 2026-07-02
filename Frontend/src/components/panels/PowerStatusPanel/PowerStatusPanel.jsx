@@ -1,4 +1,5 @@
-import MiniLineChart from "../common/MiniLineChart";
+import MiniLineChart from "../../common/MiniLineChart";
+import "./PowerStatusPanel.css";
 
 function PowerMetricRow({
     label,
@@ -19,13 +20,14 @@ function PowerMetricRow({
                     <span>{unit}</span>
                 </div>
             </div>
-
-            <MiniLineChart
-                data={chartData}
-                color={color}
-                min={min}
-                max={max}
-            />
+            <div className="minlinechart-row">
+                <MiniLineChart
+                    data={chartData}
+                    color={color}
+                    min={min}
+                    max={max}
+                />
+            </div>
         </div>
     );
 }

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import PowerStatusPanel from "./components/panels/PowerStatusPanel";
-import "./styles/dashboard.css";
+import PowerStatusPanel from "./components/panels/PowerStatusPanel/PowerStatusPanel";
+import SpeedStatusPanel from"./components/panels/SpeedStatusPanel/SpeedStatusPanel"
+import "./components/dashboard.css";
+
 
 function createSeries(length, base, noise) {
     return Array.from({ length }, () => {
@@ -23,6 +25,8 @@ function App() {
             powerKw: createSeries(40, 9, 8),
         },
     });
+
+    const [speed, setSpeed] = useState(0)
 
     useEffect(() => {
 
@@ -73,16 +77,34 @@ function App() {
                 };
             });
 
-        }, 500);
+        }, 10000);
 
         return () => clearInterval(timer);
 
     }, []);
 
+    useEffect(() => {
+
+        const timer = setInterval(() => {
+    
+            const nextspeed = Math.round(Math.random() * 100)
+            setSpeed(nextspeed)
+
+        }, 10000)
+
+        return () => clearInterval(timer)
+
+    },[])
+
+
     return (
-        <div className="dashboard-test-page">
-            <PowerStatusPanel telemetry={telemetry} />
-        </div>
+        <>
+            <div className="dashboard-test-page">
+                <PowerStatusPanel telemetry={telemetry} />
+                <SpeedStatusPanel speed={speed} />
+            </div>
+            
+        </>
     );
 }
 
