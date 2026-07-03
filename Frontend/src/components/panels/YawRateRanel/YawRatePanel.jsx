@@ -1,20 +1,18 @@
-import MiniLineChart from "../../common/MiniLineChart";
+import TwoMiniLineChart from "../../common/TwoMiniLineChart";
+import MiniLineChart from "../../common/TwoMiniLineChart";
 
-function YawRatePanel({ yawRate, desiredYawRate }) {
+const width = "100%"
+const height = "100%"
+
+
+function YawRatePanel({ yawRate, desiredyawRate }) {
     return (
         <div className="yaw-rate-panel">
-
-            <MiniLineChart
-                title="YAW RATE (deg/s)"
-                data = {yawRate}
-                yMin={-100}
-                yMax={100}
-            />
-            <MiniLineChart
-                title="YAW RATE (deg/s)"
-                data = {desiredYawRate}
-                yMin={-100}
-                yMax={100}
+            <TwoMiniLineChart
+                yawrate = {yawRate.series.yawratearr}
+                desiredyawrate={desiredyawRate.series.desiredyawratearr}
+                min={-100}
+                max={100}
             />
 
         </div>

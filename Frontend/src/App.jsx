@@ -28,9 +28,25 @@ function App() {
         },
     });
     const [speed, setSpeed] = useState(0)
+
     const [loading, setLoading] = useState(false)
-    const [yawrate, setYawRate] = useState(10)
-    const [desiredyawrate, setDesiredyawrate] = useState(10)
+
+    const [yawrate, setYawRate] = useState({
+        currentyawrate : 0,
+
+        series : {
+            yawratearr : createSeries(40,0,100)
+        }
+    })
+
+    const [desiredyawrate, setDesiredyawrate] = useState({
+        currentdesiredyawrate: 0,
+
+        series: {
+            desiredyawratearr: createSeries(40, 0, 100)
+        }
+    })
+
     useEffect(() => {
 
         const timer = setInterval(() => {
@@ -103,16 +119,61 @@ function App() {
 
         const timer = setInterval(() => {
     
-            const nextyawrate = Math.round(Math.random() * 100)
-            const nextdesiredyawrate = Math.round(Math.random() * 100)
-            setYawRate(nextspeed)
-            setDesiredyawrate(nextdesiredyawrate)
+            setYawRate((prev) => {
+                const nextyawrate = Math.round(Math.random() * 100)
+
+                return ({
+                    ...prev,
+
+                    currentyawrate : nextyawrate,
+
+                    series :{
+                        ...prev.series,
+
+                        yawratearr :[
+                            ...prev.series.yawratearr.slice(1),
+                            nextyawrate
+                        ]
+                    }
+
+                })
+            })
 
         }, 1000)
 
         return () => clearInterval(timer)
 
     },[])
+
+    useEffect(() => {
+
+        const timer = setInterval(() => {
+
+            setDesiredyawrate((prev) => {
+                const nextdesiredyawrate = Math.round(Math.random() * 100)
+
+                return ({
+                    ...prev,
+
+                    currentdesiredyawrate: nextdesiredyawrate,
+
+                    series: {
+                        ...prev.series,
+
+                        desiredyawratearr: [
+                            ...prev.series.desiredyawratearr.slice(1),
+                            nextdesiredyawrate
+                        ]
+                    }
+
+                })
+            })
+
+        }, 1000)
+
+        return () => clearInterval(timer)
+
+    }, [])
 
 
     useEffect(() => {
@@ -159,11 +220,17 @@ function App() {
 
         <div className="dashboard-page">
             <div className="dashboard-page-top">
-                <PowerStatusPanel telemetry={telemetry} />
-                <SpeedStatusPanel speed={speed} />
+                <div className="powerstatus-panel">
+                    <PowerStatusPanel telemetry={telemetry} />
+                </div>
+                <div className="speedstatus-panel">
+                    <SpeedStatusPanel speed={speed} />  
+                </div>
             </div>
             <div className="dashboard-page-bottom">
-                <YawRatePanel yawRate={yawrate} desiredYawRate = {desiredyawrate}/>
+                <div className="yawrate-pannel">
+                    <YawRatePanel yawRate={yawrate} desiredyawRate={desiredyawrate}/>  
+                </div>
             </div>
         </div>
             

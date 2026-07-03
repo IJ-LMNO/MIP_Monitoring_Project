@@ -6,15 +6,15 @@ body {
 
 .dashboard-page-top {
     display: flex;
-    gap: 20px;
-    padding: 20px;
+    width: 50%;
+    height: 50%;
     flex-direction: row;
 }
 
 .dashboard-page-top {
     display: flex;
-    gap: 20px;
-    padding: 20px;
+    width: 50%;
+    height: 50%;
     flex-direction: row;
 }
 
