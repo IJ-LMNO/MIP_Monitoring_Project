@@ -4,10 +4,21 @@ body {
     font-family: sans-serif;
 }
 
-.dashboard-test-page {
+.dashboard-page-top {
     display: flex;
     gap: 20px;
     padding: 20px;
-    flex-wrap: wrap;
     flex-direction: row;
+}
+
+.dashboard-page-top {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    flex-direction: row;
+}
+
+.dashboard-page{
+    display: flex;
+    flex-direction: column;
 }

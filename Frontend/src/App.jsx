@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import PowerStatusPanel from "./components/panels/PowerStatusPanel/PowerStatusPanel";
 import SpeedStatusPanel from"./components/panels/SpeedStatusPanel/SpeedStatusPanel"
-import "./components/dashboard.css";
+import YawRatePanel from "./components/panels/YawRateRanel/YawRatePanel"
+
+import"./components/dashboard.css";
 
 
 function createSeries(length, base, noise) {
@@ -25,9 +27,10 @@ function App() {
             powerKw: createSeries(40, 9, 8),
         },
     });
-
     const [speed, setSpeed] = useState(0)
-
+    const [loading, setLoading] = useState(false)
+    const [yawrate, setYawRate] = useState(10)
+    const [desiredyawrate, setDesiredyawrate] = useState(10)
     useEffect(() => {
 
         const timer = setInterval(() => {
@@ -96,16 +99,77 @@ function App() {
 
     },[])
 
+    useEffect(() => {
+
+        const timer = setInterval(() => {
+    
+            const nextyawrate = Math.round(Math.random() * 100)
+            const nextdesiredyawrate = Math.round(Math.random() * 100)
+            setYawRate(nextspeed)
+            setDesiredyawrate(nextdesiredyawrate)
+
+        }, 1000)
+
+        return () => clearInterval(timer)
+
+    },[])
+
+
+    useEffect(() => {
+        async function fetchTelemetry() {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const response = await fetch("http://localhost:8000/dashboard");
+
+            if (!response.ok) {
+            throw new Error("서버 응답 오류");
+            }
+
+            const data = await response.json();
+
+            setTelemetry(data);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+        }
+
+        fetchTelemetry();
+    }, []);
+
+
+    async function fetchButton() {
+            try{
+                const response = await fetch("http://localhost:8000/button")   
+            }
+            catch(err){
+                setError(err.message)
+            }
+            finally{
+                setLoading(false)
+            }
+            
+    }
+
 
     return (
-        <>
-            <div className="dashboard-test-page">
+
+        <div className="dashboard-page">
+            <div className="dashboard-page-top">
                 <PowerStatusPanel telemetry={telemetry} />
                 <SpeedStatusPanel speed={speed} />
             </div>
+            <div className="dashboard-page-bottom">
+                <YawRatePanel yawRate={yawrate} desiredYawRate = {desiredyawrate}/>
+            </div>
+        </div>
             
-        </>
+
     );
+
 }
 
 export default App;

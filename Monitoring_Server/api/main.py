@@ -8,10 +8,12 @@ app = FastAPI()
 # def home():
 #     #html파일 리턴
 
-@app.get("/test")
+@app.get("/dashboard")
 def main_test():
-    return test.test()
+    print("hello react")
+    return{"message" : "hello"}
 
-@app.get("/test/dashboard")
+@app.get("/button")
 def main_test_dashboard():
-    return test.test_dashboard()
+    print("button click")
+    return {"message" : "button"}
