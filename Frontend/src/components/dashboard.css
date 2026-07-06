@@ -1,24 +1,43 @@
+html,
 body {
     margin: 0;
+    width: 100%;
+    min-height: 100%;
+}
+
+body{
     background: #0b1220;
-    font-family: sans-serif;
 }
 
-.dashboard-page-top {
-    display: flex;
-    width: 50%;
-    height: 50%;
-    flex-direction: row;
-}
-
-.dashboard-page-top {
-    display: flex;
-    width: 50%;
-    height: 50%;
-    flex-direction: row;
-}
-
-.dashboard-page{
+.dashboard-page {
+    min-height: 100vh;
+    width: 100%;
     display: flex;
     flex-direction: column;
+}
+
+.dashboard-page-top {
+    display: flex;
+    width: 50vw;
+    height: 50vh;
+    flex-direction: row;
+}
+
+.powerstatus-panel{
+    flex: 1;
+}
+
+.speedstatus-pannel{
+    flex : 1;
+}
+
+.dashboard-page-bottom{
+    width : 50vw;
+    height: 50vh;
+    display: flex;
+    flex-direction: row;
+}
+
+.yawrate-pannel{
+    flex : 1;
 }

@@ -1,0 +1,46 @@
+.battery-panel {
+
+    align-items: center;
+    gap: 16px;
+    background: #070b12;
+    border: 1px solid #1f2937;
+    border-radius: 8px
+}
+
+.battery-row{
+    padding: 16px 16px;
+    display: flex;
+}
+
+.battery-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #f9fafb;
+}
+
+.soc-area {
+    flex: 1;
+}
+
+.soc-title {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-bottom: 6px;
+}
+
+.soc-bar {
+    height: 12px;
+    background: #1f2937;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.soc-fill {
+    height: 100%;
+    background: #22c55e;
+}
+
+.soc-value {
+    font-size: 20px;
+    font-weight: 700;
+}

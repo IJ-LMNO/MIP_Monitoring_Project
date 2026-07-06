@@ -1,62 +1,49 @@
-.yaw-rate-panel {
-    width: 100%;
-    background: #0b1220;
-    border: 1px solid #25314a;
-    border-radius: 12px;
-    padding: 16px 18px;
+.yawrate-pannel-row{
     display: flex;
+    width: 100%;
+    height: 100%;
+    background: #070b12;
+    border-radius: 8px;
+    border : 1px solid gray;
+    flex-direction: row;
+    align-items: center;
+    
+
+}
+
+.yawrate-pannel-chart{
+    flex : 3;
+    margin-right : 16px;
+    margin-left : 16px;
+}
+
+
+.yawrate-pannel-text {
+    display :flex;
+    flex :1;
     flex-direction: column;
-    gap: 12px;
-    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.35);
+
 }
 
-.yaw-rate-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.yaw-rate-title {
-    font-size: 18px;
+.YawRATE-text{
+    font-size: 12px;
     font-weight: 700;
-    color: #d9e8ff;
+    color: #ef4444;
     letter-spacing: 1px;
+    flex: 1;
+
 }
 
-.yaw-rate-unit {
-    font-size: 13px;
-    color: #8aa3d6;
+.DesiredYawRATE-text {
+    font-size: 12px;
+    font-weight: 700;
+    color: #3b82f6;
+    letter-spacing: 1px;
+    flex: 1;
+
 }
 
-.yaw-rate-chart {
-    width: 100%;
-    height: 180px;
+.yawRATE-Value{
+    font-size : 
 }
 
-.yaw-rate-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 18px;
-    font-size: 13px;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: #d9e8ff;
-}
-
-.legend-color {
-    width: 14px;
-    height: 3px;
-    border-radius: 3px;
-}
-
-.legend-color.blue {
-    background: #3b82f6;
-}
-
-.legend-color.red {
-    background: #ef4444;
-}

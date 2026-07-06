@@ -1,12 +1,12 @@
 function TwoMiniLineChart({
     yawrate,
     desiredyawrate,
-    color = "blue",
-    desiredColor = "red",
+    color = "#3b82f6",
+    desiredColor = "#ef4444",
     min = -100,
     max = 100
 }) {
-    const width = 240;
+    const width = 300;
     const height = 70;
 
     const makePoints = (arr) => {
@@ -24,7 +24,7 @@ function TwoMiniLineChart({
     const desiredYawratePoints = makePoints(desiredyawrate);
 
     return (
-        <svg className="mini-line-chart" viewBox={`0 0 100% 100%`}>
+        <svg className="mini-line-chart" width = "100%" height = "100%" viewBox={`0 0 ${width} ${height}`}>
             <line
                 x1="0"
                 y1="35"
@@ -48,14 +48,14 @@ function TwoMiniLineChart({
             <polyline
                 points={yawratePoints}
                 fill="none"
-                stroke={`var(--${color})`}
+                stroke={color}
                 strokeWidth="2"
             />
 
             <polyline
                 points={desiredYawratePoints}
                 fill="none"
-                stroke={`var(--${desiredColor})`}
+                stroke={desiredColor}
                 strokeWidth="2"
             />
         </svg>

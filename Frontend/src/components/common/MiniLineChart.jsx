@@ -1,5 +1,5 @@
 function MiniLineChart({ data, color = "blue", min = -150, max = 150 }) {
-    const width = 260;
+    const width = 300;
     const height = 70;
 
     const points = data

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import PowerStatusPanel from "./components/panels/PowerStatusPanel/PowerStatusPanel";
 import SpeedStatusPanel from"./components/panels/SpeedStatusPanel/SpeedStatusPanel"
 import YawRatePanel from "./components/panels/YawRateRanel/YawRatePanel"
+import BatteryStatusPaneel from "./components/panels/BatteryStatusPanel/BatteryStatusPanel";
 
 import"./components/dashboard.css";
 
@@ -18,8 +19,6 @@ function App() {
         currentLeft: 78,
         currentRight: 80,
         powerKw: 9,
-        batteryVoltage: 58,
-        soc: 95,
 
         series: {
             currentLeft: createSeries(40, 78, 180),
@@ -37,6 +36,11 @@ function App() {
         series : {
             yawratearr : createSeries(40,0,100)
         }
+    })
+
+    const [battery, setBattery] = useState({
+        soc : 95,
+        batteryVoltage : 95
     })
 
     const [desiredyawrate, setDesiredyawrate] = useState({
@@ -225,6 +229,7 @@ function App() {
                 </div>
                 <div className="speedstatus-panel">
                     <SpeedStatusPanel speed={speed} />  
+                    <BatteryStatusPaneel battery={battery}/>
                 </div>
             </div>
             <div className="dashboard-page-bottom">

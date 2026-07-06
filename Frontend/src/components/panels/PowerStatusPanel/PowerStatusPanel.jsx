@@ -61,41 +61,6 @@ function PowerStatusPanel({ telemetry }) {
                 min={0}
                 max={15}
             />
-
-            <div className="battery-row">
-
-                <div>
-                    <div className="metric-label">
-                        배터리 전압
-                    </div>
-
-                    <div className="battery-value">
-                        {telemetry.batteryVoltage}
-                        <span>V</span>
-                    </div>
-                </div>
-
-                <div className="soc-area">
-                    <div className="soc-title">
-                        SOC
-                    </div>
-
-                    <div className="soc-bar">
-                        <div
-                            className="soc-fill"
-                            style={{
-                                width: `${telemetry.soc}%`
-                            }}
-                        />
-                    </div>
-                </div>
-
-                <div className="soc-value">
-                    {telemetry.soc}%
-                </div>
-
-            </div>
-
         </section>
     );
 }
