@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import PowerStatusPanel from "./components/panels/PowerStatusPanel/PowerStatusPanel";
 import SpeedStatusPanel from"./components/panels/SpeedStatusPanel/SpeedStatusPanel"
 import YawRatePanel from "./components/panels/YawRateRanel/YawRatePanel"
-import BatteryStatusPaneel from "./components/panels/BatteryStatusPanel/BatteryStatusPanel";
+import BatteryStatusPaneel from "./components/panels/BatteryStatusPanel/BatteryStatusPanel"
 import RollRatePannel from "./components/panels/RollRateStatusPannel/RollRateStatusPannel"
+import CarStatusPannel from "./components/panels/CarStatusPannel/CarStatusPannel"
 
 import"./components/dashboard.css";
 
@@ -57,6 +58,13 @@ function App() {
         value : 0,
 
         rollratearr : createSeries(40,0,100)
+    })
+
+    const [carstatus, setCarstatus] = useState({
+        leftSteerAngle: 0,
+        rightSteerAngle: 0,
+        leftTorque: 40,
+        rightTorque: 40
     })
 
     useEffect(() => {
@@ -113,6 +121,7 @@ function App() {
         return () => clearInterval(timer);
 
     }, []);
+
 
     useEffect(() => {
 
@@ -271,6 +280,9 @@ function App() {
                     <div className="rollrate-pannel">
                         <RollRatePannel RollRate ={rollrate}/>
                     </div>
+                </div>
+                <div className="CarStatusPannel">
+                    <CarStatusPannel carstatus ={carstatus}/>
                 </div>
             </div>
         </div>

@@ -51,3 +51,7 @@ body {
     display: flex;
     flex-direction: column;
 }
+
+.CarStatusPannel{
+    flex : 1;
+}

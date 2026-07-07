@@ -5,6 +5,7 @@
     background: #070b12;
     border-radius: 8px;
     flex-direction: row;
+    border: 1px solid #1f2937;
 }
 
 .rollrate{
@@ -33,4 +34,6 @@
     flex : 3;
     margin-right : 16px;
     margin-left : 16px;
+    margin-top : 16px;
+    margin-bottom: 16px;
 }
