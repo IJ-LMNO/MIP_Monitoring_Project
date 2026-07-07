@@ -3,6 +3,7 @@ import PowerStatusPanel from "./components/panels/PowerStatusPanel/PowerStatusPa
 import SpeedStatusPanel from"./components/panels/SpeedStatusPanel/SpeedStatusPanel"
 import YawRatePanel from "./components/panels/YawRateRanel/YawRatePanel"
 import BatteryStatusPaneel from "./components/panels/BatteryStatusPanel/BatteryStatusPanel";
+import RollRatePannel from "./components/panels/RollRateStatusPannel/RollRateStatusPannel"
 
 import"./components/dashboard.css";
 
@@ -49,6 +50,13 @@ function App() {
         series: {
             desiredyawratearr: createSeries(40, 0, 100)
         }
+    })
+
+
+    const [rollrate, setRollrate] = useState({
+        value : 0,
+
+        rollratearr : createSeries(40,0,100)
     })
 
     useEffect(() => {
@@ -179,6 +187,29 @@ function App() {
 
     }, [])
 
+    useEffect(() => {
+
+        const timer = setInterval(() => {
+
+            setRollrate((prev) => {
+                const nextrollrate = Math.round(Math.random() * 100)
+
+                return ({
+                    value: nextrollrate,
+                    rollratearr : [
+                        ...prev.rollratearr.slice(1),
+                        nextrollrate
+                    ]
+
+                })
+            })
+
+        }, 1000)
+
+        return () => clearInterval(timer)
+
+    }, [])
+
 
     useEffect(() => {
         async function fetchTelemetry() {
@@ -233,13 +264,16 @@ function App() {
                 </div>
             </div>
             <div className="dashboard-page-bottom">
-                <div className="yawrate-pannel">
-                    <YawRatePanel yawRate={yawrate} desiredyawRate={desiredyawrate}/>  
+                <div className="yawrate-rollrate-pannel">
+                    <div className="yawrate-pannel">
+                        <YawRatePanel yawRate={yawrate} desiredyawRate={desiredyawrate}/>  
+                    </div>
+                    <div className="rollrate-pannel">
+                        <RollRatePannel RollRate ={rollrate}/>
+                    </div>
                 </div>
             </div>
         </div>
-            
-
     );
 
 }

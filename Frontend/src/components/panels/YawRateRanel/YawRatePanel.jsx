@@ -10,15 +10,15 @@ function YawRatePanel({ yawRate, desiredyawRate }) {
     return (
         <div className="yawrate-pannel-row">
             <div className="yawrate-pannel-text">
-                <div className="YawRATE-text">
+                <div className="YawRATE">
                     YawRATE
                     <div className="YawRATE-value">
                         {currentyawrate}
                     </div>
                 </div>
-                <div className="DesiredYawRATE-text">
+                <div className="DesiredYawRATE">
                     DesiredYawRATE
-                    <div className="DesiredYawRATE">
+                    <div className="DesiredYawRATE-value">
                         {currentdesiredyawrate}
                     </div>
                 </div>
