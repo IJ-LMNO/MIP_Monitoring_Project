@@ -1,15 +1,22 @@
 .yawrate-pannel-row{
     display: flex;
+    flex-direction: row;
 
     background: #070b12;
-    border-radius: 8px;
+
     flex-direction: row;
     align-items: center;
+
+    height: 100%;
+
+    border: 1px solid white;
     
 }
 
 .yawrate-pannel-chart{
     flex : 3;
+
+    height : 100%
 }
 
 
@@ -56,12 +63,10 @@
 .YawRATE-value{
     font-size : 40px;
     font-weight: 700;
-    margin-top : 4px;
 }
 
 .DesiredYawRATE-value{
     font-size : 40px;
     font-weight: 700;
-    margin-top : 4px;
 }
 

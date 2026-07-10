@@ -5,7 +5,7 @@ import "./RollRateStatusPannel.css"
 function RollRateStatusPannel({RollRate}){
     return(
         <div className="rollrate-pannel-row">
-            <div className="rollrate">
+            <div className="rollrate-text">
                 RollRate
                 <div className="rollrate-value">
                     {RollRate.value}

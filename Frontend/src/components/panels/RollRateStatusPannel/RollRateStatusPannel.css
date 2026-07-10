@@ -1,27 +1,29 @@
 .rollrate-pannel-row{
     display: flex;
-    width: 100%;
-    height: 100%;
-    background: #070b12;
-    border-radius: 8px;
     flex-direction: row;
-    
+    justify-content: center;
+    align-items: center;
 
+    background: #070b12;
+
+    height: 100%;
+
+    border: 1px solid white;
 }
 
-.rollrate{
+.rollrate-text{
     font-size: 12px;
     font-weight: 700;
     color: blue;
+
     letter-spacing: 1px;
+
     display: flex;
     flex-direction: column;
-    margin-bottom: 8px;
-    flex: 1;
-
     align-items: center;
     justify-content: center;
 
+    flex: 1;
 }
 
 .rollrate-value{
@@ -33,8 +35,5 @@
 
 .rollrate-chart{
     flex : 3;
-    margin-right : 16px;
-    margin-left : 16px;
-    margin-top : 16px;
-    margin-bottom: 16px;
+    height: 100%;
 }
