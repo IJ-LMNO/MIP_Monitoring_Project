@@ -1,16 +1,11 @@
 .yawrate-pannel-row{
     display: flex;
-    width: 100%;
-    height: 100%;
+
     background: #070b12;
     border-radius: 8px;
     flex-direction: row;
     align-items: center;
     
-
-    margin : 16px 16px 8px;
-
-    border : 1px solid gray
 }
 
 .yawrate-pannel-chart{

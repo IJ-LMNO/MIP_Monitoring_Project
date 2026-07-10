@@ -1,6 +1,8 @@
+import "./MiniLineChart.css"
+
 function MiniLineChart({ data, color = "blue", min = -150, max = 150 }) {
     const width = 300;
-    const height = 70;
+    const height = 75;
 
     const points = data
         .map((value, index) => {
@@ -12,7 +14,7 @@ function MiniLineChart({ data, color = "blue", min = -150, max = 150 }) {
         .join(" ");
 
     return (
-        <svg className="mini-line-chart" width = "100%" height = "100%" viewBox={`0 0 ${width} ${height}`}>
+        <svg className="mini-line-chart" viewBox={`0 0 ${width} ${height}`}>
             <line x1="0" y1="35" x2={width} y2="35" className="chart-zero-line" />
 
             <text x="4" y="12" className="chart-label">

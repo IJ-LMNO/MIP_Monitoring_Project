@@ -1,17 +1,17 @@
-import MiniLineChart from "../../common/MiniLineChart"
+import MiniLineChart from "../../MinLineChart/MiniLineChart"
 
 import "./RollRateStatusPannel.css"
 
 function RollRateStatusPannel({RollRate}){
     return(
         <div className="rollrate-pannel-row">
-            {/* <div className="rollrate">
+            <div className="rollrate">
                 RollRate
                 <div className="rollrate-value">
                     {RollRate.value}
                 </div>
 
-            </div> */}
+            </div>
             <div className="rollrate-chart">
                 <MiniLineChart
                     data={RollRate.rollratearr}

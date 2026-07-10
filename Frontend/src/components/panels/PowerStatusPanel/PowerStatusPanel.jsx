@@ -1,4 +1,5 @@
-import MiniLineChart from "../../common/MiniLineChart";
+import MiniLineChart from "../../MinLineChart/MiniLineChart";
+
 import "./PowerStatusPanel.css";
 
 function PowerMetricRow({
@@ -33,35 +34,39 @@ function PowerMetricRow({
 }
 
 function PowerStatusPanel({ telemetry }) {
-    return (
-        <section className="power-status-panel">
-
-            <PowerMetricRow
-                label="전류 L"
-                value={telemetry.currentLeft}
-                unit="A"
-                color="blue"
-                chartData={telemetry.series.currentLeft}
-            />
-
-            <PowerMetricRow
-                label="전류 R"
-                value={telemetry.currentRight}
-                unit="A"
-                color="red"
-                chartData={telemetry.series.currentRight}
-            />
-
-            <PowerMetricRow
-                label="출력"
-                value={telemetry.powerKw}
-                unit="kW"
-                color="green"
-                chartData={telemetry.series.powerKw}
-                min={0}
-                max={15}
-            />
-        </section>
+    return (        
+        <div className="power-status-pannels">
+            <div className="power-status-panel">
+                <PowerMetricRow
+                    label="전류 L"
+                    value={telemetry.currentLeft}
+                    unit="A"
+                    color="blue"
+                    chartData={telemetry.series.currentLeft}
+                />
+            </div>
+            <div className="power-status-panel">
+                <PowerMetricRow
+                    label="전류 R"
+                    value={telemetry.currentRight}
+                    unit="A"
+                    color="red"
+                    chartData={telemetry.series.currentRight}
+                />
+            </div>
+            <div className="power-status-panel">
+                <PowerMetricRow
+                    label="출력"
+                    value={telemetry.powerKw}
+                    unit="kW"
+                    color="green"
+                    chartData={telemetry.series.powerKw}
+                    min={0}
+                    max={15}
+                />
+            
+            </div>
+        </div>
     );
 }
 

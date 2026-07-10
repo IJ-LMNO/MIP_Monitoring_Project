@@ -280,7 +280,7 @@ function App() {
                 </div>
 
                 <div className="dashboard-page-bottom">
-
+{/* 
                     <div className="yawrate-rollrate-pannel">
                         <div className="yawrate-pannel">
                             <YawRatePanel yawRate={yawrate} desiredyawRate={desiredyawrate} />
@@ -291,7 +291,7 @@ function App() {
                     </div>
                     <div className="carstatus-pannel">
                         <CarStatusPannel carstatus={carstatus} />
-                    </div>
+                    </div> */}
 
                 </div>
 
