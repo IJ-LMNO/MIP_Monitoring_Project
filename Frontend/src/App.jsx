@@ -61,8 +61,8 @@ function App() {
     })
 
     const [carstatus, setCarstatus] = useState({
-        leftSteerAngle: 0,
-        rightSteerAngle: 0,
+        leftSteerAngle: 30,
+        rightSteerAngle: -30,
         leftTorque: 40,
         rightTorque: 40
     })
@@ -116,7 +116,7 @@ function App() {
                 };
             });
 
-        }, 10000);
+        }, 1000);
 
         return () => clearInterval(timer);
 
@@ -130,7 +130,7 @@ function App() {
             const nextspeed = Math.round(Math.random() * 100)
             setSpeed(nextspeed)
 
-        }, 10000)
+        }, 1000)
 
         return () => clearInterval(timer)
 
@@ -261,29 +261,44 @@ function App() {
 
 
     return (
-
         <div className="dashboard-page">
-            <div className="dashboard-page-top">
-                <div className="powerstatus-panel">
-                    <PowerStatusPanel telemetry={telemetry} />
+            <div className="dashboard-page-pannel">
+                <div className="dashboard-page-top">
+
+                    <div className="powerstatus-panel">
+                        <PowerStatusPanel telemetry={telemetry} />
+                    </div>
+                    <div className="speedstatus-battery-pannel">
+                        <div className="speedstatus-pannel">
+                            <SpeedStatusPanel speed={speed} />
+                        </div>
+                        <div className="battery-pannel">
+                            <BatteryStatusPaneel battery={battery} />
+                        </div>
+                    </div>
+
                 </div>
-                <div className="speedstatus-panel">
-                    <SpeedStatusPanel speed={speed} />  
-                    <BatteryStatusPaneel battery={battery}/>
+
+                <div className="dashboard-page-bottom">
+
+                    <div className="yawrate-rollrate-pannel">
+                        <div className="yawrate-pannel">
+                            <YawRatePanel yawRate={yawrate} desiredyawRate={desiredyawrate} />
+                        </div>
+                        <div className="rollrate-pannel">
+                            <RollRatePannel RollRate={rollrate} />
+                        </div>
+                    </div>
+                    <div className="carstatus-pannel">
+                        <CarStatusPannel carstatus={carstatus} />
+                    </div>
+
                 </div>
+
             </div>
-            <div className="dashboard-page-bottom">
-                <div className="yawrate-rollrate-pannel">
-                    <div className="yawrate-pannel">
-                        <YawRatePanel yawRate={yawrate} desiredyawRate={desiredyawrate}/>  
-                    </div>
-                    <div className="rollrate-pannel">
-                        <RollRatePannel RollRate ={rollrate}/>
-                    </div>
-                </div>
-                <div className="CarStatusPannel">
-                    <CarStatusPannel carstatus ={carstatus}/>
-                </div>
+
+            <div className="dashboard-page-footer">
+                <button onClick={fetchButton} text="주행 시작" />
             </div>
         </div>
     );

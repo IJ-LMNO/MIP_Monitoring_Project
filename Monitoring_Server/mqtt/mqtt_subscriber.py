@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt
 import json
 import time
-from Monitoring_Server.log import log as log
+from Monitoring_Server.log import main as main
 
 BROKER_HOST = "localhost"
 BROKER_PORT = 1883
@@ -11,7 +11,7 @@ START_TIME = time.time()
 # update recent drive log which locate in log.py
 # isolate methods due to maintenace
 def update_recent_drive_log(key, data):
-    log.update_recent_drive_log(key, data, START_TIME)
+    main.update_recent_drive_log(key, data, START_TIME)
 
 # update lastest_data which locate in main.py
 def update_lastest_data(key, latest_data, data):

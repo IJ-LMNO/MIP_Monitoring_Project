@@ -6,16 +6,15 @@
     border-radius: 8px;
     flex-direction: row;
     align-items: center;
-    border: 1px solid #1f2937;
+    
+
+    margin : 16px 16px 8px;
+
+    border : 1px solid gray
 }
 
 .yawrate-pannel-chart{
-    flex : 4;
-    margin-right : 16px;
-    margin-left : 16px;
-
-    margin-top : 16px;
-    margin-bottom : 16px;
+    flex : 3;
 }
 
 

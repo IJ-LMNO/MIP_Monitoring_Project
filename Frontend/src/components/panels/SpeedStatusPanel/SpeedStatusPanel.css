@@ -1,14 +1,16 @@
 .speed-panel {
-    width: 280px;
-    height: 160px;
+    width: 80%;
+    height: 80%;
     background: #070b12;
-    border: 1px solid #1f2937;
+
     border-radius: 8px;
     position: relative;
     color: #e5e7eb;
     display: flex;
     justify-content: center;
     align-items: center;
+
+    margin : 16px 16px 8px
 }
 
 .speed-value {

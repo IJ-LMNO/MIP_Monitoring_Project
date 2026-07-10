@@ -1,10 +1,13 @@
 .battery-panel {
-
+    width: 80%;
+    height: 80%;
+    
     align-items: center;
-    gap: 16px;
+    gap : 16px;
     background: #070b12;
-    border: 1px solid #1f2937;
-    border-radius: 8px
+    border-radius: 8px;
+
+    margin: 8px 16px 16px;
 }
 
 .battery-row{
@@ -43,4 +46,6 @@
 .soc-value {
     font-size: 20px;
     font-weight: 700;
+
+    color: white;
 }

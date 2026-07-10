@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+
+from Monitoring_Server.log.main import main as log_main
 from Monitoring_Server.api.api import test as test
 
 app = FastAPI()
 
-# @app.get("/")
-# def home():
-#     #html파일 리턴
+def race_start():
+    log_main("race_start")
 
 @app.get("/dashboard")
 def main_test():
@@ -15,5 +16,5 @@ def main_test():
 
 @app.get("/button")
 def main_test_dashboard():
-    print("button click")
-    return {"message" : "button"}
+    print("race_start button click")
+    race_start()

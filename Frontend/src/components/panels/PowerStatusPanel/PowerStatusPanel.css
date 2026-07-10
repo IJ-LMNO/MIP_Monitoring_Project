@@ -5,11 +5,9 @@
 }
 
 .power-status-panel {
-    width: 520px;
     background: #070b12;
-    border: 1px solid #1f2937;
+
     border-radius: 8px;
-    padding: 16px;
     color: #e5e7eb;
 }
 
@@ -19,10 +17,14 @@
     align-items: center;
     gap: 16px;
     margin-bottom: 16px;
+
+    height: 100%;
+    width: 100%;
+
+    flex: 1;
 }
 
 .power-metric-text {
-
     flex : 1;
 }
 
