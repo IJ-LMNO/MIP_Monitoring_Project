@@ -5,6 +5,7 @@ import YawRatePanel from "./components/panels/YawRateRanel/YawRatePanel"
 import BatteryStatusPaneel from "./components/panels/BatteryStatusPanel/BatteryStatusPanel"
 import RollRatePannel from "./components/panels/RollRateStatusPannel/RollRateStatusPannel"
 import CarStatusPannel from "./components/panels/CarStatusPannel/CarStatusPannel"
+import Button from "./components/common/Button/Button"
 
 import"./components/dashboard.css";
 
@@ -298,7 +299,13 @@ function App() {
             </div>
 
             <div className="dashboard-page-footer">
-                <button onClick={fetchButton} text="주행 시작" />
+                <div className="dashboard-page-footer-button">
+                    <Button onClick={fetchButton} text="주행 시작" />
+                </div>
+                <div className="dashboard-page-footer-button">
+                    <Button onClick={fetchButton} text="주행 시작" />
+                </div>
+
             </div>
         </div>
     );

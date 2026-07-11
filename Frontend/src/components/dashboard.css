@@ -18,9 +18,12 @@ body{
 .dashboard-page{
     display: flex;
     flex-direction: column;
+    
+    justify-content: center;
+    align-items: center;
 
-    width: 100vw;
-    height: 100vh;
+    width: 90vw;
+    height: 90vh;
 }
 
 .dashboard-page-pannel{
@@ -30,6 +33,9 @@ body{
 
     display: flex;
     flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
 }
 
 .dashboard-page-top{
@@ -38,13 +44,11 @@ body{
 
     flex: 1;
 
-    height: 40%;
+    width: 80%;
 }
 
 .powerstatus-panel{
     flex: 2;
-
-    border: 1px solid white;
 
 }
 
@@ -54,7 +58,6 @@ body{
     display: flex;
     flex-direction: column;
 
-    border: 1px solid white;
 }
 
 .speedstatus-pannel{
@@ -71,7 +74,8 @@ body{
     display: flex;
     flex-direction: row;
 
-    border: 1px solid white;
+    width: 80%;
+
 }
 
 .yawrate-rollrate-pannel{
@@ -80,7 +84,6 @@ body{
     display: flex;
     flex-direction: column;
 
-    border: 1px solid white;
 }
 
 .yawrate-pannel{
@@ -94,18 +97,35 @@ body{
 .carstatus-pannel {
     flex: 1;
 
-    border: 1px solid white;
 }
 
 .dashboard-page-footer{
     flex: 2;
-    width: 100%;
+    width: 80%;
 
     display: flex;
     flex-direction: row;
+
+
+    border: 1px solid white;
+
+}
+
+.dashboard-page-footer-button{
+    flex : 1;
+
+    height: 100%;
+
+    display: flex;
     justify-content: center;
     align-items: center;
 
-    border: 1px solid white;
+    border: 1px solid blue;
 }
+
+/* .dashboard-page-footer-button button{
+
+    height: 100%;
+    width: 100%;
+} */
 
