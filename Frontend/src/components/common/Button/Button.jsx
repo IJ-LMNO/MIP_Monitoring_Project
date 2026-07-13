@@ -1,6 +1,6 @@
 import "./Button.css"
 
-function Button({onClick, text}){
+function MyButton({onClick, text}){
     return(
         <div className="button">
             <button onClick={onClick}>{text}</button>
@@ -8,4 +8,4 @@ function Button({onClick, text}){
     )
 }
 
-export default Button
+export default MyButton

@@ -5,7 +5,7 @@ import YawRatePanel from "./components/panels/YawRateRanel/YawRatePanel"
 import BatteryStatusPaneel from "./components/panels/BatteryStatusPanel/BatteryStatusPanel"
 import RollRatePannel from "./components/panels/RollRateStatusPannel/RollRateStatusPannel"
 import CarStatusPannel from "./components/panels/CarStatusPannel/CarStatusPannel"
-import Button from "./components/common/Button/Button"
+import MyButton from "./components/common/Button/Button"
 
 import"./components/dashboard.css";
 
@@ -67,6 +67,8 @@ function App() {
         leftTorque: 40,
         rightTorque: 40
     })
+
+    const[racestart, setRacestart] = useState(false)
 
     useEffect(() => {
 
@@ -223,24 +225,24 @@ function App() {
 
     useEffect(() => {
         async function fetchTelemetry() {
-        try {
-            setLoading(true);
-            setError(null);
+            try {
+                setLoading(true);
+                setError(null);
 
-            const response = await fetch("http://localhost:8000/dashboard");
+                const response = await fetch("http://localhost:8000/dashboard");
 
-            if (!response.ok) {
-            throw new Error("서버 응답 오류");
+                if (!response.ok) {
+                throw new Error("서버 응답 오류");
+                }
+
+                const data = await response.json();
+
+                setTelemetry(data);
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
             }
-
-            const data = await response.json();
-
-            setTelemetry(data);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
         }
 
         fetchTelemetry();
@@ -249,7 +251,12 @@ function App() {
 
     async function fetchButton() {
             try{
-                const response = await fetch("http://localhost:8000/button")   
+                const response = await fetch("http://localhost:8000/button")
+                console.log("변경 전") 
+                setRacestart(() => {
+                    return !racestart
+                })  
+                console.log("변경 후")
             }
             catch(err){
                 setError(err.message)
@@ -262,7 +269,7 @@ function App() {
 
 
     return (
-        <div className="dashboard-page">
+        <div className={racestart ? "race-start-dashboard-page" : "dashboard-page"}>
             <div className="dashboard-page-pannel">
                 <div className="dashboard-page-top">
 
@@ -299,13 +306,12 @@ function App() {
             </div>
 
             <div className="dashboard-page-footer">
-                <div className="dashboard-page-footer-button">
-                    <Button onClick={fetchButton} text="주행 시작" />
-                </div>
-                <div className="dashboard-page-footer-button">
-                    <Button onClick={fetchButton} text="주행 시작" />
-                </div>
-
+                    <MyButton onClick={fetchButton} text={racestart ? "주행 종료" : "주행 시작"} />
+                    <MyButton text="None" />
+                    <MyButton text="None" />
+                    <MyButton text="None" />
+                    <MyButton text="None" />
+                    <MyButton text="None" />
             </div>
         </div>
     );

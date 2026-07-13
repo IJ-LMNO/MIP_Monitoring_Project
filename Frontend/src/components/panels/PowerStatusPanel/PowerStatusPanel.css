@@ -7,15 +7,16 @@
 .power-status-pannels{
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    align-items: space-between;
 
+    justify-content: center;
+
+    height: 100%;
 }
 
 .power-status-panel {
     background: #070b12;
 
-    border-radius: 8px;
+
     color: #e5e7eb;
 
     flex: 1;
@@ -24,8 +25,6 @@
 
 .power-metric-row {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
 
     height: 100%;
 }
