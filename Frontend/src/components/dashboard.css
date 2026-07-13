@@ -29,16 +29,26 @@ body{
     height: 90vh;
 }
 
-.race-start-dashboard-page{
-    background-color: brown;
+
+.race-start-dashboard-header{
+    flex: 1;
+
     display: flex;
-    flex-direction: column;
-    
+
     justify-content: center;
     align-items: center;
 
-    width: 90vw;
-    height: 90vh;
+    width: 80%;
+
+    border: 1px solid white;
+}
+
+.dashboard-header{
+    flex: 1;
+    display: none;
+    width: 80%;
+
+    border: 1px solid white;
 }
 
 .dashboard-page-pannel{
@@ -122,11 +132,13 @@ body{
 }
 
 .dashboard-page-footer{
-    flex: 1;
+    flex: 2;
     width: 80%;
 
     display: flex;
     flex-direction: row;
 
     align-items: center;
+
+    border: 1px solid white;
 }

@@ -1,9 +1,9 @@
 import "./Button.css"
 
-function MyButton({onClick, text}){
+function MyButton({onClick, text, state}){
     return(
         <div className="button">
-            <button onClick={onClick}>{text}</button>
+            <button className = {state.start ? "race-start-button" : "race-stop-button"}onClick={onClick}>{text}</button>
         </div>
     )
 }

@@ -6,6 +6,7 @@ import BatteryStatusPaneel from "./components/panels/BatteryStatusPanel/BatteryS
 import RollRatePannel from "./components/panels/RollRateStatusPannel/RollRateStatusPannel"
 import CarStatusPannel from "./components/panels/CarStatusPannel/CarStatusPannel"
 import MyButton from "./components/common/Button/Button"
+import Timer from "./components/common/Timer/Timer"
 
 import"./components/dashboard.css";
 
@@ -68,7 +69,12 @@ function App() {
         rightTorque: 40
     })
 
-    const[racestart, setRacestart] = useState(false)
+    const[racestart, setRacestart] = useState({
+        start : false,
+        reset : false
+    })
+
+    const [elapsedMs, setElapsedMs] = useState(0);
 
     useEffect(() => {
 
@@ -253,9 +259,10 @@ function App() {
             try{
                 const response = await fetch("http://localhost:8000/button")
                 console.log("변경 전") 
-                setRacestart(() => {
-                    return !racestart
-                })  
+                setRacestart((prev) => ({
+                    ...prev,
+                    start : !prev.start
+                }))
                 console.log("변경 후")
             }
             catch(err){
@@ -269,7 +276,15 @@ function App() {
 
 
     return (
-        <div className={racestart ? "race-start-dashboard-page" : "dashboard-page"}>
+        <div className= "dashboard-page">
+            <div className={racestart.start ? "race-start-dashboard-header" : "dashboard-header"}>
+                <Timer state={racestart} elapsedMs={elapsedMs} setElapsedMs = {setElapsedMs}/>
+                <div className={racestart.start ? "dashboard-header" : "race-start-dashboard-header"}>
+                    {String(Math.floor(elapsedMs / 60000)).padStart(2, "0")}:
+                    {String(Math.floor(elapsedMs / 1000) % 60).padStart(2, "0")}.
+                    {String(elapsedMs % 1000).padStart(3, "0")}
+                </div>
+            </div>
             <div className="dashboard-page-pannel">
                 <div className="dashboard-page-top">
 
@@ -306,12 +321,12 @@ function App() {
             </div>
 
             <div className="dashboard-page-footer">
-                    <MyButton onClick={fetchButton} text={racestart ? "주행 종료" : "주행 시작"} />
+                    <MyButton onClick={fetchButton} text={racestart.start ? "주행 종료" : "주행 시작"} state = {racestart}/>
+                    {/* <MyButton text="None" />
                     <MyButton text="None" />
                     <MyButton text="None" />
                     <MyButton text="None" />
-                    <MyButton text="None" />
-                    <MyButton text="None" />
+                    <MyButton text="None" /> */}
             </div>
         </div>
     );
