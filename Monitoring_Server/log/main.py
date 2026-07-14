@@ -10,6 +10,12 @@ class RaceLogger:
 
         }
 
+    def reset_race(self):
+        print(f"{time.time()} : race reset")
+
+    def stop_race(self):
+        print(f"{time.time()} : race stop")
+
     def start_race(self):
         print(f"{time.time()} : race start")
 

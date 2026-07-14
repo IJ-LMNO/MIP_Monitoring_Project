@@ -1,0 +1,131 @@
+import can
+import math
+import threading as thread
+import paho.mqtt.client as mqtt
+
+class Sample:
+    def __init__(self, channel='can0'):
+        self.channel = channel
+        self.bus = None
+        self._data_lock = thread.Lock()
+
+        # Use default values until the first frame from each motor is received.
+        self.right_data = {
+            'voltage': 0.0,
+            'current': 0.0,
+            'torque': 0.0,
+            'rpm': 0,
+        }
+        self.left_data = {
+            'voltage': 0.0,
+            'current': 0.0,
+            'torque': 0.0,
+            'rpm': 0,
+        }
+
+        self.avg_rpm = 0.0
+        self.avg_voltage = 0.0
+        self.power_right = 0.0
+        self.power_left = 0.0
+        self.avg_power = 0.0
+        self.speed = 0.0
+        self.current_left = 0.0
+        self.current_right = 0.0
+        self.rpm_left = 0
+        self.rpm_right = 0
+
+        self.init_can()
+
+    def init_can(self):
+        if self.bus is not None:
+            return True
+
+        try:
+            # SocketCAN is available on Linux; the can0 interface must be configured and up.
+            self.bus = can.interface.Bus(
+                channel=self.channel,
+                interface='socketcan',
+            )
+            return True
+        except (can.CanError, OSError) as error:
+            print("CAN Init Fail:", error)
+            self.bus = None
+            return False
+        
+    def read_can_data(self):
+        if self.bus is None:
+            return 0
+
+        received_count = 0
+
+        # A zero timeout makes this a non-blocking receive operation.
+        msg = self.bus.recv(timeout=0)
+        while msg is not None:
+            # Both supported message layouts require all eight CAN data bytes.
+            if len(msg.data) >= 8:
+                with self._data_lock:
+                    if msg.arbitration_id == 0x331:
+                        # Decode little-endian raw values using the sender's scale factors.
+                        self.right_data['voltage'] = int.from_bytes(msg.data[0:2], 'little') / 10.0
+                        self.right_data['current'] = int.from_bytes(msg.data[2:4], 'little', signed=True) / 10.0
+                        self.right_data['torque'] = int.from_bytes(msg.data[4:6], 'little', signed=True) / 10.0
+                        self.right_data['rpm'] = int.from_bytes(msg.data[6:8], 'little', signed=True)
+                        received_count += 1
+                    
+                    elif msg.arbitration_id == 0x341:
+                        self.left_data['voltage'] = int.from_bytes(msg.data[0:2], 'little') / 10.0
+                        self.left_data['current'] = int.from_bytes(msg.data[2:4], 'little', signed=True) / 10.0
+                        self.left_data['torque'] = int.from_bytes(msg.data[4:6], 'little', signed=True) / 10.0
+                        self.left_data['rpm'] = int.from_bytes(msg.data[6:8], 'little', signed=True)
+                        received_count += 1
+
+
+            # Read the next queued frame instead of processing the same frame repeatedly.
+            msg = self.bus.recv(timeout=0)
+
+
+
+    def calculate_data(self):
+        with self._data_lock:
+            right_data = self.right_data.copy()
+            left_data = self.left_data.copy()
+
+
+        self.avg_rpm = (right_data['rpm'] + left_data['rpm']) / 2
+        self.avg_voltage = (right_data['voltage'] + left_data['voltage']) / 2
+        self.power_right = right_data['voltage'] * right_data['current']
+        self.power_left = left_data['voltage'] * left_data['current']
+        self.avg_power = (self.power_right + self.power_left) / 2
+
+        # Convert motor RPM to vehicle speed in km/h using wheel diameter and gear ratio.
+        self.speed = self.avg_rpm / 60 * (18 * 0.0254 * math.pi) * (11 / 68) * 3.6
+        self.current_left = left_data['current']
+        self.current_right = right_data['current']
+        self.rpm_left = left_data['rpm']
+        self.rpm_right = right_data['rpm']
+
+        return {
+            'avg_rpm': self.avg_rpm,
+            'avg_voltage': self.avg_voltage,
+            'power_right': self.power_right,
+            'power_left': self.power_left,
+            'avg_power': self.avg_power,
+            'speed': self.speed,
+            'current_left': self.current_left,
+            'current_right': self.current_right,
+            'rpm_left': self.rpm_left,
+            'rpm_right': self.rpm_right,
+        }
+
+    def shutdown(self):
+        if self.bus is not None:
+            self.bus.shutdown()
+            self.bus = None
+
+def main(powerunit_data):
+    obj = Sample()
+
+    while(True):
+        obj.read_can_data()
+        power_unit_data = obj.calculate_data()
+        powerunit_data.update(power_unit_data)
