@@ -1,4 +1,4 @@
-import MiniLineChart from "../../MinLineChart/MiniLineChart";
+import MiniLineChart from "../../common/MinLineChart/MiniLineChart";
 
 import "./PowerStatusPanel.css";
 

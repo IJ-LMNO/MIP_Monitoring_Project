@@ -40,7 +40,6 @@ body{
 
     width: 80%;
 
-    border: 1px solid white;
 }
 
 .dashboard-header{
@@ -48,7 +47,15 @@ body{
     display: none;
     width: 80%;
 
-    border: 1px solid white;
+
+}
+
+.race-reset-dashboard-header{
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80%;
 }
 
 .dashboard-page-pannel{
@@ -61,6 +68,7 @@ body{
 
     justify-content: center;
     align-items: center;
+    margin-top : 16px;
 }
 
 .dashboard-page-top{
@@ -140,5 +148,5 @@ body{
 
     align-items: center;
 
-    border: 1px solid white;
+
 }

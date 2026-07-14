@@ -5,14 +5,18 @@ function Timer({ state, elapsedMs, setElapsedMs }) {
 
     useEffect(() => {
         if(state.start == true){
-            const timer = setInterval(() => {
-                setElapsedMs((prev) => prev + 10);
-            }, 10);
+            if(state.reset == false){
+                const timer = setInterval(() => {
+                    setElapsedMs((prev) => prev + 10);
+                }, 10);
 
-            return () => clearInterval(timer);
+                return () => clearInterval(timer);
+            }
         }
         else{
-            setElapsedMs(0)
+            if(state.reset == false){
+                setElapsedMs(0)
+            }
         }
     }, [state]);
 

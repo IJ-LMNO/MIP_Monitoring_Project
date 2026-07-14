@@ -18,4 +18,8 @@ def main(toggle):
 
     if(toggle == "race_start"):
         race_logger.start_race()
+    elif(toggle == "race_stop"):
+        race_logger.stop_race()
+    elif(toggle == "race_reset"):
+        race_logger.reset_race()
     

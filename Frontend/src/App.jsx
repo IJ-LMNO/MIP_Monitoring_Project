@@ -5,7 +5,7 @@ import YawRatePanel from "./components/panels/YawRateRanel/YawRatePanel"
 import BatteryStatusPaneel from "./components/panels/BatteryStatusPanel/BatteryStatusPanel"
 import RollRatePannel from "./components/panels/RollRateStatusPannel/RollRateStatusPannel"
 import CarStatusPannel from "./components/panels/CarStatusPannel/CarStatusPannel"
-import MyButton from "./components/common/Button/Button"
+import RaceButton from "./components/panels/RaceControlButton/Button"
 import Timer from "./components/common/Timer/Timer"
 
 import"./components/dashboard.css";
@@ -256,14 +256,58 @@ function App() {
 
 
     async function fetchButton() {
-            try{
-                const response = await fetch("http://localhost:8000/button")
-                console.log("변경 전") 
-                setRacestart((prev) => ({
-                    ...prev,
-                    start : !prev.start
-                }))
-                console.log("변경 후")
+            try{                
+                //주행 전(false false)
+                
+                //주행 시작 버튼 등장(false false)
+		        //주행 시작 버튼 눌림(true false)
+
+		        //주행 종료 버튼 등장(true false)
+                //주행 종료 버튼 눌림(false true)
+
+		        //초기화 버튼 등장(false true)
+		        //초기화 버튼 눌림(false false)
+
+		        //주행 시작 버튼 등장(false, false)
+
+                if(racestart.start == false){
+                    if(racestart.reset == false){
+                        //false, false
+                        const response = await fetch("http://localhost:8000/racestartbutton")
+                        setRacestart((prev) => {
+                            return{
+                                ...prev,
+                                start : !prev.start
+                                //true false
+                            }
+                        })
+                    }
+                    else{
+                        //false, true
+                        const response = await fetch("http://localhost:8000/raceresetbutton")
+                        setRacestart((prev) => {
+                            return{
+                               ...prev,
+                                reset : !prev.reset
+                                //false false
+                            }
+                        })
+                    }
+                }
+                else{
+                    if(racestart.reset == false){
+                        //true false
+                        const response = await fetch("http://localhost:8000/racestopbutton")
+                        setRacestart((prev) => {
+                            return{
+                                start : !prev.start,
+                                reset : !prev.reset
+                                //false true
+                            }
+                        })
+
+                    }
+                }
             }
             catch(err){
                 setError(err.message)
@@ -277,13 +321,8 @@ function App() {
 
     return (
         <div className= "dashboard-page">
-            <div className={racestart.start ? "race-start-dashboard-header" : "dashboard-header"}>
+            <div className={racestart.start ?  "race-start-dashboard-header" : racestart.reset ? "race-reset-dashboard-header" : "dashboard-header"}>
                 <Timer state={racestart} elapsedMs={elapsedMs} setElapsedMs = {setElapsedMs}/>
-                <div className={racestart.start ? "dashboard-header" : "race-start-dashboard-header"}>
-                    {String(Math.floor(elapsedMs / 60000)).padStart(2, "0")}:
-                    {String(Math.floor(elapsedMs / 1000) % 60).padStart(2, "0")}.
-                    {String(elapsedMs % 1000).padStart(3, "0")}
-                </div>
             </div>
             <div className="dashboard-page-pannel">
                 <div className="dashboard-page-top">
@@ -321,9 +360,9 @@ function App() {
             </div>
 
             <div className="dashboard-page-footer">
-                    <MyButton onClick={fetchButton} text={racestart.start ? "주행 종료" : "주행 시작"} state = {racestart}/>
+                    <RaceButton onClick={fetchButton} text={racestart.start ?  "주행종료"  : racestart.reset ? "초기화" :  "주행 시작"} state = {racestart}/>
+                    {/* <MyButton text="None" /> */}
                     {/* <MyButton text="None" />
-                    <MyButton text="None" />
                     <MyButton text="None" />
                     <MyButton text="None" />
                     <MyButton text="None" /> */}
