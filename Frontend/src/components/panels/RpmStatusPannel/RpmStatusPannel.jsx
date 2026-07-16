@@ -51,7 +51,7 @@ function RpmGauge({ label, value, max = 9000, colorClass }) {
     );
 }
 
-function RpmPannel({ frontRpm = 5800, rearRpm = 4500 }) {
+function RpmPannel({ frontRpm = 4321, rearRpm = 3000 }) {
     return (
         <div className="rpm-panel">
             <RpmGauge

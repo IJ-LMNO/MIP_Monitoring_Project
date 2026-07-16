@@ -9,9 +9,7 @@
 
     box-sizing: border-box;
 
-
     border-radius: 8px;
-
 
     font-family: Arial, sans-serif;
     color: #d7dde3;
@@ -54,6 +52,7 @@
 
     width: 125px;
     height: 290px;
+
 }
 
 .rpm-bar-frame {
@@ -68,8 +67,6 @@
 
     border: 2px solid #25323c;
     border-radius: 4px;
-
-
 }
 
 .rpm-bar-fill {
