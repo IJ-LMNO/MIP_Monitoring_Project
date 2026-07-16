@@ -139,6 +139,15 @@ body{
 
 }
 
+.rpmstatus-pannel{
+    flex : 1;
+    border: 1px solid white;
+
+    height: 100%;
+
+    margin-right : 16px;
+}
+
 .dashboard-page-footer{
     flex: 2;
     width: 80%;

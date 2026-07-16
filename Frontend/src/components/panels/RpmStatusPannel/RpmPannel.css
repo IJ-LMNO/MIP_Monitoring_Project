@@ -1,0 +1,180 @@
+.rpm-panel {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+
+    width: 430px;
+    height: 420px;
+    padding: 20px 16px;
+
+    box-sizing: border-box;
+
+
+    border-radius: 8px;
+
+
+    font-family: Arial, sans-serif;
+    color: #d7dde3;
+}
+
+.rpm-gauge {
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    min-width: 0;
+}
+
+.rpm-title {
+    margin-bottom: 6px;
+
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1px;
+
+    color: #969da5;
+}
+
+.rpm-value {
+    margin-bottom: 18px;
+
+    font-size: 27px;
+    font-weight: 600;
+
+    color: #edf1f4;
+}
+
+.rpm-meter-area {
+    position: relative;
+
+    display: flex;
+    align-items: stretch;
+
+    width: 125px;
+    height: 290px;
+}
+
+.rpm-bar-frame {
+    position: relative;
+
+    width: 40px;
+    height: 100%;
+
+    overflow: hidden;
+
+    background: #03070b;
+
+    border: 2px solid #25323c;
+    border-radius: 4px;
+
+
+}
+
+.rpm-bar-fill {
+    position: absolute;
+    bottom: 0;
+    left: 3px;
+    right: 3px;
+
+    transition: height 0.3s ease;
+}
+
+.front-rpm-fill {
+    background: linear-gradient(to top,
+            #1449b0 0%,
+            #2467e4 55%,
+            #4d86ff 100%);
+
+
+}
+
+.rear-rpm-fill {
+    background: linear-gradient(to top,
+            #a9272f 0%,
+            #e0474d 55%,
+            #ff6b6b 100%);
+
+
+}
+
+.rpm-segments {
+    position: absolute;
+    inset: 4px 3px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    pointer-events: none;
+}
+
+.rpm-segments span {
+    display: block;
+
+    width: 100%;
+    height: 2px;
+
+    background: rgba(3, 8, 13, 0.85);
+}
+
+.rpm-scale {
+    position: relative;
+
+    flex: 1;
+    height: 100%;
+
+    margin-left: 8px;
+
+    color: #a8afb5;
+}
+
+.rpm-scale-item {
+    position: absolute;
+    left: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    font-size: 14px;
+}
+
+.rpm-scale-line {
+    width: 16px;
+    height: 1px;
+
+    background: #5f6971;
+}
+
+.scale-top {
+    top: 0;
+    transform: translateY(-50%);
+}
+
+.scale-middle {
+    top: 33.33%;
+    transform: translateY(-50%);
+}
+
+.scale-low {
+    top: 66.66%;
+    transform: translateY(-50%);
+}
+
+.scale-bottom {
+    bottom: 0;
+    transform: translateY(50%);
+}
+
+.rpm-divider {
+    width: 1px;
+    margin: 0 14px;
+
+    background: linear-gradient(to bottom,
+            transparent,
+            #28353e 10%,
+            #28353e 90%,
+            transparent);
+}

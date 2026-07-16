@@ -5,7 +5,7 @@ from Monitoring_Server.log import main as main
 
 BROKER_HOST = "localhost"
 BROKER_PORT = 1883
-TOPIC = "vehicle/#"
+TOPIC = "vehicle/car_01/#"
 START_TIME = time.time()
 
 # update recent drive log which locate in log.py
@@ -48,6 +48,6 @@ def main(latest_data, lock):
     monitoring_client.on_connect = on_connect
     monitoring_client.on_message = on_message
 
-    monitoring_client.connect(BROKER_HOST, BROKER_PORT)
-    monitoring_client.subscribe(TOPIC,qos= 1)  
+    monitoring_client.connect(BROKER_HOST, BROKER_PORT, 60)
+    monitoring_client.subscribe(TOPIC, qos= 2)  
     monitoring_client.loop_forever()

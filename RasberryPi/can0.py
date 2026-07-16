@@ -3,11 +3,12 @@ import math
 import threading as thread
 import paho.mqtt.client as mqtt
 
-class Sample:
+class Can0:
     def __init__(self, channel='can0'):
         self.channel = channel
         self.bus = None
         self._data_lock = thread.Lock()
+        self.received_count = 0
 
         # Use default values until the first frame from each motor is received.
         self.right_data = {
@@ -21,6 +22,11 @@ class Sample:
             'current': 0.0,
             'torque': 0.0,
             'rpm': 0,
+        }
+
+        self.can0_data ={
+            ##아래 변수들 다 넣어야 함
+            
         }
 
         self.avg_rpm = 0.0
@@ -80,6 +86,7 @@ class Sample:
                         received_count += 1
 
 
+            self.received_count = received_count
             # Read the next queued frame instead of processing the same frame repeatedly.
             msg = self.bus.recv(timeout=0)
 
@@ -104,28 +111,23 @@ class Sample:
         self.rpm_left = left_data['rpm']
         self.rpm_right = right_data['rpm']
 
-        return {
-            'avg_rpm': self.avg_rpm,
-            'avg_voltage': self.avg_voltage,
-            'power_right': self.power_right,
-            'power_left': self.power_left,
-            'avg_power': self.avg_power,
-            'speed': self.speed,
-            'current_left': self.current_left,
-            'current_right': self.current_right,
-            'rpm_left': self.rpm_left,
-            'rpm_right': self.rpm_right,
-        }
 
     def shutdown(self):
         if self.bus is not None:
             self.bus.shutdown()
             self.bus = None
 
-def main(powerunit_data):
-    obj = Sample()
+def main(can0_share_data, can0_queue):
+    obj = Can0()
+    prev_received_count = 0
 
     while(True):
         obj.read_can_data()
-        power_unit_data = obj.calculate_data()
-        powerunit_data.update(power_unit_data)
+        obj.calculate_data()
+
+        if(prev_received_count != obj.received_count):
+            can0_share_data.update(obj.can0_data)
+            can0_queue.put(obj.can0_data)   
+        
+            prev_received_count = obj.received_count
+

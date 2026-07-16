@@ -7,6 +7,7 @@ import RollRatePannel from "./components/panels/RollRateStatusPannel/RollRateSta
 import CarStatusPannel from "./components/panels/CarStatusPannel/CarStatusPannel"
 import RaceButton from "./components/panels/RaceControlButton/Button"
 import Timer from "./components/common/Timer/Timer"
+import RpmPannel from "./components/panels/RpmStatusPannel/RpmStatusPannel";
 
 import"./components/dashboard.css";
 
@@ -350,6 +351,9 @@ function App() {
                         <div className="rollrate-pannel">
                             <RollRatePannel RollRate={rollrate} />
                         </div>
+                    </div>
+                    <div className="rpmstatus-pannel">
+                        <RpmPannel/>
                     </div>
                     <div className="carstatus-pannel">
                         <CarStatusPannel carstatus={carstatus} />
