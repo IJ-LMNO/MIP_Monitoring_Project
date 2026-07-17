@@ -34,6 +34,7 @@ def Mqtt_Thread():
         args=(can0_queue, tps_queue, bps_queue, desired_yawrate_queue)
     )
 
+    Mqtt_Thread.start()
 
 
 def main():

@@ -17,6 +17,7 @@ class Can0:
             'torque': 0.0,
             'rpm': 0,
         }
+
         self.left_data = {
             'voltage': 0.0,
             'current': 0.0,
@@ -25,20 +26,17 @@ class Can0:
         }
 
         self.can0_data ={
-            ##아래 변수들 다 넣어야 함
-            
+            'avg_rpm' : 0.0,
+            'avg_voltage' : 0.0,
+            "power_right" : 0.0,
+            "power_left" : 0.0,
+            "avg_power" : 0.0,
+            "speed" : 0.0,
+            "current_left" : 0.0,
+            "current_right" : 0.0,
+            "rpm_left" : 0.0,
+            "rpm_right" : 0.0
         }
-
-        self.avg_rpm = 0.0
-        self.avg_voltage = 0.0
-        self.power_right = 0.0
-        self.power_left = 0.0
-        self.avg_power = 0.0
-        self.speed = 0.0
-        self.current_left = 0.0
-        self.current_right = 0.0
-        self.rpm_left = 0
-        self.rpm_right = 0
 
         self.init_can()
 

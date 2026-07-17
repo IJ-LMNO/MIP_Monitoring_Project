@@ -29,20 +29,27 @@ def on_connect(client, userdata, flags, reason_code, properties):
 def on_message(client, userdata, message):
     payload = message.payload.decode("utf-8")
     data = json.loads(payload)
-
-    with userdata["lock"]:
-        key = message.topic.split("/")[-1]
-        update_lastest_data(key, userdata["latest_data"], data)
-        update_recent_drive_log(key, data)
+    
+    if(message.topic.split("/")[-1] == "can_0"):
+        userdata["can0_queue"].put(data)
+    elif(message.topic.split("/")[-1] == "tps"):
+        userdata["tps_queue"].put(data)
+    elif(message.topic.split("/")[-1] == "bps"):
+        userdata["bps_queue"].put(data)
+    elif(message.topic.split("/")[-1] == "desiredyawrate"):
+        userdata["desired_yawrate_queue"].put(data)
+        
     
     
 # monitoring server mqtt entry methond
-def main(latest_data, lock):
+def main(can0_queue, tps_queue, bps_queue, desired_yawrate_queue):
     monitoring_client = mqtt.Client() 
 
     monitoring_client.user_data_set({
-        "latest_data" : latest_data,
-        "lock" : lock
+        "can0_queue" : can0_queue,
+        "tps_queue" : tps_queue,
+        "bps_queue" : bps_queue,
+        "desired_yawrate_queue" : desired_yawrate_queue
     })
 
     monitoring_client.on_connect = on_connect
