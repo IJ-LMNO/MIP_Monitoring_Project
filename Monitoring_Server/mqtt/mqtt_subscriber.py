@@ -31,25 +31,37 @@ def on_message(client, userdata, message):
     data = json.loads(payload)
     
     if(message.topic.split("/")[-1] == "can_0"):
-        userdata["can0_queue"].put(data)
+        with userdata["can0_lock"]:
+            userdata["can0"]["latest"] = data
+            userdata["can0"]["history"].append(data)
     elif(message.topic.split("/")[-1] == "tps"):
-        userdata["tps_queue"].put(data)
+        with userdata["tps_lock"]:
+            userdata["tps"]["latest"] = data
+            userdata["tps"]["history"].append(data)
     elif(message.topic.split("/")[-1] == "bps"):
-        userdata["bps_queue"].put(data)
+        with userdata["bps_lock"]:
+            userdata["bps"]["latest"] = data
+            userdata["bps"]["history"].append(data)
     elif(message.topic.split("/")[-1] == "desiredyawrate"):
-        userdata["desired_yawrate_queue"].put(data)
+        with userdata["desired_yawrate_lock"]:
+            userdata["desired_yawrate"]["latest"] = data
+            userdata["desired_yawrate"]["history"].append(data)
         
     
     
 # monitoring server mqtt entry methond
-def main(can0_queue, tps_queue, bps_queue, desired_yawrate_queue):
+def main(can0, tps, bps, desired_yawrate, can0_lock, tps_lock,bps_lock,desired_yawrate_lock):
     monitoring_client = mqtt.Client() 
 
     monitoring_client.user_data_set({
-        "can0_queue" : can0_queue,
-        "tps_queue" : tps_queue,
-        "bps_queue" : bps_queue,
-        "desired_yawrate_queue" : desired_yawrate_queue
+        "can0" : can0,
+        "tps" : tps,
+        "bps" : bps,
+        "desired_yawrate" : desired_yawrate,
+        "can0_lock" : can0_lock,
+        "tps_lock" : tps_lock,
+        "desired_yawrate_lock" : desired_yawrate_lock
+
     })
 
     monitoring_client.on_connect = on_connect

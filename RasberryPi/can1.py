@@ -75,9 +75,12 @@ def main(can1_share_data, tps_queue, bps_queue, desired_yawrate_queue):
 
         if(obj.TPS["tps_received_count"] != prev_tps_received_cout):
             tps_queue.put(obj.TPS["Throttle_Percent"])
+            prev_tps_received_cout = obj.Tps["tps_received_count"]
         
         if(obj.BPS["bps_received_count"] != prev_bps_received_count):
             bps_queue.put(obj.BPS["Braking_Percent"])
+            prev_bps_received_count = obj.Bps["bps_received_count"]
         
         if(obj.Desired_yaw_rate["yaw_rate_received_count"] != prev_desired_yaw_rate_received_count):
             desired_yawrate_queue.put(obj.Desired_yaw_rate["Desired_yaw_rate"])
+            prev_desired_yaw_rate_received_count = obj.Desired_yaw_rate["desired_yaw_rate_received_count"]

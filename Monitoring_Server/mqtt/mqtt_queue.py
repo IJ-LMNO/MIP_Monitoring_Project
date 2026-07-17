@@ -1,7 +1,5 @@
-def main(queue, data, lock):
-    latest_data = queue.get()
-    
-    with lock:
+import copy
 
-        data["latest"] = latest_data
-        data["history"].append(latest_data)
+def main(queue, data, lock):
+    with lock:
+        queue.put(copy.deepcopy(data))

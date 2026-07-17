@@ -124,7 +124,7 @@ def main(can0_share_data, can0_queue):
         obj.calculate_data()
 
         if(prev_received_count != obj.received_count):
-            can0_share_data.update(obj.can0_data)
+            # can0_share_data.update(obj.can0_data)
             can0_queue.put(obj.can0_data)   
         
             prev_received_count = obj.received_count
