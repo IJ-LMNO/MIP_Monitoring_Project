@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import PowerStatusPanel from "./components/panels/PowerStatusPanel/PowerStatusPanel";
 import SpeedStatusPanel from "./components/panels/SpeedStatusPanel/SpeedStatusPanel"
 import YawRatePanel from "./components/panels/YawRateRanel/YawRatePanel"
@@ -40,7 +40,13 @@ const[can0, setCan0] = useState({
 
     const [elapsedMs, setElapsedMs] = useState(0);
 
+    const can0version = useRef(0)
+    const tpsversion = useRef(0)
+    const bpsversion = useRef(0)
+    const desiredyawrateversion = useRef(0)
+
     function telemetryCan0() {
+
         const timer = setInterval(async () => {
             try {
                 const response = await fetch(
@@ -53,7 +59,13 @@ const[can0, setCan0] = useState({
 
                 const data = await response.json();
 
+                if(data["version"] === can0version.current){
+                    return
+                }
+
                 setCan0(data);
+                can0version.current = data["version"]
+        
             } catch (error) {
                 setError(error.message);
             }
@@ -76,8 +88,13 @@ const[can0, setCan0] = useState({
                 }
 
                 const data = await response.json();
+                
+                if(data["version"] === tpsversion){
+                    return;
+                }
 
                 setTps(data);
+                tpsversion.current = data["version"]
             } catch (error) {
                 setError(error.message);
             }
@@ -101,7 +118,13 @@ const[can0, setCan0] = useState({
 
                 const data = await response.json();
 
+                if(data["version"] === bpsversion){
+                    return
+                }
+
                 setBps(data);
+                bpsversion.current = data['version']
+                
             } catch (error) {
                 setError(error.message);
             }
@@ -125,7 +148,13 @@ const[can0, setCan0] = useState({
 
                 const data = await response.json();
 
+                if(data["version"] === desiredyawrateversion){
+                    return
+                }
+
                 setDesiredy_yawrate(data);
+                desiredyawrateversion.current = data['version']
+
             } catch (error) {
                 setError(error.message);
             }
