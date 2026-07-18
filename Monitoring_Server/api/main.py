@@ -33,10 +33,11 @@ def race_stop():
 
 
 @app.get("/telemetry/can0")
-def get_can0(data):
+def get_can0():
     return {
         "latest": app.state.can0["latest"],
         "history": list(app.state.can0["history"]),
+        "version" : app.state.can0["version"]
     }
 
 

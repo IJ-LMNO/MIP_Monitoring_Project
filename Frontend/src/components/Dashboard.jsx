@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import PowerStatusPanel from "./components/panels/PowerStatusPanel/PowerStatusPanel";
+import PowerStatusPanel from "./components/panels/PowerStatusPanel/PowerStatusPanel_for_mqtt";
 import SpeedStatusPanel from "./components/panels/SpeedStatusPanel/SpeedStatusPanel"
 import YawRatePanel from "./components/panels/YawRateRanel/YawRatePanel"
 import BatteryStatusPaneel from "./components/panels/BatteryStatusPanel/BatteryStatusPanel"
@@ -9,24 +9,34 @@ import RaceButton from "./components/panels/RaceControlButton/Button"
 import Timer from "./components/common/Timer/Timer"
 import RpmPannel from "./components/panels/RpmStatusPannel/RpmStatusPannel";
 
-import "./components/dashboard.css";
+import "./components/Dashboard.css";
 
 function Dashboard(){
 const[can0, setCan0] = useState({
-        'avg_rpm': 0.0,
-        'avg_voltage': 0.0,
-        "avg_power": 0.0,   
+        "latest" : {
+            'avg_rpm': 0.0,
+            'avg_voltage': 0.0,
+            "avg_power": 0.0,   
 
-        "power_right": 0.0,
-        "power_left": 0.0,
+            "power_right": 0.0,
+            "power_left": 0.0,
 
-        "speed": 0.0,
+            "speed": 0.0,
 
-        "current_left": 0.0,
-        "current_right": 0.0,
+            "current_left": 0.0,
+            "current_right": 0.0,
+            
+            "rpm_left": 0.0,
+            "rpm_right": 0.0
+        },
         
-        "rpm_left": 0.0,
-        "rpm_right": 0.0
+        "history" : {
+            "current_right" : [],
+            "current_left" : [],
+            "avg_power" : []
+        },
+
+        "version" : 0
     })
 
     const [tps, setTps] = useState(0.0)
@@ -69,7 +79,7 @@ const[can0, setCan0] = useState({
             } catch (error) {
                 setError(error.message);
             }
-        }, 1000);
+        }, 100);
 
         return () => {
             clearInterval(timer);
@@ -98,7 +108,7 @@ const[can0, setCan0] = useState({
             } catch (error) {
                 setError(error.message);
             }
-        }, 1000);
+        }, 100);
 
         return () => {
             clearInterval(timer);
@@ -128,7 +138,7 @@ const[can0, setCan0] = useState({
             } catch (error) {
                 setError(error.message);
             }
-        }, 1000);
+        }, 100);
 
         return () => {
             clearInterval(timer);
@@ -158,7 +168,7 @@ const[can0, setCan0] = useState({
             } catch (error) {
                 setError(error.message);
             }
-        }, 1000);
+        }, 100);
 
         return () => {
             clearInterval(timer);
@@ -188,7 +198,7 @@ const[can0, setCan0] = useState({
                 <div className="dashboard-page-top">
 
                     <div className="powerstatus-panel">
-                        <PowerStatusPanel data={can0} />
+                        <PowerStatusPanel can0={can0} />
                     </div>
                     <div className="speedstatus-battery-pannel">
                         <div className="speedstatus-pannel">
@@ -233,3 +243,5 @@ const[can0, setCan0] = useState({
         </div>
     );
 }
+
+export default Dashboard

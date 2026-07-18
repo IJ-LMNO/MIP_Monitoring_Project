@@ -17,8 +17,27 @@ bps_lock = thread.Lock()
 desired_yawrate_lock = thread.Lock() 
 
 can0 = {
-    "latest" : {},
-    "history" : {},
+    "latest" : {
+        'avg_rpm': 0.0,
+        'avg_voltage': 0.0,
+        "avg_power": 0.0,   
+
+        "power_right": 0.0,
+        "power_left": 0.0,
+
+        "speed": 0.0,
+
+        "current_left": 0.0,
+        "current_right": 0.0,
+        
+        "rpm_left": 0.0,
+        "rpm_right": 0.0
+    },
+    "history" : {
+        "current_right" : deque(maxlen=40),
+        "current_left" : deque(maxlen=40),
+        "avg_power" : deque(maxlen=40)
+    },
     "version" : 0
 }
 tps = {
@@ -38,8 +57,6 @@ desired_yawrate = {
 }
 
 
-
-# make thread for mqtt and start
 def mqtt_subscriber_thread():
 
     thread_mqtt = thread.Thread(
@@ -99,5 +116,5 @@ def queue_start():
 def main():
     mqtt_subscriber_thread()
     queue_start()
-    run_fast_api(can0, tps, bps, desired_yawrate, can0_lock, tps_lock, bps_lock, desired_yawrate_lock)
+    run_fast_api()
 

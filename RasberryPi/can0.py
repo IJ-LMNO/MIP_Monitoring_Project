@@ -42,11 +42,8 @@ class Can0:
                 "rpm_left" : 0.0,
                 "rpm_right" : 0.0
             },
-            "history" : {
-                "avg_voltate" : deque(maxlen=40)
-            },
-            "version" : 0
-            
+
+            "version" : 0    
         }
 
         self.init_can()
