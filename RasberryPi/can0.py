@@ -2,6 +2,8 @@ import can
 import math
 import threading as thread
 import paho.mqtt.client as mqtt
+import time
+from collections import deque
 
 class Can0:
     def __init__(self, channel='can0'):
@@ -26,16 +28,25 @@ class Can0:
         }
 
         self.can0_data ={
-            'avg_rpm' : 0.0,
-            'avg_voltage' : 0.0,
-            "power_right" : 0.0,
-            "power_left" : 0.0,
-            "avg_power" : 0.0,
-            "speed" : 0.0,
-            "current_left" : 0.0,
-            "current_right" : 0.0,
-            "rpm_left" : 0.0,
-            "rpm_right" : 0.0
+            "latest" : {
+                'avg_rpm' : 0.0,
+                'avg_voltage' : 0.0,
+                "avg_power" : 0.0,
+
+                "speed" : 0.0,
+
+                "power_left" : 0.0,
+                "power_right" : 0.0,
+                "current_left" : 0.0,
+                "current_right" : 0.0,
+                "rpm_left" : 0.0,
+                "rpm_right" : 0.0
+            },
+            "history" : {
+                "avg_voltate" : deque(maxlen=40)
+            },
+            "version" : 0
+            
         }
 
         self.init_can()
@@ -115,17 +126,23 @@ class Can0:
             self.bus.shutdown()
             self.bus = None
 
-def main(can0_share_data, can0_queue):
+def main(can0_queue):
     obj = Can0()
-    prev_received_count = 0
+    prev_version = 0
 
     while(True):
         obj.read_can_data()
         obj.calculate_data()
 
-        if(prev_received_count != obj.received_count):
+        # 갱신 단위에 따라 수정해야 할 수 있음
+        time.sleep(10)
+
+        if(prev_version != obj.can0_data["version"]):
             # can0_share_data.update(obj.can0_data)
             can0_queue.put(obj.can0_data)   
         
-            prev_received_count = obj.received_count
+            if(obj.can0_data["version"] == 100000):
+                obj.can0_data["version"] = 0
+            else:
+                obj.can0_data["version"] += 1
 

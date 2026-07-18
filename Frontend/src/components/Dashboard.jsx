@@ -188,11 +188,11 @@ const[can0, setCan0] = useState({
                 <div className="dashboard-page-top">
 
                     <div className="powerstatus-panel">
-                        <PowerStatusPanel telemetry={telemetry} />
+                        <PowerStatusPanel data={can0} />
                     </div>
                     <div className="speedstatus-battery-pannel">
                         <div className="speedstatus-pannel">
-                            <SpeedStatusPanel speed={speed} />
+                            <SpeedStatusPanel speed={can0["speed"]} />
                         </div>
                         <div className="battery-pannel">
                             <BatteryStatusPaneel battery={battery} />

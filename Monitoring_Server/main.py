@@ -3,7 +3,8 @@ import queue
 from collections import deque
 from Monitoring_Server.mqtt.mqtt_subscriber import main as monitoring_server_main
 from Monitoring_Server.api import main as fast_api_main
-from Monitoring_Server.mqtt.mqtt_queue import main as mqtt_queue_main
+from Monitoring_Server.mqtt.mqtt_can1_queue import main as mqtt_can1_queue
+from Monitoring_Server.mqtt.mqtt_can0_queue import main as mqtt_can0_queue
 
 can0_queue = queue.Queue()
 tps_queue = queue.Queue()
@@ -16,8 +17,8 @@ bps_lock = thread.Lock()
 desired_yawrate_lock = thread.Lock() 
 
 can0 = {
-    "latest" : 0.0,
-    "history" : deque(maxlen=40),
+    "latest" : {},
+    "history" : {},
     "version" : 0
 }
 tps = {
@@ -54,7 +55,7 @@ def run_fast_api():
 def mqtt_can0_queue_thread():
     
     thread_mqtt_queue = thread.Thread(
-        target= mqtt_queue_main,
+        target= mqtt_can0_queue,
         args=(can0_queue, can0, can0_lock, 0)
     )
 
@@ -63,7 +64,7 @@ def mqtt_can0_queue_thread():
 def mqtt_tps_queue_thread():
     
     thread_mqtt_queue = thread.Thread(
-        target= mqtt_queue_main,
+        target= mqtt_can1_queue,
         args=(tps_queue, tps,tps_lock, 1)
     )
 
@@ -72,7 +73,7 @@ def mqtt_tps_queue_thread():
 def mqtt_bps_queue_thread():
     
     thread_mqtt_queue = thread.Thread(
-        target= mqtt_queue_main,
+        target= mqtt_can1_queue,
         args=(bps_queue, bps,bps_lock,2)
     )
 
@@ -81,7 +82,7 @@ def mqtt_bps_queue_thread():
 def mqtt_desired_yawrate_queue_thread():
     
     thread_mqtt_queue = thread.Thread(
-        target= mqtt_queue_main,
+        target= mqtt_can1_queue,
         args=(desired_yawrate_queue, desired_yawrate, desired_yawrate_lock,3)
     )
 
