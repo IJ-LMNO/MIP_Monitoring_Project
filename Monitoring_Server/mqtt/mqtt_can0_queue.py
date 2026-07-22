@@ -6,8 +6,11 @@ def main(queue, data, lock, type):
         try:
             latest_data = queue.get()
 
-            data["latest"] = latest_data["latest"]
-            data["history"].update(latest_data["history"])
+            data["latest"].update(latest_data["latest"])
+
+            data["history"]["current_right"].append(latest_data["latest"]["current_right"])
+            data["history"]["current_left"].append(latest_data["latest"]["current_left"])
+            data["history"]["avg_power"].append(latest_data["latest"]["avg_power"])
 
             data["version"] = latest_data["version"]
 

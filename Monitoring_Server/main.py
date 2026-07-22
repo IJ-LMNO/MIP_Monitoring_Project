@@ -21,6 +21,7 @@ gps_lock = thread.Lock()
 
 can0 = {
     "latest" : {
+<<<<<<< HEAD
         'avg_rpm' : 0.0,
         'avg_voltage' : 0.0,
         "avg_power" : 0.0,
@@ -37,6 +38,26 @@ can0 = {
     "history" : {
         "current_left" : deque(maxlen=40),
         "current_right" : deque(maxlen = 40),
+=======
+        'avg_rpm': 0.0,
+        'avg_voltage': 0.0,
+        "avg_power": 0.0,   
+
+        "power_right": 0.0,
+        "power_left": 0.0,
+
+        "speed": 0.0,
+
+        "current_left": 0.0,
+        "current_right": 0.0,
+        
+        "rpm_left": 0.0,
+        "rpm_right": 0.0
+    },
+    "history" : {
+        "current_right" : deque(maxlen=40),
+        "current_left" : deque(maxlen=40),
+>>>>>>> 1683a56e6b0b817cb0449def7bf960226505e636
         "avg_power" : deque(maxlen=40)
     },
     "version" : 0
@@ -67,11 +88,14 @@ gps = {
 }
 
 
+<<<<<<< HEAD
 
 def run_fast_api():
     fast_api_main()
 
 
+=======
+>>>>>>> 1683a56e6b0b817cb0449def7bf960226505e636
 def mqtt_subscriber_thread():
 
     thread_mqtt = thread.Thread(
@@ -139,3 +163,7 @@ def main():
     mqtt_subscriber_thread()
     queue_start()
     run_fast_api()
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1683a56e6b0b817cb0449def7bf960226505e636

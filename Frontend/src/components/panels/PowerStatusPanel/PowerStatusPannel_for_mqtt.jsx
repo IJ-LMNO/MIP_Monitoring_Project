@@ -1,4 +1,4 @@
-import MiniLineChart from "../../common/MinLineChart/MiniLineChart";
+import MiniLineChart from "../../common/MinLineChart/MiniLineChart_for_mqtt";
 
 import "./PowerStatusPanel.css";
 
@@ -33,34 +33,34 @@ function PowerMetricRow({
     );
 }
 
-function PowerStatusPanel({ telemetry }) {
+function PowerStatusPanel({ can0 }) {
     return (
         <div className="power-status-pannels">
             <div className="power-status-panel">
                 <PowerMetricRow
                     label="전류 L"
-                    value={telemetry.currentLeft}
+                    value={can0["latest"]["current_left"]}
                     unit="A"
                     color="blue"
-                    chartData={telemetry.series.currentLeft}
+                    chartData={can0["history"]["current_left"]}
                 />
             </div>
             <div className="power-status-panel">
                 <PowerMetricRow
                     label="전류 R"
-                    value={telemetry.currentRight}
+                    value={can0["latest"]["current_right"]}
                     unit="A"
                     color="red"
-                    chartData={telemetry.series.currentRight}
+                    chartData={can0["history"]["current_right"]}
                 />
             </div>
             <div className="power-status-panel">
                 <PowerMetricRow
                     label="출력"
-                    value={telemetry.powerKw}
+                    value={can0["latest"]["avg_power"]}
                     unit="kW"
                     color="green"
-                    chartData={telemetry.series.powerKw}
+                    chartData={can0["history"]["avg_power"]}
                     min={0}
                     max={15}
                 />

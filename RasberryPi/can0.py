@@ -42,6 +42,7 @@ class Can0:
                 "rpm_left" : 0.0,
                 "rpm_right" : 0.0
             },
+<<<<<<< HEAD
             "history" : {
                 "current_left" : deque(maxlen=40),
                 "current_right" : deque(maxlen = 40),
@@ -50,6 +51,10 @@ class Can0:
             },
             "version" : 0
             
+=======
+
+            "version" : 0    
+>>>>>>> 1683a56e6b0b817cb0449def7bf960226505e636
         }
 
         self.init_can()
