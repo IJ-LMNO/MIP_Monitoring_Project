@@ -27,7 +27,7 @@ class Can0:
             'rpm': 0,
         }
 
-        self.can0_data ={
+        self.can0 ={
             "latest" : {
                 'avg_rpm' : 0.0,
                 'avg_voltage' : 0.0,
@@ -43,7 +43,10 @@ class Can0:
                 "rpm_right" : 0.0
             },
             "history" : {
-                "avg_voltate" : deque(maxlen=40)
+                "current_left" : deque(maxlen=40),
+                "current_right" : deque(maxlen = 40),
+                "avg_power" : deque(maxlen=40)
+
             },
             "version" : 0
             
@@ -120,6 +123,8 @@ class Can0:
         self.rpm_left = left_data['rpm']
         self.rpm_right = right_data['rpm']
 
+        can0[""]
+
 
     def shutdown(self):
         if self.bus is not None:
@@ -128,7 +133,7 @@ class Can0:
 
 def main(can0_queue):
     obj = Can0()
-    prev_version = 0
+    can0_prev_version = 0
 
     while(True):
         obj.read_can_data()
@@ -137,12 +142,12 @@ def main(can0_queue):
         # 갱신 단위에 따라 수정해야 할 수 있음
         time.sleep(10)
 
-        if(prev_version != obj.can0_data["version"]):
-            # can0_share_data.update(obj.can0_data)
-            can0_queue.put(obj.can0_data)   
+        if(can0_prev_version != obj.can0["version"]):
+            can0_queue.put(obj.can0)  
+            can0_prev_version = obj.can0["version"]
         
-            if(obj.can0_data["version"] == 100000):
-                obj.can0_data["version"] = 0
+            if(obj.can0["version"] == 100000):
+                obj.can0["version"] = 0
             else:
-                obj.can0_data["version"] += 1
+                obj.can0["version"] += 1
 

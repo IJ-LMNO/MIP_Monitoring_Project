@@ -13,20 +13,10 @@ import "./components/dashboard.css";
 
 function Dashboard(){
 const[can0, setCan0] = useState({
-        'avg_rpm': 0.0,
-        'avg_voltage': 0.0,
-        "avg_power": 0.0,   
-
-        "power_right": 0.0,
-        "power_left": 0.0,
-
-        "speed": 0.0,
-
-        "current_left": 0.0,
-        "current_right": 0.0,
-        
-        "rpm_left": 0.0,
-        "rpm_right": 0.0
+        "latest": {},
+        "history" : {
+            "avg_voltage" : []
+        }
     })
 
     const [tps, setTps] = useState(0.0)

@@ -4,7 +4,7 @@ import threading
 import paho.mqtt.client as mqtt
 
 
-BROKER_HOST = "localhost"
+BROKER_HOST = "172.20.10.13"
 BROKER_PORT = 1883
 
 
@@ -15,7 +15,7 @@ def can0_mqtt(client, can0_queue):
         try:
             payload = json.dumps(data)
             client.publish(
-                "vehicle/car_01/can_0",
+                "vehicle/car_01/can0",
                 payload,
                 qos=2
             )
@@ -67,12 +67,27 @@ def desired_yawrate_mqtt(client, desired_yawrate_queue):
         finally:
             desired_yawrate_queue.task_done()
 
+def gps_mqtt(client, gps_queue):
+    while True:
+        data = gps_queue.get()
+
+        try:
+            payload = json.dumps(data)
+            client.publish(
+                "vehicle/car_01/gps",
+                payload,
+                qos=2
+            )
+        finally:
+            gps_queue.task_done()
+
 
 def main(
     can0_queue,
     tps_queue,
     bps_queue,
-    desired_yawrate_queue
+    desired_yawrate_queue,
+    gps_queue
 ):
     client = mqtt.Client()
 
@@ -103,6 +118,11 @@ def main(
         threading.Thread(
             target=desired_yawrate_mqtt,
             args=(client, desired_yawrate_queue),
+            daemon=True
+        ),
+        threading.Thread(
+            target=gps_mqtt,
+            args=(client, gps_queue),
             daemon=True
         )
     ]

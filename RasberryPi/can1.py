@@ -11,17 +11,17 @@ class Can1:
         # Use default values until the first frame from each data
         self.BPS = {
             'Braking_Percent': 0, #unit is percent
-            "bps_received_count" : 0
+            "version" : 0
         }
 
         self.TPS = {
             'Throttle_Percent': 0, #unit is percent
-            "tps_received_count" : 0
+            "version" : 0
         }
 
         self.Desired_yaw_rate = {
             'Desired_yaw_rate': 0.00, #unit is deg/s
-            "desired_yaw_rate_received_count" : 0
+            "version" : 0
         }
     
     def init_can1(self):
@@ -64,7 +64,7 @@ class Can1:
             self.bus.shutdown()
             self.bus = None
 
-def main(can1_share_data, tps_queue, bps_queue, desired_yawrate_queue):
+def main(tps_queue, bps_queue, desired_yawrate_queue):
     obj = Can1()
     prev_tps_received_cout = 0
     prev_bps_received_count = 0
@@ -73,14 +73,14 @@ def main(can1_share_data, tps_queue, bps_queue, desired_yawrate_queue):
     while(True):
         obj.read_can_data()
 
-        if(obj.TPS["tps_received_count"] != prev_tps_received_cout):
+        if(obj.TPS["verison"] != prev_tps_received_cout):
             tps_queue.put(obj.TPS["Throttle_Percent"])
             prev_tps_received_cout = obj.Tps["tps_received_count"]
         
-        if(obj.BPS["bps_received_count"] != prev_bps_received_count):
+        if(obj.BPS["version"] != prev_bps_received_count):
             bps_queue.put(obj.BPS["Braking_Percent"])
             prev_bps_received_count = obj.Bps["bps_received_count"]
         
-        if(obj.Desired_yaw_rate["yaw_rate_received_count"] != prev_desired_yaw_rate_received_count):
+        if(obj.Desired_yaw_rate["version"] != prev_desired_yaw_rate_received_count):
             desired_yawrate_queue.put(obj.Desired_yaw_rate["Desired_yaw_rate"])
             prev_desired_yaw_rate_received_count = obj.Desired_yaw_rate["desired_yaw_rate_received_count"]

@@ -33,10 +33,11 @@ def race_stop():
 
 
 @app.get("/telemetry/can0")
-def get_can0(data):
+def get_can0():
     return {
         "latest": app.state.can0["latest"],
         "history": list(app.state.can0["history"]),
+        "version" : app.state.can0["version"]
     }
 
 
@@ -45,6 +46,7 @@ def get_tps():
     return {
         "latest": app.state.tps["latest"],
         "history": list(app.state.tps["history"]),
+        "version" : app.state.tps["version"]
     }
 
 
@@ -53,6 +55,7 @@ def get_bps():
     return {
         "latest": app.state.bps["latest"],
         "history": list(app.state.bps["history"]),
+        "version" : app.state.bps["version"]
     }
 
 
@@ -61,7 +64,19 @@ def get_desired_yawrate():
     return {
         "latest": app.state.desired_yawrate["latest"],
         "history": list(app.state.desired_yawrate["history"]),
+        "version" : app.state.desired_yawrate["version"]
     }
+
+@app.get("/telemetry/gps")
+def get_gps():
+
+    print(app.stae.gps["version"])
+    
+    return {
+        "latest": app.state.gps["latest"],
+        "version" : app.state.gps["version"]
+    }
+
 
 
 @app.get("/racestartbutton")
@@ -93,6 +108,7 @@ def race_reset_button():
         "race_state": "reset",
     }
 
+
 def get_can0_data(data):
     app.state.can0 = data
 
@@ -104,6 +120,9 @@ def get_bps_data(data):
 
 def get_desired_yawrate_data(data):
     app.state.desired_yawrate = data
+
+def get_gps_data(data):
+    app.state.gps = data
 
 
 def main():
