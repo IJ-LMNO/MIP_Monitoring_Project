@@ -4,13 +4,8 @@
     height: 100%;
     background: #070b12;
     
-
-    box-sizing: border-box;
-    overflow: hidden;
-
 }
 
-/* ===== 텍스트 ===== */
 
 .steer-title {
     position: absolute;
@@ -24,7 +19,7 @@
 
 .steer-angle {
     position: absolute;
-    top: 52px;
+    top: 30px;
     font-size: 36px;
     font-weight: 700;
 }
@@ -134,18 +129,18 @@
 
 .torque {
     position: absolute;
-    top : 60%;
+    top : 90%;
     font-size: 28px;
     font-weight: 700;
     letter-spacing: 2px;
 }
 
 .torque-left {
-    left: 10%;
+    left: 16.5%;
     color: #3b82f6;
 }
 
 .torque-right {
-    right: 40px;
+    right: 13%;
     color: #ef4444;
 }
