@@ -1,24 +1,24 @@
 import { useEffect, useState, useRef } from "react";
-import PowerStatusPanel from "./components/panels/PowerStatusPanel/PowerStatusPanel_for_mqtt";
-import SpeedStatusPanel from "./components/panels/SpeedStatusPanel/SpeedStatusPanel"
-import YawRatePanel from "./components/panels/YawRateRanel/YawRatePanel"
-import BatteryStatusPaneel from "./components/panels/BatteryStatusPanel/BatteryStatusPanel"
-import RollRatePannel from "./components/panels/RollRateStatusPannel/RollRateStatusPannel"
-import CarStatusPannel from "./components/panels/CarStatusPannel/CarStatusPannel"
-import RaceButton from "./components/panels/RaceControlButton/Button"
-import Timer from "./components/common/Timer/Timer"
-import RpmPannel from "./components/panels/RpmStatusPannel/RpmStatusPannel";
+import PowerStatusPanel from "./panels/PowerStatusPanel/PowerStatusPannel_for_mqtt";
+import SpeedStatusPanel from "./panels/SpeedStatusPanel/SpeedStatusPanel"
+import YawRatePanel from "./panels/YawRateRanel/YawRatePanel"
+import BatteryStatusPaneel from "./panels/BatteryStatusPanel/BatteryStatusPanel"
+import RollRatePannel from "./panels/RollRateStatusPannel/RollRateStatusPannel"
+import CarStatusPannel from "./panels/CarStatusPannel/CarStatusPannel"
+import RaceButton from "./panels/RaceControlButton/Button"
+import Timer from "./common/Timer/Timer"
+import RpmPannel from "./panels/RpmStatusPannel/RpmStatusPannel";
 
-import "./components/Dashboard.css";
+import "./Dashboard.css";
+
+const CAN0_TIME = 100
+const TPS_TIME = 100
+const BPS_TIME = 100
+const DESIRED_YAWRATE_TIME = 100
+const GPS_TIME = 100
 
 function Dashboard(){
 const[can0, setCan0] = useState({
-<<<<<<< HEAD
-        "latest": {},
-        "history" : {
-            "avg_voltage" : []
-        }
-=======
         "latest" : {
             'avg_rpm': 0.0,
             'avg_voltage': 0.0,
@@ -43,12 +43,33 @@ const[can0, setCan0] = useState({
         },
 
         "version" : 0
->>>>>>> 1683a56e6b0b817cb0449def7bf960226505e636
     })
 
-    const [tps, setTps] = useState(0.0)
-    const[bps, setBps] = useState(0.0)
-    const[desired_yawrate, setDesiredy_yawrate] = useState(0.00)
+    const [tps, setTps] = useState({
+        "latest" : 0.0,
+        "history" : [],
+        "version" : 0
+    })
+    const[bps, setBps] = useState({
+        "latest" : 0.0,
+        "history" : [],
+        "version" : 0
+    })
+    const[desired_yawrate, setDesiredy_yawrate] = useState({
+        "latest" : 0.0,
+        "history" : [],
+        "version" : 0
+    })
+
+    const[gps, setGps] = useState({
+        "latest" : {
+            "timestamp" : 0.0,
+            "latitude" : 0.0,
+            "longitude" : 0.0
+        },
+        "history" : [],
+        "version" : 0
+    })
 
     const [racestart, setRacestart] = useState({
         start: false,
@@ -61,6 +82,7 @@ const[can0, setCan0] = useState({
     const tpsversion = useRef(0)
     const bpsversion = useRef(0)
     const desiredyawrateversion = useRef(0)
+    const gpsversion = useRef(0)
 
     function telemetryCan0() {
 
@@ -86,7 +108,7 @@ const[can0, setCan0] = useState({
             } catch (error) {
                 setError(error.message);
             }
-        }, 100);
+        }, CAN0_TIME);
 
         return () => {
             clearInterval(timer);
@@ -115,7 +137,7 @@ const[can0, setCan0] = useState({
             } catch (error) {
                 setError(error.message);
             }
-        }, 100);
+        }, TPS_TIME);
 
         return () => {
             clearInterval(timer);
@@ -145,7 +167,7 @@ const[can0, setCan0] = useState({
             } catch (error) {
                 setError(error.message);
             }
-        }, 100);
+        }, BPS_TIME);
 
         return () => {
             clearInterval(timer);
@@ -175,7 +197,37 @@ const[can0, setCan0] = useState({
             } catch (error) {
                 setError(error.message);
             }
-        }, 100);
+        }, DESIRED_YAWRATE_TIME);
+
+        return () => {
+            clearInterval(timer);
+        };
+    }
+
+    function telemetryGps() {
+        const timer = setInterval(async () => {
+            try {
+                const response = await fetch(
+                    "http://localhost:8000/telemetry/gps"
+                );
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if(data["version"] === gpsversion){
+                    return
+                }
+
+                setGps(data);
+                gps.current = data['version']
+
+            } catch (error) {
+                setError(error.message);
+            }
+        }, GPS_TIME);
 
         return () => {
             clearInterval(timer);
@@ -187,12 +239,15 @@ const[can0, setCan0] = useState({
         const stopTpsTelemetry = telemetryTps()
         const stopBpsTelemetry = telemetryBps()
         const stopDesiredyawrateTelemetry = telemetryDesiredyawrate()
+        const stopGpsTelemetry = telemetryGps()
+        
 
         return(() => {
             stopCan0Telemetry()
             stopTpsTelemetry()
             stopBpsTelemetry()
             stopDesiredyawrateTelemetry()
+            stopGpsTelemetry()
         })
     },[])
 
@@ -207,18 +262,18 @@ const[can0, setCan0] = useState({
                     <div className="powerstatus-panel">
                         <PowerStatusPanel can0={can0} />
                     </div>
-                    <div className="speedstatus-battery-pannel">
+                    {/* <div className="speedstatus-battery-pannel">
                         <div className="speedstatus-pannel">
                             <SpeedStatusPanel speed={can0["speed"]} />
                         </div>
                         <div className="battery-pannel">
                             <BatteryStatusPaneel battery={battery} />
                         </div>
-                    </div>
+                    </div> */}
 
                 </div>
 
-                <div className="dashboard-page-bottom">
+                {/* <div className="dashboard-page-bottom">
 
                     <div className="yawrate-rollrate-pannel">
                         <div className="yawrate-pannel">
@@ -235,18 +290,13 @@ const[can0, setCan0] = useState({
                         <CarStatusPannel carstatus={carstatus} />
                     </div>
 
-                </div>
+                </div> */}
 
             </div>
 
-            <div className="dashboard-page-footer">
+            {/* <div className="dashboard-page-footer">
                 <RaceButton onClick={fetchButton} text={racestart.start ? "주행종료" : racestart.reset ? "초기화" : "주행 시작"} state={racestart} />
-                {/* <MyButton text="None" /> */}
-                {/* <MyButton text="None" />
-                    <MyButton text="None" />
-                    <MyButton text="None" />
-                    <MyButton text="None" /> */}
-            </div>
+            </div> */}
         </div>
     );
 }
