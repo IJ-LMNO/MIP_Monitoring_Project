@@ -1,6 +1,7 @@
 import threading
 import math
 import can
+import copy
 
 class Can1:
     def __init__(self, channel='can1'):
@@ -49,13 +50,13 @@ class Can1:
                 with self._data_lock:
                     if msg.arbitration_id ==0x200:
                         self.TPS['Throttle_Percent']=int.from_bytes(msg.data[0:1],'little', signed=True)
-                        self.TPS["tps_received_count"] += 1
+                        self.TPS["version"] += 1
                     elif msg.arbitration_id == 0x201:
                         self.BPS['Braking_Percent']=int.from_bytes(msg.data[0:1],'little', signed=True)
-                        self.BPS["bps_received_count"] += 1
+                        self.BPS["version"] += 1
                     elif msg.arbitration_id == 0x202:
                         self.Desired_yaw_rate['Desired_yaw_rate']=int.from_bytes(msg.data[0:1],'little', signed=True)
-                        self.Desired_yaw_rate["yaw_rate_received_count"] += 1
+                        self.Desired_yaw_rate["version"] += 1
             msg = self.bus.recv(timeout = 0)
 
     

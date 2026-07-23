@@ -15,13 +15,8 @@ def update_recent_drive_log(key, data):
 def update_lastest_data(key, latest_data, data):
     latest_data[key] = data
 
-<<<<<<< HEAD
-# callback_function : this methond run when you first connect to broker server
-def on_connect(client, userdata, flags, reason_code):
-=======
 
 def on_connect(client, userdata, flags, reason_code, properties):
->>>>>>> 1683a56e6b0b817cb0449def7bf960226505e636
     if reason_code == 0:
         print("MQTT 연결 성공")
     else:
@@ -45,12 +40,9 @@ def on_message(client, userdata, message):
         
     
     
-<<<<<<< HEAD
-# monitoring server mqtt entry methond
+
 def main(can0_queue, tps_queue, bps_queue, desired_yawrate_queue, gps_queue):
-=======
-def main(can0_queue, tps_queue, bps_queue, desired_yawrate_queue):
->>>>>>> 1683a56e6b0b817cb0449def7bf960226505e636
+
     monitoring_client = mqtt.Client() 
 
     monitoring_client.user_data_set({

@@ -95,6 +95,7 @@ class GPS:
             self.gps["latest"]["timestamp"] = datetime.now(timezone.utc).isoformat()
             self.gps["latest"]["latitude"] = float(message.latitude)
             self.gps["latest"]["longitude"] = float(message.longitude)
+            self.gps["version"] += 1
 
         except (serial.SerialException, OSError, UnicodeError,pynmea2.ParseError, AttributeError, TypeError, ValueError):
             print("oh my god")
@@ -109,22 +110,18 @@ class GPS:
 
 def main(gps_queue):
     obj = GPS()
-    gps_prev_version = 1
+    gps_prev_version = 0
     obj.connect()
 
     while(True):
         obj.read_gps_data()
 
-        time.sleep(1)
+        if(gps_prev_version != obj.gps["version"]):
+            gps_queue.put(copy.deepcopy(obj.gps))
+            gps_prev_version = obj.gps["version"]
 
-        gps_queue.put(copy.deepcopy(obj.gps))
-        print(obj.gps_queue.qsize())
+            if(obj.gps["version"] == 10000):
+                obj.gps["version"] = 0
 
-        # if(gps_prev_version != obj.gps["version"]):
-        #     gps_queue.put(obj.gps)
-        #     gps_prev_version = obj.gps["version"]
-
-        #     if(obj.gps["version"] == 10000):
-        #         obj.gps["version"] = 0
-        #     else:
-        #         obj.gps["version"] += 1
+            if(gps_prev_version == 10000):
+                gps_prev_version = 0

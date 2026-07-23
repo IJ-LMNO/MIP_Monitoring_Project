@@ -49,6 +49,7 @@ def main():
     Can0_Thread()
     Can1_Thread()
     Mqtt_Thread()
+    gps_queue()
 
 
 def __init__():

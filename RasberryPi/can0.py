@@ -3,6 +3,7 @@ import math
 import threading as thread
 import paho.mqtt.client as mqtt
 import time
+import copy
 from collections import deque
 
 class Can0:
@@ -42,19 +43,8 @@ class Can0:
                 "rpm_left" : 0.0,
                 "rpm_right" : 0.0
             },
-<<<<<<< HEAD
-            "history" : {
-                "current_left" : deque(maxlen=40),
-                "current_right" : deque(maxlen = 40),
-                "avg_power" : deque(maxlen=40)
-
-            },
             "version" : 0
             
-=======
-
-            "version" : 0    
->>>>>>> 1683a56e6b0b817cb0449def7bf960226505e636
         }
 
         self.init_can()
@@ -128,7 +118,7 @@ class Can0:
         self.rpm_left = left_data['rpm']
         self.rpm_right = right_data['rpm']
 
-        can0[""]
+        self.can0["version"] += 1
 
 
     def shutdown(self):
@@ -144,15 +134,14 @@ def main(can0_queue):
         obj.read_can_data()
         obj.calculate_data()
 
-        # 갱신 단위에 따라 수정해야 할 수 있음
-        time.sleep(10)
-
         if(can0_prev_version != obj.can0["version"]):
-            can0_queue.put(obj.can0)  
+            can0_queue.put(copy.deepcopy(obj.can0))
             can0_prev_version = obj.can0["version"]
         
-            if(obj.can0["version"] == 100000):
+            if(obj.can0["version"] == 10000):
                 obj.can0["version"] = 0
-            else:
-                obj.can0["version"] += 1
+
+            if(can0_prev_version == 10000):
+                can0_prev_version = 0
+
 
