@@ -3,7 +3,7 @@ import json
 import time
 from Monitoring_Server.log import main as main
 
-BROKER_HOST = "100.84.183.9"
+BROKER_HOST = "100.70.221.71"
 BROKER_PORT = 1883
 TOPIC = "vehicle/car_01/#"
 START_TIME = time.time()
@@ -16,7 +16,7 @@ def update_lastest_data(key, latest_data, data):
     latest_data[key] = data
 
 
-def on_connect(client, userdata, flags, reason_code, properties):
+def on_connect(client, userdata, flags, reason_code):
     if reason_code == 0:
         print("MQTT 연결 성공")
     else:

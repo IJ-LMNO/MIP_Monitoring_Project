@@ -9,6 +9,8 @@ app = FastAPI()
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://100.84.183.9",
+    "https://100.70.221.71"
 ]
 
 app.add_middleware(
@@ -32,45 +34,43 @@ def race_stop():
     log_main("race_stop")
 
 
-@app.get("/telemetry/can0")
-def get_can0():
-    return {
-        "latest": app.state.can0["latest"],
-        "history": list(app.state.can0["history"]),
-        "version" : app.state.can0["version"]
-    }
+# @app.get("/telemetry/can0")
+# def get_can0():
+#     return {
+#         "latest": app.state.can0["latest"],
+#         "history": list(app.state.can0["history"]),
+#         "version" : app.state.can0["version"]
+#     }
 
 
-@app.get("/telemetry/tps")
-def get_tps():
-    return {
-        "latest": app.state.tps["latest"],
-        "history": list(app.state.tps["history"]),
-        "version" : app.state.tps["version"]
-    }
+# @app.get("/telemetry/tps")
+# def get_tps():
+#     return {
+#         "latest": app.state.tps["latest"],
+#         "history": list(app.state.tps["history"]),
+#         "version" : app.state.tps["version"]
+#     }
 
 
-@app.get("/telemetry/bps")
-def get_bps():
-    return {
-        "latest": app.state.bps["latest"],
-        "history": list(app.state.bps["history"]),
-        "version" : app.state.bps["version"]
-    }
+# @app.get("/telemetry/bps")
+# def get_bps():
+#     return {
+#         "latest": app.state.bps["latest"],
+#         "history": list(app.state.bps["history"]),
+#         "version" : app.state.bps["version"]
+#     }
 
 
-@app.get("/telemetry/desired-yawrate")
-def get_desired_yawrate():
-    return {
-        "latest": app.state.desired_yawrate["latest"],
-        "history": list(app.state.desired_yawrate["history"]),
-        "version" : app.state.desired_yawrate["version"]
-    }
+# @app.get("/telemetry/desired-yawrate")
+# def get_desired_yawrate():
+#     return {
+#         "latest": app.state.desired_yawrate["latest"],
+#         "history": list(app.state.desired_yawrate["history"]),
+#         "version" : app.state.desired_yawrate["version"]
+#     }
 
 @app.get("/telemetry/gps")
 def get_gps():
-
-    print(app.stae.gps["version"])
     
     return {
         "latest": app.state.gps["latest"],

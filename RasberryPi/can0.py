@@ -28,6 +28,17 @@ class Can0:
             'rpm': 0,
         }
 
+        self.avg_rpm = 0.0
+        self.avg_voltage = 0.0
+        self.power_right = 0.0
+        self.power_left = 0.0
+        self.avg_power = 0.0
+        self.speed = 0.0
+        self.current_left = 0.0
+        self.current_right = 0.0
+        self.rpm_left = 0
+        self.rpm_right = 0
+
         self.can0 ={
             "latest" : {
                 'avg_rpm' : 0.0,
@@ -69,7 +80,7 @@ class Can0:
         if self.bus is None:
             return 0
 
-        received_count = 0
+        self.received_count = 0
 
         # A zero timeout makes this a non-blocking receive operation.
         msg = self.bus.recv(timeout=0)
@@ -83,17 +94,15 @@ class Can0:
                         self.right_data['current'] = int.from_bytes(msg.data[2:4], 'little', signed=True) / 10.0
                         self.right_data['torque'] = int.from_bytes(msg.data[4:6], 'little', signed=True) / 10.0
                         self.right_data['rpm'] = int.from_bytes(msg.data[6:8], 'little', signed=True)
-                        received_count += 1
+                        self.received_count += 1
                     
                     elif msg.arbitration_id == 0x341:
                         self.left_data['voltage'] = int.from_bytes(msg.data[0:2], 'little') / 10.0
                         self.left_data['current'] = int.from_bytes(msg.data[2:4], 'little', signed=True) / 10.0
                         self.left_data['torque'] = int.from_bytes(msg.data[4:6], 'little', signed=True) / 10.0
                         self.left_data['rpm'] = int.from_bytes(msg.data[6:8], 'little', signed=True)
-                        received_count += 1
+                        self.received_count += 1
 
-
-            self.received_count = received_count
             # Read the next queued frame instead of processing the same frame repeatedly.
             msg = self.bus.recv(timeout=0)
 
@@ -106,17 +115,21 @@ class Can0:
 
 
         self.avg_rpm = (right_data['rpm'] + left_data['rpm']) / 2
-        self.avg_voltage = (right_data['voltage'] + left_data['voltage']) / 2
+        self.can0["latest"]["avg_rpm"] = self.avg_rpm
+        self.can0["latest"]["avg_voltage"] = (right_data['voltage'] + left_data['voltage']) / 2
+
         self.power_right = right_data['voltage'] * right_data['current']
         self.power_left = left_data['voltage'] * left_data['current']
-        self.avg_power = (self.power_right + self.power_left) / 2
+        self.can0["latest"]["avg_power"] = (self.power_right + self.power_left) / 2
+        self.can0["latest"]["power_right"] = self.power_right
+        self.can0["latest"]["power_left"] = self.power_left
 
         # Convert motor RPM to vehicle speed in km/h using wheel diameter and gear ratio.
-        self.speed = self.avg_rpm / 60 * (18 * 0.0254 * math.pi) * (11 / 68) * 3.6
-        self.current_left = left_data['current']
-        self.current_right = right_data['current']
-        self.rpm_left = left_data['rpm']
-        self.rpm_right = right_data['rpm']
+        self.can0["latest"]["speed"] = self.avg_rpm / 60 * (18 * 0.0254 * math.pi) * (11 / 68) * 3.6
+        self.can0["latest"]["current_left"] = left_data['current']
+        self.can0["latest"]["current_right"] = right_data['current']
+        self.can0["latest"]["rpm_left"] = left_data['rpm']
+        self.can0["latest"]["rpm_right"] = right_data['rpm']
 
         self.can0["version"] += 1
 
@@ -132,6 +145,10 @@ def main(can0_queue):
 
     while(True):
         obj.read_can_data()
+
+        if(obj.received_count == 0):
+            continue
+
         obj.calculate_data()
 
         if(can0_prev_version != obj.can0["version"]):

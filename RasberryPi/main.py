@@ -49,8 +49,7 @@ def main():
     Can0_Thread()
     Can1_Thread()
     Mqtt_Thread()
-    gps_queue()
+    Gps_Thread()
 
-
-def __init__():
+if __name__ =="__main__":
     main()

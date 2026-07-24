@@ -12,11 +12,11 @@ import GpsMaPPannel from "./panels/GpsMapPannel/GpsMapPannel_for_Mqtt"
 
 import "./Dashboard.css";
 
-const CAN0_TIME = 1000000
-const TPS_TIME = 1000000
-const BPS_TIME = 1000000
-const DESIRED_YAWRATE_TIME = 1000000
-const GPS_TIME = 1000000
+const CAN0_TIME = 500
+const TPS_TIME = 100
+const BPS_TIME = 100
+const DESIRED_YAWRATE_TIME = 100
+const GPS_TIME = 1000
 
 function Dashboard(){
 const[can0, setCan0] = useState({
@@ -236,18 +236,18 @@ const[can0, setCan0] = useState({
     }
 
     useEffect(() => {
-        const stopCan0Telemetry = telemetryCan0()
-        const stopTpsTelemetry = telemetryTps()
-        const stopBpsTelemetry = telemetryBps()
-        const stopDesiredyawrateTelemetry = telemetryDesiredyawrate()
+        // const stopCan0Telemetry = telemetryCan0()
+        // const stopTpsTelemetry = telemetryTps()
+        // const stopBpsTelemetry = telemetryBps()
+        // const stopDesiredyawrateTelemetry = telemetryDesiredyawrate()
         const stopGpsTelemetry = telemetryGps()
         
 
         return(() => {
-            stopCan0Telemetry()
-            stopTpsTelemetry()
-            stopBpsTelemetry()
-            stopDesiredyawrateTelemetry()
+            // stopCan0Telemetry()
+            // stopTpsTelemetry()
+            // stopBpsTelemetry()
+            // stopDesiredyawrateTelemetry()
             stopGpsTelemetry()
         })
     },[])
