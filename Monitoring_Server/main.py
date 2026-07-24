@@ -88,6 +88,7 @@ def mqtt_subscriber_thread():
 
     thread_mqtt.start()
 
+
 def mqtt_can0_queue_thread():
     
     thread_mqtt_queue = thread.Thread(

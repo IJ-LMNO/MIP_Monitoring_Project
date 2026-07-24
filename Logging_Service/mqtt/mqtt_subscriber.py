@@ -1,7 +1,6 @@
 import paho.mqtt.client as mqtt
 import json
 import time
-from Logging_Service import main as main
 
 BROKER_HOST = "100.70.221.71"
 BROKER_PORT = 1883
@@ -9,11 +8,12 @@ TOPIC = "vehicle/car_01/#"
 START_TIME = time.time()
 
 
+
 def on_connect(client, userdata, flags, reason_code):
     if reason_code == 0:
-        print("MQTT 연결 성공")
+        print("Logging_MQTT 연결 성공")
     else:
-        print(f"MQTT 연결 실패 : {reason_code}")
+        print(f"Logging_MQTT 연결 실패 : {reason_code}")
 
 
 def on_message(client, userdata, message):
@@ -36,9 +36,9 @@ def on_message(client, userdata, message):
 
 def main(can0_queue, tps_queue, bps_queue, desired_yawrate_queue, gps_queue):
 
-    monitoring_client = mqtt.Client() 
+    logging_client = mqtt.Client() 
 
-    monitoring_client.user_data_set({
+    logging_client.user_data_set({
         "can0_queue" : can0_queue,
         "tps_queue" : tps_queue,
         "bps_queue" : bps_queue,
@@ -46,9 +46,9 @@ def main(can0_queue, tps_queue, bps_queue, desired_yawrate_queue, gps_queue):
         "gps_queue" : gps_queue
     })
 
-    monitoring_client.on_connect = on_connect
-    monitoring_client.on_message = on_message
+    logging_client.on_connect = on_connect
+    logging_client.on_message = on_message
 
-    monitoring_client.connect(BROKER_HOST, BROKER_PORT, 60)
-    monitoring_client.subscribe(TOPIC, qos= 2)  
-    monitoring_client.loop_forever()
+    logging_client.connect(BROKER_HOST, BROKER_PORT, 60)
+    logging_client.subscribe(TOPIC, qos= 2)  
+    logging_client.loop_forever()

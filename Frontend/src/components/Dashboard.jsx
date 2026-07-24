@@ -235,22 +235,6 @@ const[can0, setCan0] = useState({
         };
     }
 
-    useEffect(() => {
-        // const stopCan0Telemetry = telemetryCan0()
-        // const stopTpsTelemetry = telemetryTps()
-        // const stopBpsTelemetry = telemetryBps()
-        // const stopDesiredyawrateTelemetry = telemetryDesiredyawrate()
-        const stopGpsTelemetry = telemetryGps()
-        
-
-        return(() => {
-            // stopCan0Telemetry()
-            // stopTpsTelemetry()
-            // stopBpsTelemetry()
-            // stopDesiredyawrateTelemetry()
-            stopGpsTelemetry()
-        })
-    },[])
 
     async function fetchButton() {
         try {
@@ -270,38 +254,56 @@ const[can0, setCan0] = useState({
             if (racestart.start == false) {
                 if (racestart.reset == false) {
                     //false, false
-                    const response = await fetch("http://localhost:8000/racestartbutton")
-                    setRacestart((prev) => {
-                        return {
-                            ...prev,
-                            start: !prev.start
-                            //true false
-                        }
-                    })
+                    const response = await fetch("http://localhost:8000/race/start", {method : "POST"})
+                    
+                    if(response.ok){
+                        setRacestart((prev) => {
+                            return {
+                                ...prev,
+                                start: !prev.start
+                                //true false
+                            }
+                        })
+                    }
+                    else{
+                        console.log(`응답 실패: ${response.status} ${response.statusText}`)
+                    }
                 }
                 else {
                     //false, true
-                    const response = await fetch("http://localhost:8000/raceresetbutton")
-                    setRacestart((prev) => {
-                        return {
-                            ...prev,
-                            reset: !prev.reset
-                            //false false
-                        }
-                    })
+                    const response = await fetch("http://localhost:8000/race/reset", { method: "POST" })
+
+                    if (response.ok) {
+                        setRacestart((prev) => {
+                            return {
+                                ...prev,
+                                start: !prev.start
+                                //true false
+                            }
+                        })
+                    }
+                    else {
+                        console.log(`응답 실패: ${response.status} ${response.statusText}`)
+                    }
                 }
             }
             else {
                 if (racestart.reset == false) {
                     //true false
-                    const response = await fetch("http://localhost:8000/racestopbutton")
-                    setRacestart((prev) => {
-                        return {
-                            start: !prev.start,
-                            reset: !prev.reset
-                            //false true
-                        }
-                    })
+                    const response = await fetch("http://localhost:8000/race/stop", { method: "POST" })
+
+                    if (response.ok) {
+                        setRacestart((prev) => {
+                            return {
+                                ...prev,
+                                start: !prev.start
+                                //true false
+                            }
+                        })
+                    }
+                    else {
+                        console.log(`응답 실패: ${response.status} ${response.statusText}`)
+                    }
 
                 }
             }
@@ -314,6 +316,24 @@ const[can0, setCan0] = useState({
         }
 
     }
+
+    useEffect(() => {
+        // const stopCan0Telemetry = telemetryCan0()
+        // const stopTpsTelemetry = telemetryTps()
+        // const stopBpsTelemetry = telemetryBps()
+        // const stopDesiredyawrateTelemetry = telemetryDesiredyawrate()
+        const stopGpsTelemetry = telemetryGps()
+
+
+        return (() => {
+            // stopCan0Telemetry()
+            // stopTpsTelemetry()
+            // stopBpsTelemetry()
+            // stopDesiredyawrateTelemetry()
+            stopGpsTelemetry()
+        })
+    }, [])
+
 
     return (
         <div className="dashboard-page">

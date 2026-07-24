@@ -2,7 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-from Monitoring_Server.log.main import main as log_main
+from Logging_Service.main import race_start as race_start
+from Logging_Service.main import race_stop as race_stop
+from Logging_Service.main import race_reset as race_reset
 
 app = FastAPI()
 
@@ -21,17 +23,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-def race_start():
-    log_main("race_start")
-
-
-def race_reset():
-    log_main("race_reset")
-
-
-def race_stop():
-    log_main("race_stop")
 
 
 # @app.get("/telemetry/can0")
@@ -79,34 +70,20 @@ def get_gps():
 
 
 
-@app.get("/racestartbutton")
+@app.post("/race/start")
 def race_start_button():
     race_start()
 
-    return {
-        "status": "success",
-        "race_state": "start",
-    }
 
-
-@app.get("/racestopbutton")
+@app.post("/race/stop")
 def race_stop_button():
     race_stop()
 
-    return {
-        "status": "success",
-        "race_state": "stop",
-    }
 
 
-@app.get("/raceresetbutton")
+@app.post("/race/reset")
 def race_reset_button():
     race_reset()
-
-    return {
-        "status": "success",
-        "race_state": "reset",
-    }
 
 
 def get_can0_data(data):
