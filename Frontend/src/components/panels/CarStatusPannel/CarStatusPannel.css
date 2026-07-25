@@ -25,13 +25,15 @@
 }
 
 .steer-angle-left {
-    left: 32px;
+    left: 0%;
     color: #3b82f6;
 }
 
 .steer-angle-right {
-    right: 32px;
+    right: 0%;
     color: #ef4444;
+
+    text-align: right;
 }
 
 /* ===== 차량 기준 박스 ===== */
@@ -136,11 +138,13 @@
 }
 
 .torque-left {
-    left: 16.5%;
+    left: 0%;
     color: #3b82f6;
 }
 
 .torque-right {
-    right: 13%;
+    right: 0%;
     color: #ef4444;
+
+    text-align: right;
 }

@@ -1,5 +1,5 @@
 .gps-map-container {
-    height: 60%;
+    height: 93.5%;
     min-height: 400px;
 
     position: relative;
@@ -7,6 +7,10 @@
 
     border: 1px solid #263449;
     border-radius: 12px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
     background: #111827;
 }

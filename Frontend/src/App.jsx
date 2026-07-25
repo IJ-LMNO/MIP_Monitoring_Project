@@ -9,7 +9,7 @@ import RaceButton from "./components/panels/RaceControlButton/Button"
 import Timer from "./components/common/Timer/Timer"
 import RpmPannel from "./components/panels/RpmStatusPannel/RpmStatusPannel";
 
-import"./components/dashboard.css";
+// import"./components/dashboard.css";
 
 
 function createSeries(length, base, noise) {

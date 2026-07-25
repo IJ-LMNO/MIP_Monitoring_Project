@@ -3,63 +3,61 @@ body,
 #root {
     margin: 0;
     padding: 0;
-    height: 100%;
     width: 100%;
+    height: 100%;
 }
 
-body{
+body {
     background: #070b12;
 }
 
-#root{
+#root {
     display: flex;
-
     justify-content: center;
     align-items: center;
 }
 
-.dashboard-page{
+.dashboard-page {
     display: flex;
     flex-direction: column;
-    
-    justify-content: center;
-    align-items: center;
 
     width: 100vw;
     height: 100vh;
-}
 
-
-.race-start-dashboard-header{
-    flex: 1;
-
-    display: flex;
-
-    justify-content: center;
     align-items: center;
-
-    width: 80%;
-
 }
 
 .dashboard-header{
-    flex: 1;
-    display: none;
-    width: 80%;
-
-
+    height: 7%;
+    width: 100%;
 }
 
-.race-reset-dashboard-header{
-    flex: 1;
+/* 헤더 공간은 항상 유지 */
+.race-start-button-header,
+.race-stop-button-header,
+.race-reset-button-header {
+
+    width: 80%;
+    height: 100%;
+
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 80%;
 }
 
-.dashboard-page-pannel{
-    flex : 8;
+/* 기본 상태에서는 공간만 유지하고 내용만 숨김 */
+.race-start-button-header {
+    visibility: hidden;
+}
+
+/* 시작/리셋 상태에서는 표시 */
+.race-stop-button-header,
+.race-reset-button-header {
+    visibility: visible;
+}
+
+.dashboard-page-pannel {
+    flex: 8;
 
     width: 100%;
 
@@ -68,105 +66,109 @@ body{
 
     justify-content: center;
     align-items: center;
-    margin-top : 16px;
 
+    margin-top: 16px;
+
+    min-height: 0;
 }
 
-.dashboard-page-top{
+.dashboard-page-top {
+    flex: 2;
+
     display: flex;
     flex-direction: row;
 
     justify-content: center;
     align-items: center;
 
-    flex: 2;
-
     width: 80%;
 
-    margin-bottom : 8px;
+    margin-bottom: 8px;
 
-
-
+    min-height: 0;
 }
 
-.powerstatus-panel{
+.powerstatus-panel {
     flex: 1;
-
     height: 100%;
-
 }
 
 .gpsmap-pannel {
     flex: 1;
-
     height: 100%;
 
+    border: 1px solid white;
 }
 
-.speedstatus-battery-pannel{
-    flex : 1;
-
+.speedstatus-battery-pannel {
+    flex: 1;
     height: 100%;
 
     display: flex;
     flex-direction: column;
 
+    border: 1px solid white;
 }
 
-.speedstatus-pannel{
-    flex : 2;
+.speedstatus-pannel {
+    flex: 2;
+    min-height: 0;
 }
 
-.battery-pannel{
-    flex : 1;
+.battery-pannel {
+    flex: 1;
+    min-height: 0;
 }
 
-.dashboard-page-bottom{
+.dashboard-page-bottom {
     flex: 1;
 
     display: flex;
     flex-direction: row;
 
     width: 80%;
+
+    min-height: 0;
 }
 
-.yawrate-rollrate-pannel{
-    flex : 2;
+.yawrate-rollrate-pannel {
+    flex: 2;
 
     display: flex;
     flex-direction: column;
 
+    min-height: 0;
 }
 
-.yawrate-pannel{
-    flex : 2;
+.yawrate-pannel {
+    flex: 2;
+    min-height: 0;
 }
 
-.rollrate-pannel{
-    flex : 1;
+.rollrate-pannel {
+    flex: 1;
+    min-height: 0;
+}
+
+.rpmstatus-pannel {
+    flex: 1;
+
+    height: 100%;
+
+    margin-right: 16px;
 }
 
 .carstatus-pannel {
     flex: 1;
-
 }
 
-.rpmstatus-pannel{
-    flex : 1;
-
-    height: 100%;
-
-    margin-right : 16px;
-}
-
-.dashboard-page-footer{
+.dashboard-page-footer {
     flex: 1;
+
     width: 80%;
 
     display: flex;
     flex-direction: row;
 
     align-items: center;
-
-
 }

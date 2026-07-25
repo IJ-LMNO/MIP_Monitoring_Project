@@ -11,10 +11,12 @@ function CarStatusPannel({ carstatus }) {
         <div className="carstatus-pannel">
 
             <div className="steer-angle steer-angle-left">
+                <div style={{fontSize : "16px"}}>left_stear_angle</div>
                 {leftSteerAngle}°
             </div>
 
             <div className="steer-angle steer-angle-right">
+                <div style={{fontSize : "16px"}}>right_stear_angle</div>
                 {rightSteerAngle}°
             </div>
 
@@ -91,11 +93,13 @@ function CarStatusPannel({ carstatus }) {
             </div>
 
             <div className="torque torque-left">
-                {leftTorque}N
+                <div style={{fontSize : "16px"}}>Left_Torque</div>
+                {leftTorque}N*n
             </div>
 
             <div className="torque torque-right">
-                {rightTorque}N
+                <div style={{fontSize : "16px"}}>Right_Torque</div>
+                {rightTorque}N*n
             </div>
         </div>
     );
