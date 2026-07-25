@@ -43,23 +43,19 @@ const[can0, setCan0] = useState({
             "avg_power" : []
         },
 
-        "version" : 0
     })
 
     const [tps, setTps] = useState({
         "latest" : 0.0,
         "history" : [],
-        "version" : 0
     })
     const[bps, setBps] = useState({
         "latest" : 0.0,
         "history" : [],
-        "version" : 0
     })
     const[desired_yawrate, setDesiredy_yawrate] = useState({
         "latest" : 0.0,
         "history" : [],
-        "version" : 0
     })
 
     const[gps, setGps] = useState({
@@ -69,7 +65,6 @@ const[can0, setCan0] = useState({
             "longitude" : 0.0
         },
         "history" : [],
-        "version" : 0
     })
 
     const [racestart, setRacestart] = useState({
@@ -99,12 +94,7 @@ const[can0, setCan0] = useState({
 
                 const data = await response.json();
 
-                if(data["version"] === can0version.current){
-                    return
-                }
-
                 setCan0(data);
-                can0version.current = data["version"]
         
             } catch (error) {
                 setError(error.message);
@@ -129,12 +119,8 @@ const[can0, setCan0] = useState({
 
                 const data = await response.json();
                 
-                if(data["version"] === tpsversion){
-                    return;
-                }
 
                 setTps(data);
-                tpsversion.current = data["version"]
             } catch (error) {
                 setError(error.message);
             }
@@ -158,12 +144,7 @@ const[can0, setCan0] = useState({
 
                 const data = await response.json();
 
-                if(data["version"] === bpsversion){
-                    return
-                }
-
                 setBps(data);
-                bpsversion.current = data['version']
                 
             } catch (error) {
                 setError(error.message);
@@ -188,12 +169,7 @@ const[can0, setCan0] = useState({
 
                 const data = await response.json();
 
-                if(data["version"] === desiredyawrateversion){
-                    return
-                }
-
                 setDesiredy_yawrate(data);
-                desiredyawrateversion.current = data['version']
 
             } catch (error) {
                 setError(error.message);
@@ -218,12 +194,7 @@ const[can0, setCan0] = useState({
 
                 const data = await response.json();
 
-                if(data["version"] === gpsversion){
-                    return
-                }
-
-                setGps(data);
-                gps.current = data['version']
+                setGps(data)
 
             } catch (error) {
                 setError(error.message);
@@ -277,8 +248,8 @@ const[can0, setCan0] = useState({
                         setRacestart((prev) => {
                             return {
                                 ...prev,
-                                start: !prev.start
-                                //true false
+                                reset: !prev.reset
+                                //false false
                             }
                         })
                     }
@@ -295,9 +266,9 @@ const[can0, setCan0] = useState({
                     if (response.ok) {
                         setRacestart((prev) => {
                             return {
-                                ...prev,
+                                reset : !prev.reset,
                                 start: !prev.start
-                                //true false
+                                //false true
                             }
                         })
                     }
@@ -322,7 +293,7 @@ const[can0, setCan0] = useState({
         // const stopTpsTelemetry = telemetryTps()
         // const stopBpsTelemetry = telemetryBps()
         // const stopDesiredyawrateTelemetry = telemetryDesiredyawrate()
-        const stopGpsTelemetry = telemetryGps()
+        // const stopGpsTelemetry = telemetryGps()
 
 
         return (() => {
@@ -330,7 +301,7 @@ const[can0, setCan0] = useState({
             // stopTpsTelemetry()
             // stopBpsTelemetry()
             // stopDesiredyawrateTelemetry()
-            stopGpsTelemetry()
+            // stopGpsTelemetry()
         })
     }, [])
 

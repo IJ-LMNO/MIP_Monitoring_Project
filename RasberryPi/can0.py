@@ -1,17 +1,16 @@
 import can
 import math
 import threading as thread
-import paho.mqtt.client as mqtt
-import time
 import copy
-from collections import deque
+import queue
+
+can0_tmp_queue = queue.Queue()
 
 class Can0:
     def __init__(self, channel='can0'):
         self.channel = channel
         self.bus = None
         self._data_lock = thread.Lock()
-        self.received_count = 0
 
         # Use default values until the first frame from each motor is received.
         self.right_data = {
@@ -54,7 +53,6 @@ class Can0:
                 "rpm_left" : 0.0,
                 "rpm_right" : 0.0
             },
-            "version" : 0
             
         }
 
@@ -80,7 +78,6 @@ class Can0:
         if self.bus is None:
             return 0
 
-        self.received_count = 0
 
         # A zero timeout makes this a non-blocking receive operation.
         msg = self.bus.recv(timeout=0)
@@ -94,14 +91,16 @@ class Can0:
                         self.right_data['current'] = int.from_bytes(msg.data[2:4], 'little', signed=True) / 10.0
                         self.right_data['torque'] = int.from_bytes(msg.data[4:6], 'little', signed=True) / 10.0
                         self.right_data['rpm'] = int.from_bytes(msg.data[6:8], 'little', signed=True)
-                        self.received_count += 1
+
+                        self.can0["version"] += 1
                     
                     elif msg.arbitration_id == 0x341:
                         self.left_data['voltage'] = int.from_bytes(msg.data[0:2], 'little') / 10.0
                         self.left_data['current'] = int.from_bytes(msg.data[2:4], 'little', signed=True) / 10.0
                         self.left_data['torque'] = int.from_bytes(msg.data[4:6], 'little', signed=True) / 10.0
                         self.left_data['rpm'] = int.from_bytes(msg.data[6:8], 'little', signed=True)
-                        self.received_count += 1
+
+                        self.can0["version"] += 1
 
             # Read the next queued frame instead of processing the same frame repeatedly.
             msg = self.bus.recv(timeout=0)
@@ -131,7 +130,7 @@ class Can0:
         self.can0["latest"]["rpm_left"] = left_data['rpm']
         self.can0["latest"]["rpm_right"] = right_data['rpm']
 
-        self.can0["version"] += 1
+        can0_tmp_queue.put(copy.deepcopy(self.can0))
 
 
     def shutdown(self):
@@ -139,26 +138,22 @@ class Can0:
             self.bus.shutdown()
             self.bus = None
 
+def tmp_queue_to_main_queue(queue, tmp_queue):
+    latest = tmp_queue.get()
+
+    queue.put(copy.deepcopy(latest))
+
 def main(can0_queue):
     obj = Can0()
-    can0_prev_version = 0
+
+    obj.init_can()
 
     while(True):
         obj.read_can_data()
-
-        if(obj.received_count == 0):
-            continue
-
         obj.calculate_data()
 
-        if(can0_prev_version != obj.can0["version"]):
-            can0_queue.put(copy.deepcopy(obj.can0))
-            can0_prev_version = obj.can0["version"]
-        
-            if(obj.can0["version"] == 10000):
-                obj.can0["version"] = 0
+        tmp_queue_to_main_queue(can0_queue, can0_tmp_queue)
 
-            if(can0_prev_version == 10000):
-                can0_prev_version = 0
+
 
 

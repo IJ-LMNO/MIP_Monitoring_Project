@@ -87,12 +87,15 @@ def race_start():
     shared_data["log_state"] = "start"
     shared_data["current_race_obj"] = RaceLogger()
     shared_data["start_time"] = time.time()
+    print("race_start : logging_service")
 
 def race_stop():
     shared_data["log_state"] = "stop"
+    print("race_stop : logging_service")
 
 def race_reset():
     shared_data["log_state"] = "reset"
+    print("race_reset : logging_service")
 
 def logging():
     can0_logging()

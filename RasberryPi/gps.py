@@ -5,6 +5,7 @@ import pynmea2
 import serial
 import time
 import copy
+import queue
 
 '''
 Class GPSNeom8n has four function
@@ -14,6 +15,7 @@ Class GPSNeom8n has four function
 4. shutdown
 '''
 
+gps_tmp_queue = queue.Queue()
 
 class GPS:
     
@@ -37,8 +39,7 @@ class GPS:
                 "timestamp" : 0.0,
                 "latitude" : 0.0,
                 "longitude" : 0.0
-            },
-            "version" : 0
+            }
         }
 
         
@@ -70,8 +71,7 @@ class GPS:
             print("serial is not opened")
             return None
 
-        try:
-            
+        try:     
             lane = self.serial.readline().decode("ascii", "ignore").strip()
             print(lane)
             if not lane:
@@ -95,7 +95,8 @@ class GPS:
             self.gps["latest"]["timestamp"] = datetime.now(timezone.utc).isoformat()
             self.gps["latest"]["latitude"] = float(message.latitude)
             self.gps["latest"]["longitude"] = float(message.longitude)
-            self.gps["version"] += 1
+
+            gps_tmp_queue.put(copy.deepcopy(self.gps))
 
         except (serial.SerialException, OSError, UnicodeError,pynmea2.ParseError, AttributeError, TypeError, ValueError):
             print("oh my god")
@@ -108,20 +109,15 @@ class GPS:
             
 #GPSNeom8n( port="/dev/ttyAMA0", baudrate=9600, timeout=0.1)
 
+def tmp_queue_to_main_queue(queue, tmp_queue):
+    latest = tmp_queue.get()
+
+    queue.put(copy.deepcopy(latest))
+
 def main(gps_queue):
     obj = GPS()
-    gps_prev_version = 0
     obj.connect()
 
     while(True):
         obj.read_gps_data()
-
-        if(gps_prev_version != obj.gps["version"]):
-            gps_queue.put(copy.deepcopy(obj.gps))
-            gps_prev_version = obj.gps["version"]
-
-            if(obj.gps["version"] == 10000):
-                obj.gps["version"] = 0
-
-            if(gps_prev_version == 10000):
-                gps_prev_version = 0
+        tmp_queue_to_main_queue(gps_queue, gps_tmp_queue)
