@@ -1,6 +1,7 @@
 .gps-map-container {
-    height: 93.5%;
-    min-height: 400px;
+    height: 100%;
+    width: 100%;
+    min-height: 0px;
 
     position: relative;
     overflow: hidden;
@@ -27,6 +28,7 @@
 /* 지도 확대/축소 버튼 */
 .gps-map .leaflet-control-zoom {
     border: none;
+    top : 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 

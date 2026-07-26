@@ -2,18 +2,26 @@
     display: flex;
     flex-direction: row;
 
-    background: #070b12;
-
-    flex-direction: row;
+    justify-content: center;
     align-items: center;
 
+
+    background: #070b12;
+
+
     height: 100%;
+    width: 100%;
+
 }
 
 .yawrate-pannel-chart{
     flex : 3;
 
-    height : 100%
+    height: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 
@@ -21,9 +29,6 @@
     display :flex;
     flex :1;
     flex-direction: column;
-    
-    margin-top : 8px;
-
 }
 
 .YawRATE{

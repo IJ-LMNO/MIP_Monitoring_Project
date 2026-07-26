@@ -7,6 +7,16 @@ function YawRatePanel({ yawRate, desiredyawRate }) {
 
     return (
         <div className="yawrate-pannel-row">
+
+            <div className="yawrate-pannel-chart">
+                <TwoMiniLineChart
+                    yawrate={yawRate["history"]}
+                    desiredyawrate={desiredyawRate["history"]}
+                    min={-100}
+                    max={100}
+                />
+            </div>
+
             <div className="yawrate-pannel-text">
                 <div className="YawRATE">
                     YawRATE
@@ -20,16 +30,6 @@ function YawRatePanel({ yawRate, desiredyawRate }) {
                         {currentdesiredyawrate}
                     </div>
                 </div>
-            </div>
-
-            <div className="yawrate-pannel-chart">
-                <TwoMiniLineChart
-                    yawrate={yawRate["history"]}
-                    desiredyawrate={desiredyawRate["history"]}
-                    min={-100}
-                    max={100}
-                />
-
             </div>
         </div>
     );

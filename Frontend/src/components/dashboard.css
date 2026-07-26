@@ -17,6 +17,8 @@ body {
     align-items: center;
 }
 
+
+/* version 1
 .dashboard-page {
     display: flex;
     flex-direction: column;
@@ -32,7 +34,6 @@ body {
     width: 100%;
 }
 
-/* 헤더 공간은 항상 유지 */
 .race-start-button-header,
 .race-stop-button-header,
 .race-reset-button-header {
@@ -45,12 +46,11 @@ body {
     align-items: center;
 }
 
-/* 기본 상태에서는 공간만 유지하고 내용만 숨김 */
 .race-start-button-header {
     visibility: hidden;
 }
 
-/* 시작/리셋 상태에서는 표시 */
+
 .race-stop-button-header,
 .race-reset-button-header {
     visibility: visible;
@@ -73,7 +73,7 @@ body {
 }
 
 .dashboard-page-top {
-    flex: 2;
+    flex: 1;
 
     display: flex;
     flex-direction: row;
@@ -171,4 +171,174 @@ body {
     flex-direction: row;
 
     align-items: center;
+} */
+
+
+
+/* version 2 */
+.dashboard-page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    width: 90%;
+    height: 100%;
+
+}
+
+.dashboard-header {
+    height: 7%;
+    width: 100%;
+}
+
+.race-start-button-header,
+.race-stop-button-header,
+.race-reset-button-header {
+
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.race-start-button-header {
+    visibility: hidden;
+}
+
+
+.race-stop-button-header,
+.race-reset-button-header {
+    visibility: visible;
+}
+
+.dashboard-page-pannel {
+    flex: 8;
+
+    width: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+
+    margin-top: 16px;
+
+    min-height: 0;
+
+}
+
+.dashboard-page-top {
+    flex: 1;
+
+    display: flex;
+    flex-direction: row;
+
+    justify-content: center;
+    align-items: center;
+
+    width: 100%;
+
+    margin-bottom: 8px;
+
+    min-height: 0;
+
+}
+
+.powerstatus-panel {
+    flex: 1;
+    height: 100%;
+
+
+}
+
+.gpsmap-pannel {
+    flex: 1;
+    height: 100%;
+}
+
+.speedstatus-battery-pannel {
+    flex: 1;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.speedstatus-pannel {
+    flex: 2;
+
+    min-height: 0;
+}
+
+.battery-pannel {
+    flex: 1;
+    min-height: 0;
+}
+
+.dashboard-page-bottom {
+    flex: 1;
+
+    display: flex;
+    flex-direction: row;
+
+    width: 100%;
+
+    min-height: 0;
+}
+
+.yawrate-rollrate-pannel {
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+
+    height: 100%;
+    min-height: 0;
+
+    margin-left: 8px;
+
+}
+
+.yawrate-pannel {
+    flex: 2;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+
+
+}
+
+.rollrate-pannel {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+}
+
+.rpmstatus-pannel {
+    flex: 1;
+
+    height: 100%;
+
+}
+
+.carstatus-pannel {
+    flex: 1;
+
+    height: 100%;
+}
+
+.dashboard-page-footer {
+    flex: 1;
+
+    width: 80%;
+
+    display: flex;
+    flex-direction: row;
+
+    align-items: center;
+
 }

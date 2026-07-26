@@ -36,11 +36,9 @@ function TwoMiniLineChart({
     const desiredYawratePoints = makePoints(desiredyawrate);
 
     return (
-        <div className="chart-wrapper">
+        <div className="tchart-wrapper">
             <svg
-                className="mini-line-chart"
-                width="100%"
-                height="60%"
+                className="tmini-line-chart"
                 viewBox={`0 0 ${width} ${height}`}
             >
                 <line

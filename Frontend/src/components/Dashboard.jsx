@@ -10,7 +10,7 @@ import Timer from "./common/Timer/Timer"
 import RpmPannel from "./panels/RpmStatusPannel/RpmStatusPannel_for_mqtt";
 import GpsMaPPannel from "./panels/GpsMapPannel/GpsMapPannel_for_Mqtt"
 
-import "./Dashboard.css";
+import "./Dashboard.css"
 
 const CAN0_TIME = 500
 const TPS_TIME = 100
@@ -305,6 +305,66 @@ const[can0, setCan0] = useState({
         })
     }, [])
 
+//version 1
+    // return (
+    //     <div className="dashboard-page">
+    //         <div className="dashboard-header">
+    //             <div className={racestart.start ? "race-reset-button-header" : racestart.reset ? "race-stop-button-header" : "race-start-button-header"}>
+    //                 <Timer state={racestart} elapsedMs={elapsedMs} setElapsedMs={setElapsedMs} />
+    //             </div>
+    //         </div>
+
+    //         <div className="dashboard-page-pannel">
+    //             <div className="dashboard-page-top">
+
+    //                 <div className="powerstatus-panel">
+    //                     <PowerStatusPanel can0={can0} />
+    //                 </div>
+                    
+    //                 <div className="gpsmap-pannel">
+    //                     <GpsMaPPannel gps= {gps}/>
+    //                 </div>
+
+    //                 <div className="speedstatus-battery-pannel">
+    //                     <div className="speedstatus-pannel">
+    //                         <SpeedStatusPanel speed={can0["speed"]} />
+    //                     </div>
+    //                     <div className="battery-pannel">
+    //                         <BatteryStatusPaneel battery={50} />
+    //                     </div>
+    //                 </div>
+
+
+    //             </div>
+
+    //             <div className="dashboard-page-bottom">
+
+    //                 <div className="yawrate-rollrate-pannel">
+    //                     <div className="yawrate-pannel">
+    //                         <YawRatePanel yawRate={desired_yawrate} desiredyawRate={desired_yawrate} />
+    //                     </div>
+    //                     <div className="rollrate-pannel">
+    //                         <RollRatePannel RollRate={desired_yawrate} />
+    //                     </div>
+    //                 </div>
+
+    //                 <div className="rpmstatus-pannel">
+    //                     <RpmPannel rpm_left={can0["rpm_left"]} rpm_right={can0["rpm_right"]} />
+    //                 </div>
+                    
+    //                 <div className="carstatus-pannel">
+    //                     <CarStatusPannel carstatus={can0} />
+    //                 </div>
+
+    //             </div>
+
+    //         </div>
+
+    //         <div className="dashboard-page-footer">
+    //             <RaceButton onClick={fetchButton} text={racestart.start ? "주행종료" : racestart.reset ? "초기화" : "주행 시작"} state={racestart} />
+    //         </div>
+    //     </div>
+    // );
 
     return (
         <div className="dashboard-page">
@@ -320,9 +380,9 @@ const[can0, setCan0] = useState({
                     <div className="powerstatus-panel">
                         <PowerStatusPanel can0={can0} />
                     </div>
-                    
+
                     <div className="gpsmap-pannel">
-                        <GpsMaPPannel gps= {gps}/>
+                        <GpsMaPPannel gps={gps} />
                     </div>
 
                     <div className="yawrate-rollrate-pannel">
@@ -333,6 +393,7 @@ const[can0, setCan0] = useState({
                             <RollRatePannel RollRate={desired_yawrate} />
                         </div>
                     </div>
+
 
                 </div>
 
@@ -350,7 +411,7 @@ const[can0, setCan0] = useState({
                     <div className="rpmstatus-pannel">
                         <RpmPannel rpm_left={can0["rpm_left"]} rpm_right={can0["rpm_right"]} />
                     </div>
-                    
+
                     <div className="carstatus-pannel">
                         <CarStatusPannel carstatus={can0} />
                     </div>
@@ -360,7 +421,7 @@ const[can0, setCan0] = useState({
             </div>
 
             <div className="dashboard-page-footer">
-                <RaceButton onClick={fetchButton} text={racestart.start ? "주행종료" : racestart.reset ? "초기화" : "주행 시작"} state={racestart} />
+                <RaceButton onClick={fetchButton} text={racestart.start ? "주행 종료" : racestart.reset ? "초기화" : "주행 시작"} state={racestart} />
             </div>
         </div>
     );
