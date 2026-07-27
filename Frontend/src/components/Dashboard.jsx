@@ -9,6 +9,7 @@ import RaceButton from "./panels/RaceControlButton/Button"
 import Timer from "./common/Timer/Timer"
 import RpmPannel from "./panels/RpmStatusPannel/RpmStatusPannel_for_mqtt";
 import GpsMaPPannel from "./panels/GpsMapPannel/GpsMapPannel_for_Mqtt"
+import DropdownMenu from "./panels/DropdownMenu/DropdownMenu"
 
 import "./Dashboard.css"
 
@@ -206,6 +207,37 @@ const[can0, setCan0] = useState({
         };
     }
 
+    const downloadRaceLog = async () => {
+        try {
+            const response = await fetch(
+                "http://localhost:8000/race/latest/download"
+            );
+
+            if(response.status == 404){
+                alert("주행로그 없음")
+                return
+            }
+
+            const blob = await response.blob();
+
+            const downloadUrl = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+
+            link.href = downloadUrl;
+            link.download = "race_log.json";
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            URL.revokeObjectURL(downloadUrl);
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    };
+
 
     async function fetchButton() {
         try {
@@ -369,6 +401,9 @@ const[can0, setCan0] = useState({
     return (
         <div className="dashboard-page">
             <div className="dashboard-header">
+                <div className="header_dropbox_button">
+                    <DropdownMenu latest_race_download  = {downloadRaceLog}/>
+                </div>
                 <div className={racestart.start ? "race-reset-button-header" : racestart.reset ? "race-stop-button-header" : "race-start-button-header"}>
                     <Timer state={racestart} elapsedMs={elapsedMs} setElapsedMs={setElapsedMs} />
                 </div>

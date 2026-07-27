@@ -5,6 +5,7 @@ import uvicorn
 from Logging_Service.main import race_start as race_start
 from Logging_Service.main import race_stop as race_stop
 from Logging_Service.main import race_reset as race_reset
+from Logging_Service.main import return_log as return_log
 
 app = FastAPI()
 
@@ -60,6 +61,7 @@ app.add_middleware(
 #         "version" : app.state.desired_yawrate["version"]
 #     }
 
+
 @app.get("/telemetry/gps")
 def get_gps():
     
@@ -68,7 +70,17 @@ def get_gps():
         "version" : app.state.gps["version"]
     }
 
+@app.get("/race/latest/download")
+def return_log_from_server():
+    latest_race = return_log()
 
+    print(latest_race)
+
+    if(latest_race == False):
+        print("데이터 없음")
+        return False
+    else:
+        return latest_race
 
 @app.post("/race/start")
 def race_start_button():

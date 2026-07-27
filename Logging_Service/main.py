@@ -1,11 +1,13 @@
+from fastapi import HTTPException
 import time
 import threading as thread
 import queue
+import copy
 from Logging_Service.mqtt.mqtt_subscriber import main as logging_mqtt_main
 from Logging_Service.log.log import can0_logging as can0_logging
 from Logging_Service.log.log import tps_logging as tps_logging
 from Logging_Service.log.log import bps_logging as bps_logging
-from Logging_Service.log.log import desired_yawrate_logging as desried_yawrate_logging
+from Logging_Service.log.log import desired_yawrate_logging as desired_yawrate_logging
 from Logging_Service.log.log import gps_logging as gps_logging
 
 
@@ -18,7 +20,8 @@ gps_queue = queue.Queue()
 shared_data = {
     "log_state" : "stop",
     "start_time" : None,
-    "current_race_obj" : None
+    "current_race_obj" : None,
+    "possibiity_download" : False
 }
 
 
@@ -34,6 +37,7 @@ class RaceLogger:
             }
         }
 
+##mqtt 통신을 위함
 def logging_mqtt():
     logging_mqtt_thread = thread.Thread(
         target= logging_mqtt_main,
@@ -41,7 +45,19 @@ def logging_mqtt():
     )
 
     logging_mqtt_thread.start()
+##------------------------------------------------
 
+##로그 데이터 반환을 위함
+def return_log():
+    if(shared_data["possibiity_download"] == False):
+        raise HTTPException(
+            status_code=404,
+            detail="다운로드 할 주행로그가 없습니다"
+        )
+    else:
+        return copy.deepcopy(shared_data["current_race_obj"])
+
+##각 센서 데이터 수집 
 def can0_logging():
     logging_thread = thread.Thread(
         target= can0_logging,
@@ -83,6 +99,7 @@ def gps_logging():
     logging_thread.start()
 
 
+##-------------------------------------------------
 def race_start():
     shared_data["log_state"] = "start"
     shared_data["current_race_obj"] = RaceLogger()
@@ -91,11 +108,14 @@ def race_start():
 
 def race_stop():
     shared_data["log_state"] = "stop"
+    shared_data["possibiity_download"] = True
     print("race_stop : logging_service")
 
 def race_reset():
     shared_data["log_state"] = "reset"
+    shared_data["possibiity_download"] = False
     print("race_reset : logging_service")
+##-----------------------------------------------------
 
 def logging():
     can0_logging()
