@@ -38,7 +38,7 @@ function PowerStatusPanel({ can0 }) {
         <div className="power-status-pannels">
             <div className="power-status-panel">
                 <PowerMetricRow
-                    label="전류 L"
+                    label="Current L"
                     value={can0["latest"]["current_left"]}
                     unit="A"
                     color="blue"
@@ -47,7 +47,7 @@ function PowerStatusPanel({ can0 }) {
             </div>
             <div className="power-status-panel">
                 <PowerMetricRow
-                    label="전류 R"
+                    label="Current R"
                     value={can0["latest"]["current_right"]}
                     unit="A"
                     color="red"
@@ -56,7 +56,7 @@ function PowerStatusPanel({ can0 }) {
             </div>
             <div className="power-status-panel">
                 <PowerMetricRow
-                    label="출력"
+                    label="Power"
                     value={can0["latest"]["avg_power"]}
                     unit="kW"
                     color="green"

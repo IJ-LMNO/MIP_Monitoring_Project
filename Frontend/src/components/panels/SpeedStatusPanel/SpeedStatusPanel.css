@@ -1,40 +1,60 @@
 .speed-panel {
-    width: 80%;
-    height: 80%;
+    width: 100%;
+    height: 90%;
     background: #070b12;
 
     border-radius: 8px;
     position: relative;
-    color: #e5e7eb;
+    color: hsl(220, 13%, 91%);
     display: flex;
     justify-content: center;
     align-items: center;
 
-    margin : 16px 16px 8px
+    font-family: Arial, sans-serif;
+
+    margin : 16px 16px 2px;
 }
 
 .speed-value {
     position: absolute;
-    top: 10px;
+    top: 10%;
     font-size: 20px;
     color: #f9fafb;
+
+    width: 60px;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+
+    gap: 4px;
+
+}
+
+.speed-value-data{
+    font-size: 30px;
 }
 
 .speed-gauge {
     position: relative;
-    width: 220px;
-    height: 110px;
+    width: 300px;
+    height: 150px;
     margin-top: 35px;
-    border-top-left-radius: 220px;
-    border-top-right-radius: 220px;
+    border-top-left-radius: 300px;
+    border-top-right-radius: 300px;
     overflow: hidden;
+
+
+
 }
 
 .gauge-arc {
-    width: 220px;
-    height: 220px;
+    width: 290px;
+    height: 300px;
     border-radius: 50%;
-    border: 3px solid #374151;
+    border: 5px solid #374151;
     border-bottom-color: transparent;
     border-left-color: #2563eb;
     border-right-color: #ef4444;
@@ -64,22 +84,23 @@
 
 .speed-label {
     position: absolute;
-    font-size: 12px;
+    font-size: 15px;
+
     color: #e5e7eb;
 }
 
 .speed-label.left {
-    left: 0;
+    left: 5%;
     bottom: 0;
 }
 
 .speed-label.top {
-    top: 0;
+    top: 5%;
     left: 50%;
     transform: translateX(-50%);
 }
 
 .speed-label.right {
-    right: 0;
+    right: 5%;
     bottom: 0;
 }

@@ -3,7 +3,8 @@
     height: 100%;
 
     display: flex;
-    align-items: center;
+
+
 }
 
 .tmini-line-chart {
@@ -12,7 +13,7 @@
     border-radius: 6px;
 
     width: 100%;
-    height: 80%;
+    height: 90%;
 
     min-width: 0px;
     min-height: 0px;

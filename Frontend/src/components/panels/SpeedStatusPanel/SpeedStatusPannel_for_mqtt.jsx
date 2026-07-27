@@ -17,7 +17,12 @@ function SpeedStatusPanel({ speed = 0 }) {
     return (
         <div className="speed-panel">
             <div className="speed-value">
-                {displayspeed} km
+                <div className="speed-value-data">
+                    {displayspeed }
+                </div>
+                <div style={{display : "flex", alignItems : "center"}}>
+                     km
+                </div>
             </div>
 
             <div className="speed-gauge">

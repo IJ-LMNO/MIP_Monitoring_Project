@@ -11,13 +11,15 @@ function SpeedStatusPanel({ speed = 0 }) {
 
 
 
-    // -120° ~ 120°
     const needleAngle = startAngle + (gaugeSpeed / maxSpeed) * (endAngle - startAngle);
 
     return (
         <div className="speed-panel">
             <div className="speed-value">
-                {displayspeed} km
+                <div className="speed-value-data">
+                    {displayspeed}
+                </div>
+                km
             </div>
 
             <div className="speed-gauge">

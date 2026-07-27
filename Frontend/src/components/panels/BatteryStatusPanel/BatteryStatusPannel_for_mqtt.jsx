@@ -5,7 +5,7 @@ function BatteryStatusPaneel({ battery }) {
     return (
         <div className="battery-panel">
             <div className="battery-row">
-                <div>
+                <div className="batterty-row-title">
                     <div className="metric-label">
                         배터리 전압
                     </div>
@@ -32,7 +32,9 @@ function BatteryStatusPaneel({ battery }) {
                 </div>
 
                 <div className="soc-value">
-                    {battery}%
+                    <div className="soc-value-battery">
+                        {battery}%
+                    </div>
                 </div>
 
             </div>
