@@ -1,7 +1,7 @@
 import copy, time
 from Monitoring_Server.api.main import get_bps_data, get_tps_data, get_desired_yawrate_data
 
-def main(queue, data, type):
+def main(queue, data, detail_dequeue, type):
     while(True):
         try:
             latest_data = queue.get()
@@ -17,6 +17,7 @@ def main(queue, data, type):
                 get_bps_data(copy.deepcopy(data))
             elif(type == "desired_yawrate"):
                 get_desired_yawrate_data(copy.deepcopy(data))
+                detail_dequeue.put(copy.deepcopy(data))
         finally:
             queue.task_done()
 

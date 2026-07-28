@@ -3,13 +3,22 @@ from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import copy
+import queue
 
 from Logging_Service.main import race_start as race_start
 from Logging_Service.main import race_stop as race_stop
 from Logging_Service.main import race_reset as race_reset
 from Logging_Service.main import return_log as return_log
 
+can0_queue = queue.Queue()
+tps_queue = queue.Queue()
+bps_queue = queue.Queue()
+desired_yawrate_queue = queue.Queue()
+gps_queue = queue.Queue()
+
+
 app = FastAPI()
+
 
 origins = [
     "http://localhost:5173",
@@ -28,49 +37,57 @@ app.add_middleware(
 
 
 
-# @app.get("/telemetry/can0")
-# def get_can0():
-#     return {
-#         "latest": app.state.can0["latest"],
-#         "history": list(app.state.can0["history"]),
-#         "version" : app.state.can0["version"]
-#     }
+@app.get("/telemetry/can0")
+def get_can0():
+    latest = can0_queue.get()
+    return {
+        "latest": latest["latest"],
+        "history": list(latest["history"]),
+        "version" : latest["version"]
+    }
 
 
-# @app.get("/telemetry/tps")
-# def get_tps():
-#     return {
-#         "latest": app.state.tps["latest"],
-#         "history": list(app.state.tps["history"]),
-#         "version" : app.state.tps["version"]
-#     }
+@app.get("/telemetry/tps")
+def get_tps():
+    latest = tps_queue.get()
+    return {
+        "latest": latest["latest"],
+        "history": list(latest["history"]),
+        "version" : latest["version"]
+    }
 
 
-# @app.get("/telemetry/bps")
-# def get_bps():
-#     return {
-#         "latest": app.state.bps["latest"],
-#         "history": list(app.state.bps["history"]),
-#         "version" : app.state.bps["version"]
-#     }
+@app.get("/telemetry/bps")
+def get_bps():
+    latest = bps_queue.get()
+    return {
+        "latest": latest["latest"],
+        "history": list(latest["history"]),
+        "version" : latest["version"]
+    }
 
 
-# @app.get("/telemetry/desired-yawrate")
-# def get_desired_yawrate():
-#     return {
-#         "latest": app.state.desired_yawrate["latest"],
-#         "history": list(app.state.desired_yawrate["history"]),
-#         "version" : app.state.desired_yawrate["version"]
-#     }
+@app.get("/telemetry/desired-yawrate")
+def get_desired_yawrate():
+    latest = desired_yawrate_queue.get()
+    return {
+        "latest": latest["latest"],
+        "history": list(latest["history"]),
+        "version" : latest["version"]
+    }
 
 
 @app.get("/telemetry/gps")
 def get_gps():
-    
+    latest = gps_queue.get()
     return {
-        "latest": app.state.gps["latest"],
-        "version" : app.state.gps["version"]
+        "latest": latest["latest"],
+        "version" : latest["version"]
     }
+
+@app.get("/detail/yawrate"){
+    return
+}
 
 @app.get("/race/latest/download")
 def return_log_from_server():
@@ -101,19 +118,19 @@ def race_reset_button():
 
 
 def get_can0_data(data):
-    app.state.can0 = data
+    can0_queue.put(data)
 
 def get_tps_data(data):
-    app.state.tps = data
+    tps_queue.put(get_gps_data)
 
 def get_bps_data(data):
-    app.state.bps = data
+    bps_queue.put(data)
 
 def get_desired_yawrate_data(data):
-    app.state.desired_yawrate = data
+    desired_yawrate_queue.put(data)
 
 def get_gps_data(data):
-    app.state.gps = data
+    gps_queue.put(data)
 
 
 def main():

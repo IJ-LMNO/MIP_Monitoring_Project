@@ -9,7 +9,7 @@ function YawRatePanel({ yawRate, desiredyawRate }) {
     const navigate = useNavigate();
 
     const handleOpenDetail = () => {
-        window.open("/graph/yawrate", "_blank");
+        window.open("/detail/yawrate", "_blank");
     };
 
 

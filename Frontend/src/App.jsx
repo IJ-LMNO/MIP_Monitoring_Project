@@ -10,7 +10,7 @@ function App() {
                 element={<Dashboard/>}
             />
             <Route
-                path="/graph/:sensortype"
+                path="/detail/:sensortype"
                 element={<YawRateDetailPage />}
             />
         </Routes>

@@ -125,7 +125,7 @@ def mqtt_desired_yawrate_queue_thread():
     
     thread_mqtt_queue = thread.Thread(
         target= mqtt_can1_queue,
-        args=(desired_yawrate_queue, desired_yawrate, "desired_yawrate")
+        args=(desired_yawrate_queue, desired_yawrate, desired_yawrate_detail, "desired_yawrate")
     )
 
     thread_mqtt_queue.start()
