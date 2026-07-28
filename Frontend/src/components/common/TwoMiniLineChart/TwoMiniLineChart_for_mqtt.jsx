@@ -46,10 +46,10 @@ function TwoMiniLineChart({
                     y1={height / 2}
                     x2={width}
                     y2={height / 2}
-                    className="chart-zero-line"
+                    className="tchart-zero-line"
                 />
 
-                <text x="4" y="12" className="chart-label">
+                <text x="4" y="12" className="tchart-label">
                     {max}
                 </text>
 
@@ -61,7 +61,7 @@ function TwoMiniLineChart({
                     0
                 </text>
 
-                <text x="4" y={height - 4} className="chart-label">
+                <text x="4" y={height - 4} className="tchart-label">
                     {min}
                 </text>
 

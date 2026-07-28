@@ -74,6 +74,11 @@ gps = {
     "version" : 0
 }
 
+##3분 기준
+desired_yawrate_detail = {
+    "history" : deque(maxlen=1800)
+}
+
 
 
 def run_fast_api():

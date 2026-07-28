@@ -1,15 +1,15 @@
 import { useEffect, useState, useRef } from "react";
-import PowerStatusPanel from "./panels/PowerStatusPanel/PowerStatusPannel_for_mqtt";
-import SpeedStatusPanel from "./panels/SpeedStatusPanel/SpeedStatusPannel_for_mqtt"
-import YawRatePanel from "./panels/YawRateRanel/YawRatepannel_for_mqtt"
-import BatteryStatusPaneel from "./panels/BatteryStatusPanel/BatteryStatusPannel_for_mqtt"
-import RollRatePannel from "./panels/RollRateStatusPannel/RollRateStatusPannel_for_mqtt"
-import CarStatusPannel from "./panels/CarStatusPannel/CarStatusPannel_for_mqtt"
-import RaceButton from "./panels/RaceControlButton/Button"
-import Timer from "./common/Timer/Timer"
-import RpmPannel from "./panels/RpmStatusPannel/RpmStatusPannel_for_mqtt";
-import GpsMaPPannel from "./panels/GpsMapPannel/GpsMapPannel_for_Mqtt"
-import DropdownMenu from "./panels/DropdownMenu/DropdownMenu"
+import PowerStatusPanel from "../../components/panels/PowerStatusPanel/PowerStatusPannel_for_mqtt";
+import SpeedStatusPanel from "../../components/panels/SpeedStatusPanel/SpeedStatusPannel_for_mqtt"
+import YawRatePanel from "../../components/panels/YawRateRanel/YawRatepannel_for_mqtt"
+import BatteryStatusPaneel from "../../components/panels/BatteryStatusPanel/BatteryStatusPannel_for_mqtt"
+import RollRatePannel from "../../components/panels/RollRateStatusPannel/RollRateStatusPannel_for_mqtt"
+import CarStatusPannel from "../../components/panels/CarStatusPannel/CarStatusPannel_for_mqtt"
+import RaceButton from "../../components/panels/RaceControlButton/Button"
+import Timer from "../../components/common/Timer/Timer"
+import RpmPannel from "../../components/panels/RpmStatusPannel/RpmStatusPannel_for_mqtt";
+import GpsMaPPannel from "../../components/panels/GpsMapPannel/GpsMapPannel_for_Mqtt"
+import DropdownMenu from "../../components/panels/DropdownMenu/DropdownMenu"
 
 import "./Dashboard.css"
 
@@ -337,66 +337,6 @@ const[can0, setCan0] = useState({
         })
     }, [])
 
-//version 1
-    // return (
-    //     <div className="dashboard-page">
-    //         <div className="dashboard-header">
-    //             <div className={racestart.start ? "race-reset-button-header" : racestart.reset ? "race-stop-button-header" : "race-start-button-header"}>
-    //                 <Timer state={racestart} elapsedMs={elapsedMs} setElapsedMs={setElapsedMs} />
-    //             </div>
-    //         </div>
-
-    //         <div className="dashboard-page-pannel">
-    //             <div className="dashboard-page-top">
-
-    //                 <div className="powerstatus-panel">
-    //                     <PowerStatusPanel can0={can0} />
-    //                 </div>
-                    
-    //                 <div className="gpsmap-pannel">
-    //                     <GpsMaPPannel gps= {gps}/>
-    //                 </div>
-
-    //                 <div className="speedstatus-battery-pannel">
-    //                     <div className="speedstatus-pannel">
-    //                         <SpeedStatusPanel speed={can0["speed"]} />
-    //                     </div>
-    //                     <div className="battery-pannel">
-    //                         <BatteryStatusPaneel battery={50} />
-    //                     </div>
-    //                 </div>
-
-
-    //             </div>
-
-    //             <div className="dashboard-page-bottom">
-
-    //                 <div className="yawrate-rollrate-pannel">
-    //                     <div className="yawrate-pannel">
-    //                         <YawRatePanel yawRate={desired_yawrate} desiredyawRate={desired_yawrate} />
-    //                     </div>
-    //                     <div className="rollrate-pannel">
-    //                         <RollRatePannel RollRate={desired_yawrate} />
-    //                     </div>
-    //                 </div>
-
-    //                 <div className="rpmstatus-pannel">
-    //                     <RpmPannel rpm_left={can0["rpm_left"]} rpm_right={can0["rpm_right"]} />
-    //                 </div>
-                    
-    //                 <div className="carstatus-pannel">
-    //                     <CarStatusPannel carstatus={can0} />
-    //                 </div>
-
-    //             </div>
-
-    //         </div>
-
-    //         <div className="dashboard-page-footer">
-    //             <RaceButton onClick={fetchButton} text={racestart.start ? "주행종료" : racestart.reset ? "초기화" : "주행 시작"} state={racestart} />
-    //         </div>
-    //     </div>
-    // );
 
     return (
         <div className="dashboard-page">

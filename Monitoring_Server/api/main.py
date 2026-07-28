@@ -1,6 +1,8 @@
 from fastapi import FastAPI
+from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+import copy
 
 from Logging_Service.main import race_start as race_start
 from Logging_Service.main import race_stop as race_stop
@@ -74,13 +76,13 @@ def get_gps():
 def return_log_from_server():
     latest_race = return_log()
 
-    print(latest_race)
-
     if(latest_race == False):
-        print("데이터 없음")
-        return False
+        raise HTTPException(
+            status_code=404,
+            detail="로그데이터 없음"
+        )
     else:
-        return latest_race
+        return copy.deepcopy(latest_race)
 
 @app.post("/race/start")
 def race_start_button():
