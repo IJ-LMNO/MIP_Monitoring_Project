@@ -1,159 +1,259 @@
-import can
 import math
-import threading as thread
+import time
 import copy
-import queue
 
-can0_tmp_queue = queue.Queue()
+import can
+
+
+CAN_CHANNEL = "can0"
+
+PUBLISH_INTERVAL = 0.1
+
+RECONNECT_INTERVAL = 2.0
+
+MAX_FRAMES_PER_CYCLE = 200
+
 
 class Can0:
-    def __init__(self, channel='can0'):
+    def __init__(self, channel=CAN_CHANNEL):
         self.channel = channel
         self.bus = None
-        self._data_lock = thread.Lock()
 
-        # Use default values until the first frame from each motor is received.
         self.right_data = {
-            'voltage': 0.0,
-            'current': 0.0,
-            'torque': 0.0,
-            'rpm': 0,
+            "voltage": 0.0,
+            "current": 0.0,
+            "torque": 0.0,
+            "rpm": 0,
         }
 
         self.left_data = {
-            'voltage': 0.0,
-            'current': 0.0,
-            'torque': 0.0,
-            'rpm': 0,
+            "voltage": 0.0,
+            "current": 0.0,
+            "torque": 0.0,
+            "rpm": 0,
         }
 
-        self.avg_rpm = 0.0
-        self.avg_voltage = 0.0
-        self.power_right = 0.0
-        self.power_left = 0.0
-        self.avg_power = 0.0
-        self.speed = 0.0
-        self.current_left = 0.0
-        self.current_right = 0.0
-        self.rpm_left = 0
-        self.rpm_right = 0
+        self.version = 0
 
-        self.can0 ={
-            "latest" : {
-                'avg_rpm' : 0.0,
-                'avg_voltage' : 0.0,
-                "avg_power" : 0.0,
-
-                "speed" : 0.0,
-
-                "power_left" : 0.0,
-                "power_right" : 0.0,
-                "current_left" : 0.0,
-                "current_right" : 0.0,
-                "rpm_left" : 0.0,
-                "rpm_right" : 0.0
-            },
-            
-        }
-
-        self.init_can()
+        self.last_no_data_log_time = 0.0
 
     def init_can(self):
         if self.bus is not None:
             return True
 
         try:
-            # SocketCAN is available on Linux; the can0 interface must be configured and up.
             self.bus = can.interface.Bus(
                 channel=self.channel,
-                interface='socketcan',
+                interface="socketcan",
             )
+
+            print(f"[CAN0] 인터페이스 연결 성공: {self.channel}")
             return True
+
         except (can.CanError, OSError) as error:
-            print("CAN Init Fail:", error)
+            print(f"[CAN0] 인터페이스 연결 실패: {error}")
             self.bus = None
             return False
-        
+
+    def process_message(self, message):
+        if len(message.data) < 8:
+            return
+
+        if message.arbitration_id == 0x331:
+            self.right_data["voltage"] = (
+                int.from_bytes(
+                    message.data[0:2],
+                    byteorder="little",
+                    signed=False,
+                )
+                / 10.0
+            )
+
+            self.right_data["current"] = (
+                int.from_bytes(
+                    message.data[2:4],
+                    byteorder="little",
+                    signed=True,
+                )
+                / 10.0
+            )
+
+            self.right_data["torque"] = (
+                int.from_bytes(
+                    message.data[4:6],
+                    byteorder="little",
+                    signed=True,
+                )
+                / 10.0
+            )
+
+            self.right_data["rpm"] = int.from_bytes(
+                message.data[6:8],
+                byteorder="little",
+                signed=True,
+            )
+
+        elif message.arbitration_id == 0x341:
+            self.left_data["voltage"] = (
+                int.from_bytes(
+                    message.data[0:2],
+                    byteorder="little",
+                    signed=False,
+                )
+                / 10.0
+            )
+
+            self.left_data["current"] = (
+                int.from_bytes(
+                    message.data[2:4],
+                    byteorder="little",
+                    signed=True,
+                )
+                / 10.0
+            )
+
+            self.left_data["torque"] = (
+                int.from_bytes(
+                    message.data[4:6],
+                    byteorder="little",
+                    signed=True,
+                )
+                / 10.0
+            )
+
+            self.left_data["rpm"] = int.from_bytes(
+                message.data[6:8],
+                byteorder="little",
+                signed=True,
+            )
+
     def read_can_data(self):
         if self.bus is None:
-            return 0
+            return False
 
+        received_count = 0
 
-        # A zero timeout makes this a non-blocking receive operation.
-        msg = self.bus.recv(timeout=0)
-        while msg is not None:
-            # Both supported message layouts require all eight CAN data bytes.
-            if len(msg.data) >= 8:
-                with self._data_lock:
-                    if msg.arbitration_id == 0x331:
-                        # Decode little-endian raw values using the sender's scale factors.
-                        self.right_data['voltage'] = int.from_bytes(msg.data[0:2], 'little') / 10.0
-                        self.right_data['current'] = int.from_bytes(msg.data[2:4], 'little', signed=True) / 10.0
-                        self.right_data['torque'] = int.from_bytes(msg.data[4:6], 'little', signed=True) / 10.0
-                        self.right_data['rpm'] = int.from_bytes(msg.data[6:8], 'little', signed=True)
+        try:
+            for frame_index in range(MAX_FRAMES_PER_CYCLE):
+                timeout = 0.05 if frame_index == 0 else 0
 
-                        self.can0["version"] += 1
-                    
-                    elif msg.arbitration_id == 0x341:
-                        self.left_data['voltage'] = int.from_bytes(msg.data[0:2], 'little') / 10.0
-                        self.left_data['current'] = int.from_bytes(msg.data[2:4], 'little', signed=True) / 10.0
-                        self.left_data['torque'] = int.from_bytes(msg.data[4:6], 'little', signed=True) / 10.0
-                        self.left_data['rpm'] = int.from_bytes(msg.data[6:8], 'little', signed=True)
+                message = self.bus.recv(timeout=timeout)
 
-                        self.can0["version"] += 1
+                if message is None:
+                    break
 
-            # Read the next queued frame instead of processing the same frame repeatedly.
-            msg = self.bus.recv(timeout=0)
+                self.process_message(message)
+                received_count += 1
 
+        except (can.CanError, OSError) as error:
+            print(f"[CAN0] CAN 수신 오류: {error}")
+            self.shutdown()
+            return False
 
+        if received_count == 0:
+            current_time = time.monotonic()
 
-    def calculate_data(self):
-        with self._data_lock:
-            right_data = self.right_data.copy()
-            left_data = self.left_data.copy()
+            if current_time - self.last_no_data_log_time >= 5:
+                print(
+                    "[CAN0] 인터페이스는 연결됐지만 "
+                    "0x331/0x341 프레임을 기다리는 중"
+                )
+                self.last_no_data_log_time = current_time
 
+        return True
 
-        self.avg_rpm = (right_data['rpm'] + left_data['rpm']) / 2
-        self.can0["latest"]["avg_rpm"] = self.avg_rpm
-        self.can0["latest"]["avg_voltage"] = (right_data['voltage'] + left_data['voltage']) / 2
+    def make_payload(self):
+        right_data = self.right_data.copy()
+        left_data = self.left_data.copy()
 
-        self.power_right = right_data['voltage'] * right_data['current']
-        self.power_left = left_data['voltage'] * left_data['current']
-        self.can0["latest"]["avg_power"] = (self.power_right + self.power_left) / 2
-        self.can0["latest"]["power_right"] = self.power_right
-        self.can0["latest"]["power_left"] = self.power_left
+        avg_rpm = (
+            right_data["rpm"] + left_data["rpm"]
+        ) / 2.0
 
-        # Convert motor RPM to vehicle speed in km/h using wheel diameter and gear ratio.
-        self.can0["latest"]["speed"] = self.avg_rpm / 60 * (18 * 0.0254 * math.pi) * (11 / 68) * 3.6
-        self.can0["latest"]["current_left"] = left_data['current']
-        self.can0["latest"]["current_right"] = right_data['current']
-        self.can0["latest"]["rpm_left"] = left_data['rpm']
-        self.can0["latest"]["rpm_right"] = right_data['rpm']
+        avg_voltage = (
+            right_data["voltage"] + left_data["voltage"]
+        ) / 2.0
 
-        can0_tmp_queue.put(copy.deepcopy(self.can0))
+        power_right = (
+            right_data["voltage"] * right_data["current"]
+        )
 
+        power_left = (
+            left_data["voltage"] * left_data["current"]
+        )
+
+        avg_power = (power_right + power_left) / 2.0
+
+        speed = (
+            avg_rpm
+            / 60.0
+            * (18 * 0.0254 * math.pi)
+            * (11 / 46)
+            * 3.6
+        )
+
+        self.version += 1
+
+        return {
+            "latest": {
+                "avg_rpm": avg_rpm,
+                "avg_voltage": avg_voltage,
+                "avg_power": avg_power,
+
+                "speed": speed,
+
+                "power_left": power_left,
+                "power_right": power_right,
+
+                "current_left": left_data["current"],
+                "current_right": right_data["current"],
+
+                "rpm_left": left_data["rpm"],
+                "rpm_right": right_data["rpm"],
+
+                "torque_left": left_data["torque"],
+                "torque_right": right_data["torque"],
+            },
+
+            "version": self.version,
+        }
 
     def shutdown(self):
         if self.bus is not None:
-            self.bus.shutdown()
+            try:
+                self.bus.shutdown()
+            except (can.CanError, OSError):
+                pass
+
             self.bus = None
 
-def tmp_queue_to_main_queue(queue, tmp_queue):
-    latest = tmp_queue.get()
-
-    queue.put(copy.deepcopy(latest))
 
 def main(can0_queue):
-    obj = Can0()
+    can0 = Can0()
+    next_publish_time = time.monotonic()
 
-    obj.init_can()
+    try:
+        while True:
+            if can0.bus is None:
+                if not can0.init_can():
+                    time.sleep(RECONNECT_INTERVAL)
+                    continue
 
-    while(True):
-        obj.read_can_data()
-        obj.calculate_data()
+                next_publish_time = time.monotonic()
 
-        tmp_queue_to_main_queue(can0_queue, can0_tmp_queue)
+            if not can0.read_can_data():
+                time.sleep(RECONNECT_INTERVAL)
+                continue
 
+            current_time = time.monotonic()
 
+            if current_time >= next_publish_time:
+                payload = can0.make_payload()
+                can0_queue.put(copy.deepcopy(payload))
 
+                next_publish_time = (
+                    current_time + PUBLISH_INTERVAL
+                )
 
+    finally:
+        can0.shutdown()

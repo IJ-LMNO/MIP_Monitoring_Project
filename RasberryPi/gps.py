@@ -15,8 +15,6 @@ Class GPSNeom8n has four function
 4. shutdown
 '''
 
-gps_tmp_queue = queue.Queue()
-
 class GPS:
     
 # explain function __init__
@@ -109,15 +107,10 @@ class GPS:
             
 #GPSNeom8n( port="/dev/ttyAMA0", baudrate=9600, timeout=0.1)
 
-def tmp_queue_to_main_queue(queue, tmp_queue):
-    latest = tmp_queue.get()
-
-    queue.put(copy.deepcopy(latest))
 
 def main(gps_queue):
     obj = GPS()
     obj.connect()
 
     while(True):
-        obj.read_gps_data()
-        tmp_queue_to_main_queue(gps_queue, gps_tmp_queue)
+        gps_queue.put(copy.deepcopy(obj.read_gps_data()))

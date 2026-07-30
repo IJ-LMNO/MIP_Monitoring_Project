@@ -1,21 +1,17 @@
-import { useNavigate } from "react-router";
-
 import TwoMiniLineChart from "../../common/TwoMiniLineChart/TwoMiniLineChart_for_mqtt";
-import "./YawRatePanel.css"
+import "./YawRatePanel.css";
 
 function YawRatePanel({ yawRate, desiredyawRate }) {
     const currentyawrate = yawRate["latest"]
+
     const currentdesiredyawrate = desiredyawRate["latest"]
-    const navigate = useNavigate();
 
     const handleOpenDetail = () => {
         window.open("/detail/yawrate", "_blank");
     };
 
-
     return (
         <div className="yawrate-pannel">
-
             <div className="yawrate-pannel-header">
                 <button onClick={handleOpenDetail}>
                     +
@@ -35,12 +31,15 @@ function YawRatePanel({ yawRate, desiredyawRate }) {
                 <div className="yawrate-pannel-text">
                     <div className="YawRATE">
                         YawRATE
+
                         <div className="YawRATE-value">
                             {currentyawrate}
                         </div>
                     </div>
+
                     <div className="DesiredYawRATE">
                         DesiredYawRATE
+
                         <div className="DesiredYawRATE-value">
                             {currentdesiredyawrate}
                         </div>
@@ -50,5 +49,5 @@ function YawRatePanel({ yawRate, desiredyawRate }) {
         </div>
     );
 }
-
+ 
 export default YawRatePanel;

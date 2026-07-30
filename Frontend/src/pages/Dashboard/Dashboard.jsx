@@ -1,225 +1,226 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
+
 import PowerStatusPanel from "../../components/panels/PowerStatusPanel/PowerStatusPannel_for_mqtt";
-import SpeedStatusPanel from "../../components/panels/SpeedStatusPanel/SpeedStatusPannel_for_mqtt"
-import YawRatePanel from "../../components/panels/YawRateRanel/YawRatepannel_for_mqtt"
-import BatteryStatusPaneel from "../../components/panels/BatteryStatusPanel/BatteryStatusPannel_for_mqtt"
-import RollRatePannel from "../../components/panels/RollRateStatusPannel/RollRateStatusPannel_for_mqtt"
-import CarStatusPannel from "../../components/panels/CarStatusPannel/CarStatusPannel_for_mqtt"
-import RaceButton from "../../components/panels/RaceControlButton/Button"
-import Timer from "../../components/common/Timer/Timer"
+import SpeedStatusPanel from "../../components/panels/SpeedStatusPanel/SpeedStatusPannel_for_mqtt";
+import YawRatePanel from "../../components/panels/YawRateRanel/YawRatepannel_for_mqtt";
+import BatteryStatusPaneel from "../../components/panels/BatteryStatusPanel/BatteryStatusPannel_for_mqtt";
+import RollRatePannel from "../../components/panels/RollRateStatusPannel/RollRateStatusPannel_for_mqtt";
+import CarStatusPannel from "../../components/panels/CarStatusPannel/CarStatusPannel_for_mqtt";
+import RaceButton from "../../components/panels/RaceControlButton/Button";
+import Timer from "../../components/common/Timer/Timer";
 import RpmPannel from "../../components/panels/RpmStatusPannel/RpmStatusPannel_for_mqtt";
-import GpsMaPPannel from "../../components/panels/GpsMapPannel/GpsMapPannel_for_Mqtt"
-import DropdownMenu from "../../components/panels/DropdownMenu/DropdownMenu"
+import GpsMaPPannel from "../../components/panels/GpsMapPannel/GpsMapPannel_for_Mqtt";
+import DropdownMenu from "../../components/panels/DropdownMenu/DropdownMenu";
 
-import "./Dashboard.css"
+import "./Dashboard.css";
 
-const CAN0_TIME = 500
-const TPS_TIME = 100
-const BPS_TIME = 100
-const DESIRED_YAWRATE_TIME = 100
-const GPS_TIME = 1000
+const API_BASE_URL = "http://localhost:8000";
 
-function Dashboard(){
-const[can0, setCan0] = useState({
-        "latest" : {
-            'avg_rpm': 0.0,
-            'avg_voltage': 0.0,
-            "avg_power": 0.0,   
+const CAN0_TIME = 100;
+const CAN1_TIME = 100;
+const GPS_TIME = 200;
 
-            "power_right": 0.0,
-            "power_left": 0.0,
+function Dashboard() {
+    const [can0, setCan0] = useState({
+        latest: {
+            avg_rpm: 0.0,
+            avg_voltage: 0.0,
+            avg_power: 0.0,
 
-            "speed": 0.0,
+            power_right: 0.0,
+            power_left: 0.0,
 
-            "current_left": 0.0,
-            "current_right": 0.0,
-            
-            "rpm_left": 0.0,
-            "rpm_right": 0.0
-        },
-        
-        "history" : {
-            "current_right" : [],
-            "current_left" : [],
-            "avg_power" : []
+            speed: 0.0,
+
+            current_left: 0.0,
+            current_right: 0.0,
+
+            rpm_left: 0.0,
+            rpm_right: 0.0,
+
+            torque_left: 0.0,
+            torque_right: 0.0,
         },
 
-    })
+        history: {
+            current_right: [],
+            current_left: [],
+            avg_power: [],
+        },
+
+        version: 0,
+    });
 
     const [tps, setTps] = useState({
-        "latest" : 0.0,
-        "history" : [],
-    })
-    const[bps, setBps] = useState({
-        "latest" : 0.0,
-        "history" : [],
-    })
-    const[desired_yawrate, setDesiredy_yawrate] = useState({
-        "latest" : 0.0,
-        "history" : [],
-    })
+        latest: 0.0,
+        history: [],
+        version: 0,
+    });
 
-    const[gps, setGps] = useState({
-        "latest" : {
-            "timestamp" : 0.0,
-            "latitude" : 0.0,
-            "longitude" : 0.0
+    const [desiredYawrate, setDesiredYawrate] = useState({
+        latest: 0.0,
+        history: [],
+        version: 0,
+    });
+
+    const [gps, setGps] = useState({
+        latest: {
+            timestamp: 0.0,
+            latitude: 0.0,
+            longitude: 0.0,
         },
-        "history" : [],
-    })
+        history: [],
+        version: 0,
+    });
+
+    const [yawrate, setYawrate] = useState({
+        latest: 0.0,
+        history: [],
+        version: 0,
+    });
+
+    const [rollrate, setRollrate] = useState({
+        latest: 0.0,
+        history: [],
+        version: 0,
+    });
+
+    const [steeringhandle, setSteeringhandle] = useState({
+        latest: 0.0,
+        history: [],
+        version: 0,
+    });
+
+    const [tiredegree, setTireDegree] = useState({
+        latest: 0.0,
+        history: [],
+        version: 0,
+    });
 
     const [racestart, setRacestart] = useState({
         start: false,
-        reset: false
-    })
+        reset: false,
+    });
 
     const [elapsedMs, setElapsedMs] = useState(0);
+    const [error, setError] = useState(null);
 
-    const can0version = useRef(0)
-    const tpsversion = useRef(0)
-    const bpsversion = useRef(0)
-    const desiredyawrateversion = useRef(0)
-    const gpsversion = useRef(0)
+    function startTelemetry(endpoint, setter, intervalTime) {
+        const fetchTelemetry = async () => {
+            try {
+                const response = await fetch(
+                    `${API_BASE_URL}${endpoint}`
+                );
+
+                if (!response.ok) {
+                    throw new Error(
+                        `${endpoint} 요청 실패: ${response.status}`
+                    );
+                }
+
+                const data = await response.json();
+
+                setter(data);
+                setError(null);
+            } catch (error) {
+                console.error(error);
+                setError(error.message);
+            }
+        };
+
+        // 화면 진입 직후 한 번 실행
+        fetchTelemetry();
+
+        // 이후 주기적으로 실행
+        const timer = setInterval(fetchTelemetry, intervalTime);
+
+        return () => {
+            clearInterval(timer);
+        };
+    }
 
     function telemetryCan0() {
-
-        const timer = setInterval(async () => {
-            try {
-                const response = await fetch(
-                    "http://localhost:8000/telemetry/can0"
-                );
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                setCan0(data);
-        
-            } catch (error) {
-                setError(error.message);
-            }
-        }, CAN0_TIME);
-
-        return () => {
-            clearInterval(timer);
-        };
+        return startTelemetry(
+            "/telemetry/can0",
+            setCan0,
+            CAN0_TIME
+        );
     }
 
-    function telemetryTps(){
-        const timer = setInterval(async () => {
-            try {
-                const response = await fetch(
-                    "http://localhost:8000/telemetry/tps"
-                );
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error: ${response.status}`);
-                }
-
-                const data = await response.json();
-                
-
-                setTps(data);
-            } catch (error) {
-                setError(error.message);
-            }
-        }, TPS_TIME);
-
-        return () => {
-            clearInterval(timer);
-        };
+    function telemetryTps() {
+        return startTelemetry(
+            "/telemetry/tps",
+            setTps,
+            CAN1_TIME
+        );
     }
 
-    function telemetryBps() {
-        const timer = setInterval(async () => {
-            try {
-                const response = await fetch(
-                    "http://localhost:8000/telemetry/bps"
-                );
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                setBps(data);
-                
-            } catch (error) {
-                setError(error.message);
-            }
-        }, BPS_TIME);
-
-        return () => {
-            clearInterval(timer);
-        };
-    }
-
-    function telemetryDesiredyawrate() {
-        const timer = setInterval(async () => {
-            try {
-                const response = await fetch(
-                    "http://localhost:8000/telemetry/desired-yawrate"
-                );
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                setDesiredy_yawrate(data);
-
-            } catch (error) {
-                setError(error.message);
-            }
-        }, DESIRED_YAWRATE_TIME);
-
-        return () => {
-            clearInterval(timer);
-        };
+    function telemetryDesiredYawrate() {
+        return startTelemetry(
+            "/telemetry/desired-yawrate",
+            setDesiredYawrate,
+            CAN1_TIME
+        );
     }
 
     function telemetryGps() {
-        const timer = setInterval(async () => {
-            try {
-                const response = await fetch(
-                    "http://localhost:8000/telemetry/gps"
-                );
+        return startTelemetry(
+            "/telemetry/gps",
+            setGps,
+            GPS_TIME
+        );
+    }
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error: ${response.status}`);
-                }
+    function telemetryYawrate() {
+        return startTelemetry(
+            "/telemetry/yawrate",
+            setYawrate,
+            CAN1_TIME
+        );
+    }
 
-                const data = await response.json();
+    function telemetryRollrate() {
+        return startTelemetry(
+            "/telemetry/rollrate",
+            setRollrate,
+            CAN1_TIME
+        );
+    }
 
-                setGps(data)
+    function telemetrySteeringhandle() {
+        return startTelemetry(
+            "/telemetry/steeringhandle",
+            setSteeringhandle,
+            CAN1_TIME
+        );
+    }
 
-            } catch (error) {
-                setError(error.message);
-            }
-        }, GPS_TIME);
-
-        return () => {
-            clearInterval(timer);
-        };
+    function telemetryTiredegree() {
+        return startTelemetry(
+            "/telemetry/tiredegree",
+            setTireDegree,
+            CAN1_TIME
+        );
     }
 
     const downloadRaceLog = async () => {
         try {
             const response = await fetch(
-                "http://localhost:8000/race/latest/download"
+                `${API_BASE_URL}/race/latest/download`
             );
 
-            if(response.status == 404){
-                alert("주행로그 없음")
-                return
+            if (response.status === 404) {
+                alert("주행로그 없음");
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    `다운로드 실패: ${response.status}`
+                );
             }
 
             const blob = await response.blob();
-
             const downloadUrl = URL.createObjectURL(blob);
 
             const link = document.createElement("a");
@@ -238,120 +239,128 @@ const[can0, setCan0] = useState({
         }
     };
 
-
     async function fetchButton() {
         try {
-            //주행 전(false false)
+            if (racestart.start === false) {
+                if (racestart.reset === false) {
+                    const response = await fetch(
+                        `${API_BASE_URL}/race/start`,
+                        {
+                            method: "POST",
+                        }
+                    );
 
-            //주행 시작 버튼 등장(false false)
-            //주행 시작 버튼 눌림(true false)
-
-            //주행 종료 버튼 등장(true false)
-            //주행 종료 버튼 눌림(false true)
-
-            //초기화 버튼 등장(false true)
-            //초기화 버튼 눌림(false false)
-
-            //주행 시작 버튼 등장(false, false)
-
-            if (racestart.start == false) {
-                if (racestart.reset == false) {
-                    //false, false
-                    const response = await fetch("http://localhost:8000/race/start", {method : "POST"})
-                    
-                    if(response.ok){
-                        setRacestart((prev) => {
-                            return {
-                                ...prev,
-                                start: !prev.start
-                                //true false
-                            }
-                        })
+                    if (!response.ok) {
+                        throw new Error(
+                            `주행 시작 실패: ${response.status}`
+                        );
                     }
-                    else{
-                        console.log(`응답 실패: ${response.status} ${response.statusText}`)
+
+                    setRacestart({
+                        start: true,
+                        reset: false,
+                    });
+                } else {
+                    const response = await fetch(
+                        `${API_BASE_URL}/race/reset`,
+                        {
+                            method: "POST",
+                        }
+                    );
+
+                    if (!response.ok) {
+                        throw new Error(
+                            `초기화 실패: ${response.status}`
+                        );
                     }
+
+                    setRacestart({
+                        start: false,
+                        reset: false,
+                    });
                 }
-                else {
-                    //false, true
-                    const response = await fetch("http://localhost:8000/race/reset", { method: "POST" })
+            } else {
+                const response = await fetch(
+                    `${API_BASE_URL}/race/stop`,
+                    {
+                        method: "POST",
+                    }
+                );
 
-                    if (response.ok) {
-                        setRacestart((prev) => {
-                            return {
-                                ...prev,
-                                reset: !prev.reset
-                                //false false
-                            }
-                        })
-                    }
-                    else {
-                        console.log(`응답 실패: ${response.status} ${response.statusText}`)
-                    }
+                if (!response.ok) {
+                    throw new Error(
+                        `주행 종료 실패: ${response.status}`
+                    );
                 }
+
+                setRacestart({
+                    start: false,
+                    reset: true,
+                });
             }
-            else {
-                if (racestart.reset == false) {
-                    //true false
-                    const response = await fetch("http://localhost:8000/race/stop", { method: "POST" })
 
-                    if (response.ok) {
-                        setRacestart((prev) => {
-                            return {
-                                reset : !prev.reset,
-                                start: !prev.start
-                                //false true
-                            }
-                        })
-                    }
-                    else {
-                        console.log(`응답 실패: ${response.status} ${response.statusText}`)
-                    }
-
-                }
-            }
+            setError(null);
+        } catch (error) {
+            console.error(error);
+            setError(error.message);
         }
-        catch (err) {
-            setError(err.message)
-        }
-        finally {
-            setLoading(false)
-        }
-
     }
 
     useEffect(() => {
-        // const stopCan0Telemetry = telemetryCan0()
-        // const stopTpsTelemetry = telemetryTps()
-        // const stopBpsTelemetry = telemetryBps()
-        // const stopDesiredyawrateTelemetry = telemetryDesiredyawrate()
-        // const stopGpsTelemetry = telemetryGps()
+        const stopCan0Telemetry = telemetryCan0();
+        const stopTpsTelemetry = telemetryTps();
+        const stopDesiredYawrateTelemetry =
+            telemetryDesiredYawrate();
+        const stopGpsTelemetry = telemetryGps();
 
+        const stopYawrateTelemetry = telemetryYawrate();
+        const stopRollrateTelemetry = telemetryRollrate();
+        const stopSteeringhandleTelemetry =
+            telemetrySteeringhandle();
+        const stopTiredegreeTelemetry =
+            telemetryTiredegree();
 
-        return (() => {
-            // stopCan0Telemetry()
-            // stopTpsTelemetry()
-            // stopBpsTelemetry()
-            // stopDesiredyawrateTelemetry()
-            // stopGpsTelemetry()
-        })
-    }, [])
+        return () => {
+            stopCan0Telemetry();
+            stopTpsTelemetry();
+            stopDesiredYawrateTelemetry();
+            stopGpsTelemetry();
 
+            stopYawrateTelemetry();
+            stopRollrateTelemetry();
+            stopSteeringhandleTelemetry();
+            stopTiredegreeTelemetry();
+        };
+    }, []);
 
     return (
         <div className="dashboard-page">
             <div className="dashboard-header">
                 <div className="header_dropbox_button">
-                    <DropdownMenu latest_race_download  = {downloadRaceLog}/>
+                    <DropdownMenu
+                        latest_race_download={downloadRaceLog}
+                    />
                 </div>
-                <div className={racestart.start ? "race-reset-button-header" : racestart.reset ? "race-stop-button-header" : "race-start-button-header"}>
-                    <Timer state={racestart} elapsedMs={elapsedMs} setElapsedMs={setElapsedMs} />
+
+                <div
+                    className={
+                        racestart.start
+                            ? "race-reset-button-header"
+                            : racestart.reset
+                                ? "race-stop-button-header"
+                                : "race-start-button-header"
+                    }
+                >
+                    <Timer
+                        state={racestart}
+                        elapsedMs={elapsedMs}
+                        setElapsedMs={setElapsedMs}
+                    />
                 </div>
             </div>
 
             <div className="dashboard-page-pannel">
                 <div className="dashboard-page-top">
-
                     <div className="powerstatus-panel">
                         <PowerStatusPanel can0={can0} />
                     </div>
@@ -362,44 +371,76 @@ const[can0, setCan0] = useState({
 
                     <div className="yawrate-rollrate-pannel">
                         <div className="yawrate-pannel">
-                            <YawRatePanel yawRate={desired_yawrate} desiredyawRate={desired_yawrate} />
+                            <YawRatePanel
+                                yawRate={yawrate}
+                                desiredyawRate={desiredYawrate}
+                            />
                         </div>
+
                         <div className="rollrate-pannel">
-                            <RollRatePannel RollRate={desired_yawrate} />
+                            <RollRatePannel
+                                RollRate={rollrate}
+                            />
                         </div>
                     </div>
-
-
                 </div>
 
                 <div className="dashboard-page-bottom">
-
                     <div className="speedstatus-battery-pannel">
                         <div className="speedstatus-pannel">
-                            <SpeedStatusPanel speed={can0["speed"]} />
+                            <SpeedStatusPanel
+                                speed={can0.latest.speed}
+                            />
                         </div>
+
                         <div className="battery-pannel">
-                            <BatteryStatusPaneel battery={50} />
+                            <BatteryStatusPaneel
+                                battery={
+                                    can0.latest.avg_voltage
+                                }
+                            />
                         </div>
                     </div>
 
                     <div className="rpmstatus-pannel">
-                        <RpmPannel rpm_left={can0["rpm_left"]} rpm_right={can0["rpm_right"]} />
+                        <RpmPannel
+                            rpm_left={
+                                can0.latest.rpm_left
+                            }
+                            rpm_right={
+                                can0.latest.rpm_right
+                            }
+                        />
                     </div>
 
                     <div className="carstatus-pannel">
-                        <CarStatusPannel carstatus={can0} />
+                        <CarStatusPannel
+                            carstatus={can0}
+                            tps={tps}
+                            steeringhandle={
+                                steeringhandle
+                            }
+                            tiredegree={tiredegree}
+                        />
                     </div>
-
                 </div>
-
             </div>
 
             <div className="dashboard-page-footer">
-                <RaceButton onClick={fetchButton} text={racestart.start ? "주행 종료" : racestart.reset ? "초기화" : "주행 시작"} state={racestart} />
+                <RaceButton
+                    onClick={fetchButton}
+                    text={
+                        racestart.start
+                            ? "주행 종료"
+                            : racestart.reset
+                                ? "초기화"
+                                : "주행 시작"
+                    }
+                    state={racestart}
+                />
             </div>
         </div>
     );
 }
 
-export default Dashboard
+export default Dashboard;
