@@ -12,7 +12,7 @@ def main(queue, data):
             data["history"]["current_left"].append(latest_data["latest"]["current_left"])
             data["history"]["avg_power"].append(latest_data["latest"]["avg_power"])
 
-            data["version"] = latest_data["version"]
+            data["version"] += 1
 
             get_can0_data(data)
 

@@ -9,13 +9,16 @@ from Monitoring_Server.mqtt.mqtt_gps_queue import main as mqtt_gps_queue
 
 can0_queue = queue.Queue()
 tps_queue = queue.Queue()
-bps_queue = queue.Queue()
 desired_yawrate_queue = queue.Queue()
 gps_queue = queue.Queue()
+rollrate_queue = queue.Queue()
+yawrate_queue = queue.Queue()
+steeringhandle_queue = queue.Queue()
+tiredegree_queue = queue.Queue()
+
 
 can0_lock = thread.Lock()
 tps_lock = thread.Lock()
-bps_lock = thread.Lock()
 desired_yawrate_lock = thread.Lock()
 gps_lock = thread.Lock() 
 
@@ -34,7 +37,10 @@ can0 = {
         "current_right": 0.0,
         
         "rpm_left": 0.0,
-        "rpm_right": 0.0
+        "rpm_right": 0.0,
+
+        "torque_right" : 0.0,
+        "torque_left" : 0.0
     },
     "history" : {
         "current_right" : deque(maxlen=40),
@@ -50,13 +56,32 @@ tps = {
     "version" : 0
 }
 
-bps = {
+
+desired_yawrate = {
     "latest" : 0.0,
     "history" : deque(maxlen=40),
     "version" : 0
 }
 
-desired_yawrate = {
+yawrate = {
+    "latest" : 0.0,
+    "history" : deque(maxlen=40),
+    "version" : 0
+}
+
+rollrate = {
+    "latest" : 0.0,
+    "history" : deque(maxlen=40),
+    "version" : 0
+}
+
+steeringhandle = {
+    "latest" : 0.0,
+    "history" : deque(maxlen=40),
+    "version" : 0
+}
+
+tiredegree = {
     "latest" : 0.0,
     "history" : deque(maxlen=40),
     "version" : 0
@@ -88,7 +113,7 @@ def mqtt_subscriber_thread():
 
     thread_mqtt = thread.Thread(
         target = monitoring_server_main,
-        args = (can0_queue, tps_queue, bps_queue, desired_yawrate_queue,gps_queue,)
+        args = (can0_queue, tps_queue, desired_yawrate_queue,gps_queue, yawrate_queue,rollrate_queue,tiredegree_queue,steeringhandle_queue)
         )
 
     thread_mqtt.start()
@@ -112,20 +137,48 @@ def mqtt_tps_queue_thread():
 
     thread_mqtt_queue.start()
 
-def mqtt_bps_queue_thread():
-    
-    thread_mqtt_queue = thread.Thread(
-        target= mqtt_can1_queue,
-        args=(bps_queue, bps, "bps")
-    )
-
-    thread_mqtt_queue.start()
 
 def mqtt_desired_yawrate_queue_thread():
     
     thread_mqtt_queue = thread.Thread(
         target= mqtt_can1_queue,
         args=(desired_yawrate_queue, desired_yawrate, "desired_yawrate")
+    )
+
+    thread_mqtt_queue.start()
+
+def mqtt_yawrate_queue_thread():
+    
+    thread_mqtt_queue = thread.Thread(
+        target= mqtt_can1_queue,
+        args=(yawrate_queue, yawrate, "yawrate")
+    )
+
+    thread_mqtt_queue.start()
+
+def mqtt_rollrate_queue_thread():
+    
+    thread_mqtt_queue = thread.Thread(
+        target= mqtt_can1_queue,
+        args=(rollrate_queue, rollrate, "rollrate")
+    )
+
+    thread_mqtt_queue.start()
+
+def mqtt_steeringhandle_queue_thread():
+    
+    thread_mqtt_queue = thread.Thread(
+        target= mqtt_can1_queue,
+        args=(steeringhandle_queue, steeringhandle, "steeringhandle")
+    )
+
+    thread_mqtt_queue.start()
+
+def mqtt_tiredegree_queue_thread():
+    
+    thread_mqtt_queue = thread.Thread(
+        target= mqtt_can1_queue,
+        args=(tiredegree_queue, tiredegree, "tiredegree")
     )
 
     thread_mqtt_queue.start()
@@ -142,9 +195,12 @@ def mqtt_gps_queue_thread():
 def queue_start():
     mqtt_can0_queue_thread()
     mqtt_tps_queue_thread()
-    mqtt_bps_queue_thread()
     mqtt_desired_yawrate_queue_thread()
     mqtt_gps_queue_thread()
+    mqtt_yawrate_queue_thread()
+    mqtt_rollrate_queue_thread()
+    mqtt_steeringhandle_queue_thread()
+    mqtt_tiredegree_queue_thread()
 
 
 

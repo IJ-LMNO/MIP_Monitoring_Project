@@ -9,7 +9,7 @@ function CarStatusPannel({ carstatus }) {
 
     return (
         <div className="carstatus-pannel">
-
+{/* 
             <div className="steer-angle steer-angle-left">
                 <div style={{fontSize : "16px"}}>left_stear_angle</div>
                 {leftSteerAngle}°
@@ -18,7 +18,7 @@ function CarStatusPannel({ carstatus }) {
             <div className="steer-angle steer-angle-right">
                 <div style={{fontSize : "16px"}}>right_stear_angle</div>
                 {rightSteerAngle}°
-            </div>
+            </div> */}
 
             <div className="car-layout">
                 <svg
@@ -69,7 +69,7 @@ function CarStatusPannel({ carstatus }) {
                     <circle cx="65" cy="105" r="5" />
                 </svg>
 
-                <div
+                {/* <div
                     className="wheel front-left-wheel"
                     style={{ "--wheel-angle": `${leftSteerAngle}deg` }}
                 >
@@ -81,7 +81,7 @@ function CarStatusPannel({ carstatus }) {
                     style={{ "--wheel-angle": `${rightSteerAngle}deg` }}
                 >
                     <div className="wheel-stripe" />
-                </div>
+                </div> */}
 
                 <div className="wheel rear-left-wheel">
                     <div className="wheel-stripe" />
@@ -94,12 +94,12 @@ function CarStatusPannel({ carstatus }) {
 
             <div className="torque torque-left">
                 <div style={{fontSize : "16px"}}>Left_Torque</div>
-                {leftTorque}N*n
+                {carstatus["torque_left"]}Nm
             </div>
 
             <div className="torque torque-right">
                 <div style={{fontSize : "16px"}}>Right_Torque</div>
-                {rightTorque}N*n
+                {carstatus["torque_right"]}Nm
             </div>
         </div>
     );

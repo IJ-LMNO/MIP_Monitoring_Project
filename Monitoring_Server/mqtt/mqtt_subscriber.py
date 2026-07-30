@@ -1,7 +1,6 @@
 import paho.mqtt.client as mqtt
 import json
 import time
-from Logging_Service import main as main
 
 BROKER_HOST = "100.70.221.71"
 BROKER_PORT = 1883
@@ -20,30 +19,39 @@ def on_message(client, userdata, message):
     payload = message.payload.decode("utf-8")
     data = json.loads(payload)
     
-    if(message.topic.split("/")[-1] == "can_0"):
+    if(message.topic.split("/")[-1] == "can0"):
         userdata["can0_queue"].put(data)
     elif(message.topic.split("/")[-1] == "tps"):
         userdata["tps_queue"].put(data)
-    elif(message.topic.split("/")[-1] == "bps"):
-        userdata["bps_queue"].put(data)
     elif(message.topic.split("/")[-1] == "desiredyawrate"):
         userdata["desired_yawrate_queue"].put(data) 
     elif(message.topic.split("/")[-1] == "gps"):
         userdata["gps_queue"].put(data) 
-        
+    elif(message.topic.split("/")[-1] == "yawrate"):
+            userdata["yawrate_queue"].put(data) 
+    elif(message.topic.split("/")[-1] == "rollrate"):
+            userdata["rollrate_queue"].put(data) 
+    elif(message.topic.split("/")[-1] == "tiredegree"):
+            userdata["tiredegree_queue"].put(data) 
+    elif(message.topic.split("/")[-1] == "steeringhandle"):
+            userdata["steeringhandle_queue"].put(data) 
+                
     
     
 
-def main(can0_queue, tps_queue, bps_queue, desired_yawrate_queue, gps_queue):
+def main(can0_queue, tps_queue, desired_yawrate_queue,gps_queue,yawrate_queue,rollrate_queue,tiredegree_queue,steeringhandle_queue):
 
     monitoring_client = mqtt.Client() 
 
     monitoring_client.user_data_set({
         "can0_queue" : can0_queue,
         "tps_queue" : tps_queue,
-        "bps_queue" : bps_queue,
         "desired_yawrate_queue" : desired_yawrate_queue,
-        "gps_queue" : gps_queue
+        "gps_queue" : gps_queue,
+        "yawrate_queue" : yawrate_queue,
+        "rollrate_queue" : rollrate_queue,
+        "steeringhandle_queue" : steeringhandle_queue,
+        "tiredegree_queue" : tiredegree_queue
     })
 
     monitoring_client.on_connect = on_connect

@@ -11,6 +11,8 @@ def main(queue, data):
             data["latest"]["latitude"] = latest_data["latest"]["latitude"]
             data["latest"]["longitude"] = latest_data["latest"]["longitude"]
 
+            data["history"].append(latest_data)
+
             data["version"] += 1
 
 
