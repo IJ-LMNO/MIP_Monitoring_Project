@@ -40,79 +40,119 @@ app.add_middleware(
 
 
 
-
 @app.get("/telemetry/can0")
 def get_can0():
-    latest = can0_queue.get()
-    return {
-        "latest": latest["latest"],
-        "history": list(latest["history"]),
-        "version" : latest["version"]
-    }
+    if(can0_queue.empty()):
+        raise HTTPException(
+            status_code=404,
+            detail="데이터 없음"
+        )
+    else:
+        latest = can0_queue.get_nowait()
+        return {
+            "latest": latest["latest"],
+            "version" : latest["version"]
+        }
 
 
 @app.get("/telemetry/tps")
 def get_tps():
-    latest = tps_queue.get()
-    return {
-        "latest": latest["latest"],
-        "history": list(latest["history"]),
-        "version" : latest["version"]
-    }
+    if(tps_queue.empty()):
+        raise HTTPException(
+            status_code=404,
+            detail = "tps 데이터 없음"
+        )
+    else:
+        latest = tps_queue.get_nowait()
+        return {
+            "latest": latest["latest"],
+            "version" : latest["version"]
+        }
 
 @app.get("/telemetry/desired-yawrate")
 def get_desired_yawrate():
-    latest = desired_yawrate_queue.get()
-    return {
-        "latest": latest["latest"],
-        "history": list(latest["history"]),
-        "version" : latest["version"]
-    }
+    if(desired_yawrate_queue.empty()):
+        raise HTTPException(
+            status_code=404,
+            detail = "tps 데이터 없음"
+        )
+    else:
+        latest = desired_yawrate_queue.get_nowait()
+        return {
+            "latest": latest["latest"],
+            "version" : latest["version"]
+        }
 
 @app.get("/telemetry/yawrate")
 def get_yawrate():
-    latest = yawrate_queue.get()
-    return {
-        "latest": latest["latest"],
-        "history": list(latest["history"]),
-        "version" : latest["version"]
-    }
+    if(yawrate_queue.empty()):
+        raise HTTPException(
+            status_code=404,
+            detail = "tps 데이터 없음"
+        )
+    else:
+        latest = yawrate_queue.get_nowait()
+        return {
+            "latest": latest["latest"],
+            "version" : latest["version"]
+        }
 
 @app.get("/telemetry/rollrate")
 def get_yawrate():
-    latest = rollrate_queue.get()
-    return {
-        "latest": latest["latest"],
-        "history": list(latest["history"]),
-        "version" : latest["version"]
-    }
+    if(rollrate_queue.empty()):
+        raise HTTPException(
+            status_code=404,
+            detail = "tps 데이터 없음"
+        )
+    else:
+        latest = rollrate_queue.get_nowait()
+        return {
+            "latest": latest["latest"],
+            "version" : latest["version"]
+        }
 
 @app.get("/telemetry/steeringhandle")
 def get_yawrate():
-    latest = steeringhandle_queue.get()
-    return {
-        "latest": latest["latest"],
-        "history": list(latest["history"]),
-        "version" : latest["version"]
-    }
+    if(steeringhandle_queue.empty()):
+        raise HTTPException(
+            status_code=404,
+            detail = "tps 데이터 없음"
+        )
+    else:
+        latest = steeringhandle_queue.get_nowait()
+        return {
+            "latest": latest["latest"],
+            "version" : latest["version"]
+        }
 
 @app.get("/telemetry/tiredegree")
 def get_yawrate():
-    latest = tiredegree_queue.get()
-    return {
-        "latest": latest["latest"],
-        "history": list(latest["history"]),
-        "version" : latest["version"]
-    }
+    if(tiredegree_queue.empty()):
+        raise HTTPException(
+            status_code=404,
+            detail = "tps 데이터 없음"
+        )
+    else:
+        latest = tiredegree_queue.get_nowait()
+        return {
+            "latest": latest["latest"],
+            "version" : latest["version"]
+        }
 
 
 @app.get("/telemetry/gps")
 def get_gps():
-    latest = gps_queue.get()
-    return {
-        "latest": latest["latest"],
-        "version" : latest["version"]
-    }
+    if(gps_queue.empty()):
+        raise HTTPException(
+            status_code=404,
+            detail = "gps 데이터 없음"
+        )
+    else:
+        latest = gps_queue.get_nowait()
+        return {
+            "latest": latest["latest"],
+            "version" : latest["version"]
+        }
 
 
 

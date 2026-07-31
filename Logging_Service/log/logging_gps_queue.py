@@ -1,0 +1,43 @@
+import copy 
+import time
+from collections import deque
+
+
+class gps_data_structure():
+    def __init__(self):
+        self.gps = {
+            "latest" : {
+                "timestamp" : 0.0,
+                "latitude" : 0.0,
+                "longitude" : 0.0
+            },
+
+            "history" : deque(maxlen=40),
+
+            "version" : 0
+        }
+
+
+def main(shared_data, queue):
+    gps_data = gps_data_structure()
+
+    if(shared_data["log_state"] == "start"):
+        while(True):
+            try:
+                latest_data = queue.get()
+
+                gps_data.gps["latest"]["timestamp"] = latest_data["latest"]["timestamp"]
+                gps_data.gps["latest"]["latitude"] = latest_data["latest"]["latitude"]
+                gps_data.gps["latest"]["longitude"] = latest_data["latest"]["longitude"]
+
+                gps_data.gps["history"].append(latest_data)
+
+                gps_data.gps["version"] += 1
+
+                shared_data["current_race_obj"]["data"]["gps"].append((time.time() - shared_data["start_time"], copy.deepcopy(gps_data.gps) ))                
+
+
+            finally:
+                queue.task_done()
+    elif(shared_data["log_state"] == "reset"):
+            shared_data["current_race_obj"]["data"]["gps"] = []       

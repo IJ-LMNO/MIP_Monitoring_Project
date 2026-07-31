@@ -3,18 +3,15 @@ import time
 import threading as thread
 import queue
 import copy
-from Logging_Service.mqtt.mqtt_subscriber import main as logging_mqtt_main
-from Logging_Service.log.log import can0_logging as can0_logging
-from Logging_Service.log.log import tps_logging as tps_logging
-from Logging_Service.log.log import bps_logging as bps_logging
-from Logging_Service.log.log import desired_yawrate_logging as desired_yawrate_logging
-from Logging_Service.log.log import gps_logging as gps_logging
+
+from Logging_Service.mqtt.logging_mqtt_subscriber import main as logging_mqtt_main
+from Logging_Service.log.logging_can0_queue import main  as can0_logging_queue
+from Logging_Service.log.logging_can1_queue import main as can1_logging_queue
+from Logging_Service.log.logging_gps_queue import main as gps_logging_queue
 
 
 can0_queue = queue.Queue()
-tps_queue = queue.Queue()
-bps_queue = queue.Queue()
-desired_yawrate_queue = queue.Queue()
+can1_queue = queue.Queue()
 gps_queue = queue.Queue()
 
 shared_data = {
@@ -31,23 +28,26 @@ class RaceLogger:
             "data" : {
                 "can0" : [],
                 "tps" : [],
-                "bps" : [],
-                "desired_yawrate" : [],
+                "desired-yawrate" : [],
+                "yawrate" : [],
+                "rollrate" : [],
+                "steeringhandle" : [],
+                "tiredegree" : [],
                 "gps" : []
             }
         }
 
-##mqtt 통신을 위함
+
 def logging_mqtt():
     logging_mqtt_thread = thread.Thread(
         target= logging_mqtt_main,
-        args=(can0_queue, tps_queue, bps_queue, desired_yawrate_queue, gps_queue)
+        args=(can0_queue, can1_queue, gps_queue)
     )
 
     logging_mqtt_thread.start()
-##------------------------------------------------
 
-##로그 데이터 반환을 위함
+
+
 def return_log():
     if(shared_data["possibiity_download"] == False):
         raise HTTPException(
@@ -57,42 +57,27 @@ def return_log():
     else:
         return copy.deepcopy(shared_data["current_race_obj"])
 
-##각 센서 데이터 수집 
+
 def can0_logging():
     logging_thread = thread.Thread(
-        target= can0_logging,
+        target= can0_logging_queue,
         args=(shared_data, can0_queue)
     )
 
     logging_thread.start()
 
-def tps_logging():
+def can1_logging():
     logging_thread = thread.Thread(
-        target= tps_logging,
-        args=(shared_data, tps_queue)
+        target = can1_logging_queue,
+        args=(shared_data, can0_queue)
     )
 
     logging_thread.start()
 
-def bps_logging():
-    logging_thread = thread.Thread(
-        target= bps_logging,
-        args=(shared_data, bps_queue)
-    )
-
-    logging_thread.start()
-
-def desired_yawrate_logging():
-    logging_thread = thread.Thread(
-        target= desired_yawrate_logging,
-        args=(shared_data, desired_yawrate_queue)
-    )
-
-    logging_thread.start()
 
 def gps_logging():
     logging_thread = thread.Thread(
-        target= gps_logging,
+        target= gps_logging_queue,
         args=(shared_data, gps_queue)
     )
 
@@ -119,18 +104,12 @@ def race_reset():
 
 def logging():
     can0_logging()
-    tps_logging()
-    bps_logging()
-    desired_yawrate_logging()
+    can1_logging()
     gps_logging()
 
 
 
-def main(toggle):
-    global log_state
-    global start_time
-    global current_race_obj
-
+def main():
     logging_mqtt()
     logging()
     

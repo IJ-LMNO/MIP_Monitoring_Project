@@ -62,5 +62,5 @@ def queue_start():
 def main():
     mqtt_subscriber_thread()
     queue_start()
-    run_fast_api()
+    fast_api_main()
 

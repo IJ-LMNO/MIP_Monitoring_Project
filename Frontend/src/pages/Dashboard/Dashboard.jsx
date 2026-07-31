@@ -16,9 +16,9 @@ import "./Dashboard.css";
 
 const API_BASE_URL = "http://localhost:8000";
 
-const CAN0_TIME = 100;
-const CAN1_TIME = 100;
-const GPS_TIME = 200;
+const CAN0_TIME = 1000;
+const CAN1_TIME = 1000;
+const GPS_TIME = 1000;
 
 function Dashboard() {
     const [can0, setCan0] = useState({
@@ -105,22 +105,129 @@ function Dashboard() {
     const [elapsedMs, setElapsedMs] = useState(0);
     const [error, setError] = useState(null);
 
-    function startTelemetry(endpoint, setter, intervalTime) {
+    function startTelemetry_for_can0(endpoint, setter, intervalTime) {
         const fetchTelemetry = async () => {
             try {
                 const response = await fetch(
                     `${API_BASE_URL}${endpoint}`
                 );
 
-                if (!response.ok) {
+                if (response.status == 404) {
                     throw new Error(
                         `${endpoint} 요청 실패: ${response.status}`
                     );
+                    return
                 }
 
                 const data = await response.json();
 
-                setter(data);
+                setter((prev) => {
+                    return{
+                        latest: data["latest"],
+                        history: {
+                            current_right: [
+                                ...prev.history.current_right,
+                                data.latest.current_right
+                            ].slice(-40),
+
+                            current_left: [
+                                ...prev.history.current_left,
+                                data.latest.current_left
+                            ].slice(-40),
+
+                            avg_power: [
+                                ...prev.history.avg_power,
+                                data.latest.avg_power
+                            ].slice(-40),
+                        },
+                        version: data["version"]
+                    }
+                });
+                setError(null);
+            } catch (error) {
+                console.error(error);
+                setError(error.message);
+            }
+        };
+
+        // 화면 진입 직후 한 번 실행
+        fetchTelemetry();
+
+        // 이후 주기적으로 실행
+        const timer = setInterval(fetchTelemetry, intervalTime);
+
+        return () => {
+            clearInterval(timer);
+        };
+    }
+
+
+    function startTelemetry_for_gps(endpoint, setter, intervalTime) {
+        const fetchTelemetry = async () => {
+            try {
+                const response = await fetch(
+                    `${API_BASE_URL}${endpoint}`
+                );
+
+                if (response.status == 404) {
+                    throw new Error(
+                        `${endpoint} 요청 실패: ${response.status}`
+                    );
+                    return
+                }
+
+                const data = await response.json();
+
+                setter((prev) => {
+                    return {
+                        latest: data["latest"],
+
+                        history : [...prev.history, data["latest"]],
+                        version: data["version"]
+                    }
+                });
+                setError(null);
+            } catch (error) {
+                console.error(error);
+                setError(error.message);
+            }
+        };
+
+        // 화면 진입 직후 한 번 실행
+        fetchTelemetry();
+
+        // 이후 주기적으로 실행
+        const timer = setInterval(fetchTelemetry, intervalTime);
+
+        return () => {
+            clearInterval(timer);
+        };
+    }
+
+    function startTelemetry_for_can1(endpoint, setter, intervalTime) {
+        const fetchTelemetry = async () => {
+            try {
+                const response = await fetch(
+                    `${API_BASE_URL}${endpoint}`
+                );
+
+                if (response.status == 404) {
+                    throw new Error(
+                        `${endpoint} 요청 실패: ${response.status}`
+                    );
+                    return
+                }
+
+                const data = await response.json();
+
+                setter((prev) => {
+                    return {
+                        latest: data["latest"],
+
+                        history: [...prev.history, data["latest"]],
+                        version: data["version"]
+                    }
+                });
                 setError(null);
             } catch (error) {
                 console.error(error);
@@ -140,7 +247,7 @@ function Dashboard() {
     }
 
     function telemetryCan0() {
-        return startTelemetry(
+        return startTelemetry_for_can0(
             "/telemetry/can0",
             setCan0,
             CAN0_TIME
@@ -148,7 +255,7 @@ function Dashboard() {
     }
 
     function telemetryTps() {
-        return startTelemetry(
+        return startTelemetry_for_can1(
             "/telemetry/tps",
             setTps,
             CAN1_TIME
@@ -156,7 +263,7 @@ function Dashboard() {
     }
 
     function telemetryDesiredYawrate() {
-        return startTelemetry(
+        return startTelemetry_for_can1(
             "/telemetry/desired-yawrate",
             setDesiredYawrate,
             CAN1_TIME
@@ -164,7 +271,7 @@ function Dashboard() {
     }
 
     function telemetryGps() {
-        return startTelemetry(
+        return startTelemetry_for_gps(
             "/telemetry/gps",
             setGps,
             GPS_TIME
@@ -172,7 +279,7 @@ function Dashboard() {
     }
 
     function telemetryYawrate() {
-        return startTelemetry(
+        return startTelemetry_for_can1(
             "/telemetry/yawrate",
             setYawrate,
             CAN1_TIME
@@ -180,7 +287,7 @@ function Dashboard() {
     }
 
     function telemetryRollrate() {
-        return startTelemetry(
+        return startTelemetry_for_can1(
             "/telemetry/rollrate",
             setRollrate,
             CAN1_TIME
@@ -188,7 +295,7 @@ function Dashboard() {
     }
 
     function telemetrySteeringhandle() {
-        return startTelemetry(
+        return startTelemetry_for_can1(
             "/telemetry/steeringhandle",
             setSteeringhandle,
             CAN1_TIME
@@ -196,7 +303,7 @@ function Dashboard() {
     }
 
     function telemetryTiredegree() {
-        return startTelemetry(
+        return startTelemetry_for_can1(
             "/telemetry/tiredegree",
             setTireDegree,
             CAN1_TIME

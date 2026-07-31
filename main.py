@@ -3,7 +3,7 @@ from Logging_Service.main import main as Logging_service_main
 
 def main():
     Monitoring_server_main()
-    # Logging_service_main()
+    Logging_service_main()
 
 if __name__ == "__main__":
     main()

@@ -10,7 +10,7 @@ START_TIME = time.time()
 
 def on_connect(client, userdata, flags, reason_code):
     if reason_code == 0:
-        print("Monitoring_Server MQTT 연결 성공")
+        print("Logging_service MQTT 연결 성공")
     else:
         print(f"Monitoring_Server MQTT : {reason_code}")
 

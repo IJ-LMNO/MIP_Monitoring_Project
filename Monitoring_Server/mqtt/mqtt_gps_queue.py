@@ -4,8 +4,8 @@ from collections import deque
 from Monitoring_Server.api.main import get_gps_data
 
 class gps_data_structure():
-    def __init__():
-        gps = {
+    def __init__(self):
+        self.gps = {
             "latest" : {
                 "timestamp" : 0.0,
                 "latitude" : 0.0,
