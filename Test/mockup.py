@@ -15,6 +15,25 @@ PUBLISH_INTERVAL = 1 / PUBLISH_HZ
 
 BASE_TOPIC = "vehicle/car_01"
 
+can0 ={        "latest" : {
+            "avg_rpm": 0,
+            "avg_voltage": 0,
+            "avg_power": 0,
+            "speed": 0,
+
+            "power_left": 0,
+            "power_right": 0,
+
+            "current_left": 0,
+            "current_right": 0,
+
+            "rpm_left": 0,
+            "rpm_right": 0,
+
+            "torque_left" : 0,
+            "torque_right" : 0
+        }}
+
 
 def create_can0_data(elapsed_time: float) -> dict:
     speed = 50 + 20 * math.sin(elapsed_time * 0.5)
@@ -186,10 +205,29 @@ def main() -> None:
                     "yawrate": create_yawrate_data(elapsed_time),
                     "rollrate": create_rollrate_data(elapsed_time),
                     "steeringhandle": create_steeringhandle_data(elapsed_time),
-                    "tiredegree": create_tiredegree_data(elapsed_time),
+                    "tiredegree": create_tiredegree_data(elapsed_time),            
                 },
                 "gps": create_gps_data(elapsed_time),
             }
+
+            # if(elapsed_time > 5):
+            #     print("5초 지남")              
+            #     sensor_data = {
+            #         "can0": create_can0_data(elapsed_time),
+            #         "can1" : {
+            #             "tps": create_tps_data(elapsed_time),
+            #             "desired-yawrate": create_desired_yawrate_data(elapsed_time),
+            #             "yawrate": create_yawrate_data(elapsed_time),
+            #             "rollrate": create_rollrate_data(elapsed_time),
+            #             "steeringhandle": create_steeringhandle_data(elapsed_time),
+            #             "tiredegree": create_tiredegree_data(elapsed_time),
+            #         },
+            #         "gps": create_gps_data(elapsed_time),
+            #     }
+            # else:
+            #     sensor_data = {
+            #         "can0": can0
+            #     }
 
             for sensor_name, payload in sensor_data.items():
                 payload["version"] = sequence
