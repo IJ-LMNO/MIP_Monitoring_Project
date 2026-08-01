@@ -1,6 +1,7 @@
 from collections import deque
 import time
 import copy
+import os
 
 
 class can0_data_sturcture():
@@ -35,11 +36,18 @@ class can0_data_sturcture():
 
 def main(shared_data, queue):
     can0_data = can0_data_sturcture()
+    print(f"logging_Can0_queue 38 : logging can0 start")
+    print(f"logging_Can0_queue 38 : {shared_data["log_state"]}")
+    print("can0 PID:", os.getpid())
+    print("can0 shared_data id:", id(shared_data))
+    
 
-    if(shared_data["log_state"] == "start"):
-        while(True):
+    while(True):
+        if(shared_data["log_state"] == "start"):
+            print(f"logging_Can0_queue 43 : {shared_data["log_state"]}")
             try:
                 latest_data = queue.get()
+                print(f"logging_can0_qeue : {latest_data}")
 
                 can0_data.can0["latest"].update(latest_data["latest"])
 
@@ -49,9 +57,9 @@ def main(shared_data, queue):
 
                 can0_data.can0["version"] += 1
 
-                shared_data["current_race_obj"]["data"]["can0"].append((time.time() - shared_data["start_time"], copy.deepcopy(can0_data.can0) ))                
+                shared_data["current_race_obj"].recnt_drive_log["data"]["can0"].append((time.time() - shared_data["start_time"], copy.deepcopy(can0_data.can0) ))                
             finally:
                 queue.task_done()
 
-    elif(shared_data["log_state"] == "reset"):
-        shared_data["current_race_obj"]["data"]["can0"] = []       
+        elif(shared_data["log_state"] == "reset"):
+            shared_data["current_race_obj"]["data"]["can0"] = []      

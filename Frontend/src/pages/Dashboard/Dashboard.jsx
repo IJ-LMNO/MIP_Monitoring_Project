@@ -16,9 +16,9 @@ import "./Dashboard.css";
 
 const API_BASE_URL = "http://localhost:8000";
 
-const CAN0_TIME = 1000;
-const CAN1_TIME = 1000;
-const GPS_TIME = 1000;
+const CAN0_TIME = 500;
+const CAN1_TIME = 500;
+const GPS_TIME = 500;
 
 function Dashboard() {
     const [can0, setCan0] = useState({

@@ -3,15 +3,11 @@ import time
 import threading as thread
 import queue
 import copy
-import os
 
-from Logging_Service.mqtt.logging_mqtt_subscriber import main as logging_mqtt_main
-from Logging_Service.log.logging_can0_queue import main  as can0_logging_queue
-from Logging_Service.log.logging_can1_queue import main as can1_logging_queue
-from Logging_Service.log.logging_gps_queue import main as gps_logging_queue
-
-
-
+from  ..mqtt.logging_mqtt_subscriber import main as logging_mqtt_main
+from ..log.logging_can0_queue import main  as can0_logging_queue
+from ..log.logging_can1_queue import main as can1_logging_queue
+from ..log.logging_gps_queue import main as gps_logging_queue
 
 
 can0_queue = queue.Queue()
@@ -73,7 +69,7 @@ def can0_logging():
 def can1_logging():
     logging_thread = thread.Thread(
         target = can1_logging_queue,
-        args=(shared_data, can1_queue)
+        args=(shared_data, can0_queue)
     )
 
     logging_thread.start()
@@ -94,9 +90,7 @@ def race_start():
     shared_data["current_race_obj"] = RaceLogger()
     shared_data["start_time"] = time.time()
     print("race_start : logging_service")
-    print(f"logging_main 96 : {shared_data["log_state"]}")
-    print("race_start PID:", os.getpid())
-    print("race_start shared_data id:", id(shared_data))
+    print(f"logging_main : {shared_data["log_state"]}")
 
 def race_stop():
     shared_data["log_state"] = "stop"
@@ -115,11 +109,11 @@ def logging():
     gps_logging()
 
 
-
 def main():
     logging_mqtt()
     logging()
     
-
 if __name__ == "__main__":
     main()
+
+    

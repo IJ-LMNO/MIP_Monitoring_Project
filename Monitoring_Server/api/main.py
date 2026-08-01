@@ -55,6 +55,19 @@ def get_can0():
         }
 
 
+# version = 0
+# ## http detail test back url
+# @app.get("/telemetry/can0")
+# def get_can0():
+#         global version
+#         print(f"api_main 60 : {can0_queue.qsize()} // {version}")
+#         latest = can0_queue.get()
+#         version += 1
+#         return {
+#             "latest": latest["latest"],
+#             "version" : latest["version"]
+#         }
+
 @app.get("/telemetry/tps")
 def get_tps():
     if(tps_queue.empty()):
