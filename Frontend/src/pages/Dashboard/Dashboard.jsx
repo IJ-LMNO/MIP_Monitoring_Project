@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import PowerStatusPanel from "../../components/panels/PowerStatusPanel/PowerStatusPannel_for_mqtt";
 import SpeedStatusPanel from "../../components/panels/SpeedStatusPanel/SpeedStatusPannel_for_mqtt";
@@ -16,9 +16,10 @@ import "./Dashboard.css";
 
 const API_BASE_URL = "http://localhost:8000";
 
-const CAN0_TIME = 500;
-const CAN1_TIME = 500;
-const GPS_TIME = 500;
+const CAN0_TIME = 1000;
+const CAN1_TIME = 1000;
+const GPS_TIME = 1000;
+
 
 function Dashboard() {
     const [can0, setCan0] = useState({
@@ -105,6 +106,10 @@ function Dashboard() {
     const [elapsedMs, setElapsedMs] = useState(0);
     const [error, setError] = useState(null);
 
+    const can0_fetch_time = useRef(CAN0_TIME)
+    const can1_fetch_time = useRef(CAN1_TIME)
+    const gps_fetch_time = useRef(GPS_TIME)
+
     function startTelemetry_for_can0(endpoint, setter, intervalTime) {
         const fetchTelemetry = async () => {
             try {
@@ -120,6 +125,7 @@ function Dashboard() {
                 }
 
                 const data = await response.json();
+
 
                 setter((prev) => {
                     return{
@@ -143,6 +149,14 @@ function Dashboard() {
                         version: data["version"]
                     }
                 });
+
+                if(data["size"] > 5){
+                    can0_fetch_time.current = CAN0_TIME / 2
+                }
+                else{
+                    can0_fetch_time.current = CAN0_TIME
+                }
+
                 setError(null);
             } catch (error) {
                 console.error(error);
@@ -154,10 +168,10 @@ function Dashboard() {
         fetchTelemetry();
 
         // 이후 주기적으로 실행
-        const timer = setInterval(fetchTelemetry, intervalTime);
+        const timer = setTimeout(fetchTelemetry, intervalTime);
 
         return () => {
-            clearInterval(timer);
+            clearTimeout(timer);
         };
     }
 
@@ -186,6 +200,14 @@ function Dashboard() {
                         version: data["version"]
                     }
                 });
+
+                if (data["size"] > 5) {
+                    gps_fetch_time.current = GPS_TIME / 2
+                }
+                else {
+                    gps_fetch_time.current = GPS_TIME
+                }
+
                 setError(null);
             } catch (error) {
                 console.error(error);
@@ -197,10 +219,10 @@ function Dashboard() {
         fetchTelemetry();
 
         // 이후 주기적으로 실행
-        const timer = setInterval(fetchTelemetry, intervalTime);
+        const timer = setTimeout(fetchTelemetry, intervalTime);
 
         return () => {
-            clearInterval(timer);
+            clearTimeout(timer);
         };
     }
 
@@ -228,6 +250,14 @@ function Dashboard() {
                         version: data["version"]
                     }
                 });
+
+                if (data["size"] > 5) {
+                    can1_fetch_time.current = CAN1_TIME / 2
+                }
+                else {
+                    can1_fetch_time.current = CAN1_TIME
+                }
+
                 setError(null);
             } catch (error) {
                 console.error(error);
@@ -235,14 +265,12 @@ function Dashboard() {
             }
         };
 
-        // 화면 진입 직후 한 번 실행
         fetchTelemetry();
 
-        // 이후 주기적으로 실행
-        const timer = setInterval(fetchTelemetry, intervalTime);
+        const timer = setTimeout(fetchTelemetry, intervalTime);
 
         return () => {
-            clearInterval(timer);
+            clearTimeout(timer);
         };
     }
 
@@ -250,7 +278,7 @@ function Dashboard() {
         return startTelemetry_for_can0(
             "/telemetry/can0",
             setCan0,
-            CAN0_TIME
+            can0_fetch_time
         );
     }
 
@@ -258,7 +286,7 @@ function Dashboard() {
         return startTelemetry_for_can1(
             "/telemetry/tps",
             setTps,
-            CAN1_TIME
+            can1_fetch_time
         );
     }
 
@@ -266,7 +294,7 @@ function Dashboard() {
         return startTelemetry_for_can1(
             "/telemetry/desired-yawrate",
             setDesiredYawrate,
-            CAN1_TIME
+            can1_fetch_time
         );
     }
 
@@ -274,7 +302,7 @@ function Dashboard() {
         return startTelemetry_for_gps(
             "/telemetry/gps",
             setGps,
-            GPS_TIME
+            gps_fetch_time
         );
     }
 
@@ -282,7 +310,7 @@ function Dashboard() {
         return startTelemetry_for_can1(
             "/telemetry/yawrate",
             setYawrate,
-            CAN1_TIME
+            can1_fetch_time
         );
     }
 
@@ -290,7 +318,7 @@ function Dashboard() {
         return startTelemetry_for_can1(
             "/telemetry/rollrate",
             setRollrate,
-            CAN1_TIME
+            can1_fetch_time
         );
     }
 
@@ -298,7 +326,7 @@ function Dashboard() {
         return startTelemetry_for_can1(
             "/telemetry/steeringhandle",
             setSteeringhandle,
-            CAN1_TIME
+            can1_fetch_time
         );
     }
 
@@ -306,7 +334,7 @@ function Dashboard() {
         return startTelemetry_for_can1(
             "/telemetry/tiredegree",
             setTireDegree,
-            CAN1_TIME
+            can1_fetch_time
         );
     }
 
@@ -413,30 +441,76 @@ function Dashboard() {
         }
     }
 
-    useEffect(() => {
-        const stopCan0Telemetry = telemetryCan0();
-        const stopTpsTelemetry = telemetryTps();
-        const stopDesiredYawrateTelemetry =
-            telemetryDesiredYawrate();
-        const stopGpsTelemetry = telemetryGps();
+    async function frontend_start(){
+        try{
+            const response = await fetch(
+                `${API_BASE_URL}/frontend/start`,
+                {
+                    method : "POST",
+                    headers : {
+                        "Content-type" : "application/json"
+                    },
+                    body : JSON.stringify({
+                        "status" : true
+                    })
+                }
+            )
 
-        const stopYawrateTelemetry = telemetryYawrate();
-        const stopRollrateTelemetry = telemetryRollrate();
-        const stopSteeringhandleTelemetry =
-            telemetrySteeringhandle();
-        const stopTiredegreeTelemetry =
-            telemetryTiredegree();
+        }
+        catch(err){
+            console.error(error)
+            setError(error.message)
+        }
+
+    }
+
+    useEffect(() => {
+        let stopped = false;
+        let cleanupFunctions = [];
+        let retryTimer = null;
+
+
+        const startDashboard = async () => {
+            const frontendReady = await frontend_start();
+
+            if (stopped) {
+                return;
+            }
+
+            if (!frontendReady) {
+                retryTimer = setTimeout(
+                    startDashboard,
+                    10
+                )
+            }
+            else{
+                console.log("서버 연결 성공")
+            }
+
+            cleanupFunctions = [
+                telemetryCan0(),
+                telemetryTps(),
+                telemetryDesiredYawrate(),
+                telemetryGps(),
+                telemetryYawrate(),
+                telemetryRollrate(),
+                telemetrySteeringhandle(),
+                telemetryTiredegree()
+            ];
+        };
+
+        startDashboard();
 
         return () => {
-            stopCan0Telemetry();
-            stopTpsTelemetry();
-            stopDesiredYawrateTelemetry();
-            stopGpsTelemetry();
+            stopped = true;
 
-            stopYawrateTelemetry();
-            stopRollrateTelemetry();
-            stopSteeringhandleTelemetry();
-            stopTiredegreeTelemetry();
+            if (retryTimer !== null) {
+                clearTimeout(retryTimer);
+            }
+
+            cleanupFunctions.forEach((cleanup) => {
+                cleanup();
+            });
         };
     }, []);
 

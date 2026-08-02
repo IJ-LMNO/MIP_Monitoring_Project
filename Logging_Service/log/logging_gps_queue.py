@@ -21,23 +21,23 @@ class gps_data_structure():
 def main(shared_data, queue):
     gps_data = gps_data_structure()
 
-    if(shared_data["log_state"] == "start"):
-        while(True):
-            try:
-                latest_data = queue.get()
+    while(True):
+        if(shared_data["log_state"] == "start"):
+                try:
+                    latest_data = queue.get()
 
-                gps_data.gps["latest"]["timestamp"] = latest_data["latest"]["timestamp"]
-                gps_data.gps["latest"]["latitude"] = latest_data["latest"]["latitude"]
-                gps_data.gps["latest"]["longitude"] = latest_data["latest"]["longitude"]
+                    gps_data.gps["latest"]["timestamp"] = latest_data["latest"]["timestamp"]
+                    gps_data.gps["latest"]["latitude"] = latest_data["latest"]["latitude"]
+                    gps_data.gps["latest"]["longitude"] = latest_data["latest"]["longitude"]
 
-                gps_data.gps["history"].append(latest_data)
+                    gps_data.gps["history"].append(latest_data)
 
-                gps_data.gps["version"] += 1
+                    gps_data.gps["version"] += 1
 
-                shared_data["current_race_obj"]["data"]["gps"].append((time.time() - shared_data["start_time"], copy.deepcopy(gps_data.gps) ))                
+                    shared_data["current_race_obj"].recent_drive_log["data"]["gps"].append((time.time() - shared_data["start_time"], copy.deepcopy(gps_data.gps) ))                
 
 
-            finally:
-                queue.task_done()
-    elif(shared_data["log_state"] == "reset"):
-            shared_data["current_race_obj"]["data"]["gps"] = []       
+                finally:
+                    queue.task_done()
+        elif(shared_data["log_state"] == "reset"):
+                shared_data["current_race_obj"].recent_drive_log["data"]["gps"] = []       

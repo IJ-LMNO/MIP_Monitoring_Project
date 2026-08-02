@@ -11,9 +11,18 @@ can0_queue = queue.Queue()
 can1_queue = queue.Queue()
 gps_queue = queue.Queue()
 
+Mqtt_event = thread.Event()
+
+
+
 def run_fast_api():
     fast_api_main()
 
+def check_frontend_status(frontend_status):
+    if(frontend_status):
+        Mqtt_event.set()
+    else:
+        Mqtt_event.clear()
 
 def mqtt_subscriber_thread():
 

@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt
 import json
 import time
+from Monitoring_Server.mqtt.shared_state import MQTT_event as MQTT_event
 
 BROKER_HOST = "127.0.0.1"
 BROKER_PORT = 1883
@@ -27,7 +28,7 @@ def on_message(client, userdata, message):
         elif(message.topic.split("/")[-1] == "gps"):
             userdata["gps_queue"].put(data)
     except:
-         print("subscriber mqtt error")
+        print("subscriber mqtt error")
      
 
 def main(can0_queue,can1_queue,gps_queue):
@@ -37,9 +38,13 @@ def main(can0_queue,can1_queue,gps_queue):
     monitoring_client.user_data_set({
         "can0_queue" : can0_queue,
         "can1_queue" : can1_queue,
-        "gps_queue" : gps_queue
+        "gps_queue" : gps_queue,
     })
 
+    print("프론트 실행 대기 중")
+    MQTT_event.wait()
+
+    print("프론트 실행 확인 -> mqtt 연결")
     monitoring_client.on_connect = on_connect
     monitoring_client.on_message = on_message
 

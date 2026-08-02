@@ -36,11 +36,6 @@ class can0_data_sturcture():
 
 def main(shared_data, queue):
     can0_data = can0_data_sturcture()
-    print(f"logging_Can0_queue 38 : logging can0 start")
-    print(f"logging_Can0_queue 38 : {shared_data["log_state"]}")
-    print("can0 PID:", os.getpid())
-    print("can0 shared_data id:", id(shared_data))
-    
 
     while(True):
         if(shared_data["log_state"] == "start"):

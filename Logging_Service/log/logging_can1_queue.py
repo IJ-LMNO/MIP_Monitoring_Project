@@ -49,23 +49,24 @@ class can1_data_set():
 def main(shared_data, queue):
     data_set = can1_data_set()
 
-    if(shared_data["log_state"] == "start"):
-        while(True):
-            try:
-                idx = 0
-                can1_key = list(queue.get().values())
+    while(True):
+        if(shared_data["log_state"] == "start"):
+            while(True):
+                try:
+                    idx = 0
+                    can1_key = list(queue.get().values())
 
-                for data in data_set.data_list:
-                    data["latest"] = can1_key[idx]["latest"]
-                    data["history"].append(can1_key[idx]["latest"])
-                    data["version"] += 1
+                    for data in data_set.data_list:
+                        data["latest"] = can1_key[idx]["latest"]
+                        data["history"].append(can1_key[idx]["latest"])
+                        data["version"] += 1
 
-                    shared_data["current_race_obj"]["data"][data_set.key_list[idx]].append((time.time() - shared_data["start_time"], copy.deepcopy(data) )) 
-                    idx += 1               
-                            
-            finally:
-                queue.task_done()
-    elif(shared_data["log_state"] == "reset"):
-        for data_key in data_set.key_list:
-            shared_data["current_race_obj"]["data"][data_key] = []
+                        shared_data["current_race_obj"].recent_drive_log["data"][data_set.key_list[idx]].append((time.time() - shared_data["start_time"], copy.deepcopy(data) )) 
+                        idx += 1               
+                                
+                finally:
+                    queue.task_done()
+        elif(shared_data["log_state"] == "reset"):
+            for data_key in data_set.key_list:
+                shared_data["current_race_obj"].recent_drive_log["data"][data_key] = []
                 

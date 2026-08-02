@@ -4,11 +4,13 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import copy
 import queue
+from pydantic import BaseModel
 
 from Logging_Service.main import race_start as race_start
 from Logging_Service.main import race_stop as race_stop
 from Logging_Service.main import race_reset as race_reset
 from Logging_Service.main import return_log as return_log
+from Monitoring_Server.mqtt.shared_state import MQTT_event as MQTT_event
 
 can0_queue = queue.Queue()
 tps_queue = queue.Queue()
@@ -38,6 +40,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class FrontendStartRequest(BaseModel):
+    status : bool
+
 
 
 @app.get("/telemetry/can0")
@@ -51,22 +56,10 @@ def get_can0():
         latest = can0_queue.get_nowait()
         return {
             "latest": latest["latest"],
-            "version" : latest["version"]
+            "version" : latest["version"],
+            "size" : can0_queue.qsize()
         }
 
-
-# version = 0
-# ## http detail test back url
-# @app.get("/telemetry/can0")
-# def get_can0():
-#         global version
-#         print(f"api_main 60 : {can0_queue.qsize()} // {version}")
-#         latest = can0_queue.get()
-#         version += 1
-#         return {
-#             "latest": latest["latest"],
-#             "version" : latest["version"]
-#         }
 
 @app.get("/telemetry/tps")
 def get_tps():
@@ -79,7 +72,8 @@ def get_tps():
         latest = tps_queue.get_nowait()
         return {
             "latest": latest["latest"],
-            "version" : latest["version"]
+            "version" : latest["version"],
+            "size" : tps_queue.qsize()
         }
 
 @app.get("/telemetry/desired-yawrate")
@@ -93,7 +87,8 @@ def get_desired_yawrate():
         latest = desired_yawrate_queue.get_nowait()
         return {
             "latest": latest["latest"],
-            "version" : latest["version"]
+            "version" : latest["version"],
+            "size" : desired_yawrate_queue.qsize()
         }
 
 @app.get("/telemetry/yawrate")
@@ -107,7 +102,8 @@ def get_yawrate():
         latest = yawrate_queue.get_nowait()
         return {
             "latest": latest["latest"],
-            "version" : latest["version"]
+            "version" : latest["version"],
+            "size" : yawrate_queue.qsize()
         }
 
 @app.get("/telemetry/rollrate")
@@ -121,7 +117,8 @@ def get_yawrate():
         latest = rollrate_queue.get_nowait()
         return {
             "latest": latest["latest"],
-            "version" : latest["version"]
+            "version" : latest["version"],
+            "size" : rollrate_queue.qsize()
         }
 
 @app.get("/telemetry/steeringhandle")
@@ -135,7 +132,8 @@ def get_yawrate():
         latest = steeringhandle_queue.get_nowait()
         return {
             "latest": latest["latest"],
-            "version" : latest["version"]
+            "version" : latest["version"],
+            "size" : steeringhandle_queue.qsize()
         }
 
 @app.get("/telemetry/tiredegree")
@@ -149,7 +147,8 @@ def get_yawrate():
         latest = tiredegree_queue.get_nowait()
         return {
             "latest": latest["latest"],
-            "version" : latest["version"]
+            "version" : latest["version"],
+            "size" : tiredegree_queue.qsize()
         }
 
 
@@ -164,7 +163,8 @@ def get_gps():
         latest = gps_queue.get_nowait()
         return {
             "latest": latest["latest"],
-            "version" : latest["version"]
+            "version" : latest["version"],
+            "size" : gps_queue.qsize()
         }
 
 
@@ -196,6 +196,11 @@ def race_stop_button():
 @app.post("/race/reset")
 def race_reset_button():
     race_reset()
+
+@app.post("/frontend/start")
+def frontend_start(request : FrontendStartRequest):
+    if request:
+        MQTT_event.set()
 
 
 def get_can0_data(data):
