@@ -11,9 +11,6 @@ from Logging_Service.log.logging_can1_queue import main as can1_logging_queue
 from Logging_Service.log.logging_gps_queue import main as gps_logging_queue
 
 
-
-
-
 can0_queue = queue.Queue()
 can1_queue = queue.Queue()
 gps_queue = queue.Queue()
@@ -28,7 +25,7 @@ shared_data = {
 
 class RaceLogger:
     def __init__(self):
-        self.recnt_drive_log = {
+        self.recent_drive_log = {
             "data" : {
                 "can0" : [],
                 "tps" : [],

@@ -1,9 +1,12 @@
 from fastapi import FastAPI
 from fastapi import HTTPException
+from fastapi import WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import copy
-import queue
+import time
+import asyncio
+from collections import deque
 from pydantic import BaseModel
 
 from Logging_Service.main import race_start as race_start
@@ -12,14 +15,21 @@ from Logging_Service.main import race_reset as race_reset
 from Logging_Service.main import return_log as return_log
 from Monitoring_Server.mqtt.shared_state import MQTT_event as MQTT_event
 
-can0_queue = queue.Queue()
-tps_queue = queue.Queue()
-desired_yawrate_queue = queue.Queue()
-yawrate_queue = queue.Queue()
-rollrate_queue = queue.Queue()
-steeringhandle_queue = queue.Queue()
-tiredegree_queue = queue.Queue()
-gps_queue = queue.Queue()
+dequeue_size = 10
+
+can0_dequeue = deque(maxlen=dequeue_size)
+tps_dequeue = deque(maxlen=dequeue_size)
+desired_yawrate_dequeue = deque(maxlen=dequeue_size)
+yawrate_dequeue = deque(maxlen=dequeue_size)
+rollrate_dequeue = deque(maxlen=dequeue_size)
+steeringhandle_dequeue = deque(maxlen=dequeue_size)
+tiredegree_dequeue = deque(maxlen=dequeue_size)
+gps_dequeue = deque(maxlen=dequeue_size)
+
+can0_detail_dequeue = deque(maxlen=9000)
+desired_yawrate_detail_dequeue = deque(maxlen=9000)
+yawrate_detail_dequeue = deque(maxlen= 9000)
+rollrate_detail_dequeue = deque(maxlen=9000)
 
 
 app = FastAPI()
@@ -47,124 +57,171 @@ class FrontendStartRequest(BaseModel):
 
 @app.get("/telemetry/can0")
 def get_can0():
-    if(can0_queue.empty()):
+    if(len(can0_dequeue) == 0):
         raise HTTPException(
             status_code=404,
-            detail="데이터 없음"
+            detail="can0 데이터 없음"
         )
     else:
-        latest = can0_queue.get_nowait()
+        latest = can0_dequeue.popleft()
         return {
             "latest": latest["latest"],
             "version" : latest["version"],
-            "size" : can0_queue.qsize()
+            "size" : len(can0_dequeue)
         }
 
-
-@app.get("/telemetry/tps")
+@app.get("/telemetry/can1")
 def get_tps():
-    if(tps_queue.empty()):
+    if(len(tps_dequeue) == 0):
         raise HTTPException(
             status_code=404,
             detail = "tps 데이터 없음"
         )
-    else:
-        latest = tps_queue.get_nowait()
-        return {
-            "latest": latest["latest"],
-            "version" : latest["version"],
-            "size" : tps_queue.qsize()
-        }
 
-@app.get("/telemetry/desired-yawrate")
-def get_desired_yawrate():
-    if(desired_yawrate_queue.empty()):
+    if(len(desired_yawrate_dequeue) == 0):
         raise HTTPException(
             status_code=404,
-            detail = "tps 데이터 없음"
+            detail = "desired_yawrate 데이터 없음"
         )
-    else:
-        latest = desired_yawrate_queue.get_nowait()
-        return {
-            "latest": latest["latest"],
-            "version" : latest["version"],
-            "size" : desired_yawrate_queue.qsize()
-        }
 
-@app.get("/telemetry/yawrate")
-def get_yawrate():
-    if(yawrate_queue.empty()):
+    if(len(yawrate_dequeue) == 0):
         raise HTTPException(
             status_code=404,
-            detail = "tps 데이터 없음"
+            detail = "yawrate 데이터 없음"
         )
-    else:
-        latest = yawrate_queue.get_nowait()
-        return {
-            "latest": latest["latest"],
-            "version" : latest["version"],
-            "size" : yawrate_queue.qsize()
-        }
 
-@app.get("/telemetry/rollrate")
-def get_yawrate():
-    if(rollrate_queue.empty()):
+    if(len(rollrate_dequeue) == 0):
         raise HTTPException(
             status_code=404,
-            detail = "tps 데이터 없음"
+            detail = "rollrate 데이터 없음"
         )
-    else:
-        latest = rollrate_queue.get_nowait()
-        return {
-            "latest": latest["latest"],
-            "version" : latest["version"],
-            "size" : rollrate_queue.qsize()
-        }
-
-@app.get("/telemetry/steeringhandle")
-def get_yawrate():
-    if(steeringhandle_queue.empty()):
+    if(len(steeringhandle_dequeue) == 0):
         raise HTTPException(
             status_code=404,
-            detail = "tps 데이터 없음"
+            detail = "steeringhandle 데이터 없음"
         )
-    else:
-        latest = steeringhandle_queue.get_nowait()
-        return {
-            "latest": latest["latest"],
-            "version" : latest["version"],
-            "size" : steeringhandle_queue.qsize()
-        }
-
-@app.get("/telemetry/tiredegree")
-def get_yawrate():
-    if(tiredegree_queue.empty()):
+    if(len(tiredegree_dequeue) == 0):
         raise HTTPException(
             status_code=404,
-            detail = "tps 데이터 없음"
+            detail = "tiredegree 데이터 없음"
         )
-    else:
-        latest = tiredegree_queue.get_nowait()
-        return {
-            "latest": latest["latest"],
-            "version" : latest["version"],
-            "size" : tiredegree_queue.qsize()
-        }
+    
+    tps_latest = tps_dequeue.popleft()
+    print(f"tps_len 108 : {len(tps_dequeue)}")
+    desired_yawrate_latest = desired_yawrate_dequeue.popleft()
+    yawrate_latest = yawrate_dequeue.popleft()
+    rollrate_latest = rollrate_dequeue.popleft()
+    steeringhandle_latest = steeringhandle_dequeue.popleft()
+    tiredegree_latest = tiredegree_dequeue.popleft()
 
-
+    return (
+        [
+            {
+                "latest": tps_latest["latest"],
+                "version" : tps_latest["version"],
+                "size" : len(tps_dequeue)
+            },
+            {
+                "latest": desired_yawrate_latest["latest"],
+                "version" : desired_yawrate_latest["version"],
+                "size" : len(desired_yawrate_dequeue)
+            },
+            {
+                "latest": yawrate_latest["latest"],
+                "version" : yawrate_latest["version"],
+                "size" : len(yawrate_dequeue)
+            },
+            {
+                "latest": rollrate_latest["latest"],
+                "version" : rollrate_latest["version"],
+                "size" : len(rollrate_dequeue)
+            },
+            {
+                "latest": steeringhandle_latest["latest"],
+                "version" : steeringhandle_latest["version"],
+                "size" : len(steeringhandle_dequeue)
+            },
+            {
+                "latest": tiredegree_latest["latest"],
+                "version" : tiredegree_latest["version"],
+                "size" : len(tiredegree_dequeue)
+            },
+        ]      
+    )
+    
 @app.get("/telemetry/gps")
 def get_gps():
-    if(gps_queue.empty()):
+    if(len(gps_dequeue) == 0):
         raise HTTPException(
             status_code=404,
             detail = "gps 데이터 없음"
         )
     else:
-        latest = gps_queue.get_nowait()
+        latest = gps_dequeue.popleft()
         return {
             "latest": latest["latest"],
             "version" : latest["version"],
-            "size" : gps_queue.qsize()
+            "size" : len(gps_dequeue)
+        }
+
+
+
+@app.get("/detail/first/yawrate")
+def get_first_detail_yawrate():
+    if(len(yawrate_detail_dequeue) ==0):
+        raise HTTPException(
+            status_code=404,
+            detail = "데이터 없음"
+        )
+    else:
+        tmp = yawrate_detail_dequeue
+        yawrate_detail_dequeue.clear()
+        return{
+            "history" : list(tmp),
+            "size" : len(tmp)
+        }
+
+@app.get("/detail/yawrate")
+def get_detail_yawrate():
+    if(len(yawrate_detail_dequeue) == 0):
+        raise HTTPException(
+            status_code=404,
+            detail = "데이터 없음"
+        )
+    else:
+        latest = yawrate_detail_dequeue.popleft()
+        return {
+            "latest": latest["latest"],
+            "size" : len(yawrate_detail_dequeue)
+        }
+
+@app.get("/detail/first/desired/yawrate")
+def get_first_detail_desired_yawrate():
+    if(len(desired_yawrate_detail_dequeue) ==0):
+            raise HTTPException(
+            status_code=404,
+            detail = "데이터 없음"
+        )
+    else:
+        tmp = desired_yawrate_detail_dequeue
+        desired_yawrate_detail_dequeue.clear()
+        return{
+            "history" : list(tmp),
+            "size" : len(tmp)
+        }
+
+@app.get("/detail/desired/yawrate")
+def get_detail_desired_yawrate():
+    if(len(desired_yawrate_detail_dequeue) == 0):
+        raise HTTPException(
+            status_code=404,
+            detail = "데이터 없음"
+        )
+    else:
+        latest = desired_yawrate_detail_dequeue.popleft()
+        return {
+            "latest": latest["latest"],
+            "size" : len(desired_yawrate_detail_dequeue)
         }
 
 
@@ -197,35 +254,94 @@ def race_stop_button():
 def race_reset_button():
     race_reset()
 
+
 @app.post("/frontend/start")
-def frontend_start(request : FrontendStartRequest):
-    if request:
-        MQTT_event.set()
+def frontend_start(request: FrontendStartRequest):
+    if not request.status:
+        MQTT_event.clear()
+        return False
+
+    MQTT_event.set()
+
+    timeout_seconds = 10
+    check_interval = 0.05
+    start_time = time.monotonic()
+
+    while True:
+        data_ready = (
+            len(can0_dequeue) >= 1
+            and len(tps_dequeue) >= 1
+            and len(gps_dequeue) >= 1
+        )
+
+        if data_ready:
+            return True
+
+        if time.monotonic() - start_time >= timeout_seconds:
+            return False
+
+        time.sleep(check_interval)
+
+can0_asyncio_event = asyncio.Event()
+@app.websocket("/telemetry/can0/ws")
+async def can0_ws_endpoint(websocket: WebSocket):
+    can0_dequeue_len = 0
+    await websocket.accept()
+
+    while(True):
+        if(len(can0_dequeue) == 0):
+           await can0_asyncio_event.wait()
+        else:
+            can0_dequeue_len = len(can0_dequeue)
+
+            while(can0_dequeue_len > 0):
+                latest = can0_dequeue.popleft()
+                await websocket.send_json(
+                    {
+                        "latest": latest["latest"],
+                        "version" : latest["version"],
+                        "size" : len(can0_dequeue)
+                    }
+                )
+
+                can0_dequeue_len = can0_dequeue_len -1
+
+            if(len(can0_dequeue) == 0):
+                can0_asyncio_event.clear()
+           
 
 
 def get_can0_data(data):
-    can0_queue.put(data)
+    can0_dequeue.append(data)
+    can0_detail_dequeue.append(data)
+    can0_asyncio_event.set()
 
 def get_tps_data(data):
-    tps_queue.put(data)
+    tps_dequeue.append(data)
 
 def get_desired_yawrate_data(data):
-    desired_yawrate_queue.put(data)
+    desired_yawrate_dequeue.append(data)
+    desired_yawrate_detail_dequeue.append(data)
+    can0_asyncio_event.set()
 
 def get_yawrate_data(data):
-    yawrate_queue.put(data)
+    yawrate_dequeue.append(data)
+    yawrate_detail_dequeue.append(data)
 
 def get_rollrate_data(data):
-    rollrate_queue.put(data)
+    rollrate_dequeue.append(data)
+    rollrate_detail_dequeue.append(data)
 
 def get_steeringhandle_data(data):
-    steeringhandle_queue.put(data)
+    steeringhandle_dequeue.append(data)
 
 def get_tiredegree_data(data):
-    tiredegree_queue.put(data)
+    tiredegree_dequeue.append(data)
 
 def get_gps_data(data):
-    gps_queue.put(data)
+    gps_dequeue.append(data)
+
+
 
 
 def main():

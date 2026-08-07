@@ -52,9 +52,9 @@ def main(shared_data, queue):
 
                 can0_data.can0["version"] += 1
 
-                shared_data["current_race_obj"].recnt_drive_log["data"]["can0"].append((time.time() - shared_data["start_time"], copy.deepcopy(can0_data.can0) ))                
+                shared_data["current_race_obj"].recent_drive_log["data"]["can0"].append((time.time() - shared_data["start_time"], copy.deepcopy(can0_data.can0) ))                
             finally:
                 queue.task_done()
 
         elif(shared_data["log_state"] == "reset"):
-            shared_data["current_race_obj"]["data"]["can0"] = []      
+            shared_data["current_race_obj"].recent_drive_log["data"]["can0"] = []      

@@ -1,24 +1,26 @@
 import "./CarStatusPannel.css";
 
-function CarStatusPannel({ carstatus }) {
-    const leftSteerAngle = carstatus?.leftSteerAngle ?? 35;
-    const rightSteerAngle = carstatus?.rightSteerAngle ?? -leftSteerAngle;
+function CarStatusPannel({tiredegree, steeringhandle, leftTorque, rightTorque}) {
+    const curlefttiredegree = tiredegree?.latest ?? 0;
+    const currighttiredegree = tiredegree?.latest ?? -curlefttiredegree
 
-    const leftTorque = carstatus?.power_right ?? 40;
-    const rightTorque = carstatus?.power_left ?? 40;
+    const curstreeinghandle = steeringhandle?.latest ?? 0;
+
+    const curleftTorque = leftTorque?.latest ?? 0;
+    const currightTorque = rightTorque?.latest ?? 0;
 
     return (
         <div className="carstatus-pannel">
-{/* 
+
             <div className="steer-angle steer-angle-left">
-                <div style={{fontSize : "16px"}}>left_stear_angle</div>
-                {leftSteerAngle}°
+                <div style={{fontSize : "16px"}}>SteeringHandle_Degree</div>
+                {curstreeinghandle}°
             </div>
 
             <div className="steer-angle steer-angle-right">
-                <div style={{fontSize : "16px"}}>right_stear_angle</div>
-                {rightSteerAngle}°
-            </div> */}
+                <div style={{fontSize : "16px"}}>Tire_Degree</div>
+                {curlefttiredegree}°
+            </div>
 
             <div className="car-layout">
                 <svg
@@ -69,19 +71,19 @@ function CarStatusPannel({ carstatus }) {
                     <circle cx="65" cy="105" r="5" />
                 </svg>
 
-                {/* <div
+                <div
                     className="wheel front-left-wheel"
-                    style={{ "--wheel-angle": `${leftSteerAngle}deg` }}
+                    style={{ "--wheel-angle": `${curlefttiredegree}deg` }}
                 >
                     <div className="wheel-stripe" />
                 </div>
 
                 <div
                     className="wheel front-right-wheel"
-                    style={{ "--wheel-angle": `${rightSteerAngle}deg` }}
+                    style={{ "--wheel-angle": `${currighttiredegree}deg` }}
                 >
                     <div className="wheel-stripe" />
-                </div> */}
+                </div>
 
                 <div className="wheel rear-left-wheel">
                     <div className="wheel-stripe" />
@@ -94,12 +96,12 @@ function CarStatusPannel({ carstatus }) {
 
             <div className="torque torque-left">
                 <div style={{fontSize : "16px"}}>Left_Torque</div>
-                {carstatus["torque_left"]}Nm
+                {leftTorque}Nm
             </div>
 
             <div className="torque torque-right">
                 <div style={{fontSize : "16px"}}>Right_Torque</div>
-                {carstatus["torque_right"]}Nm
+                {rightTorque}Nm
             </div>
         </div>
     );
