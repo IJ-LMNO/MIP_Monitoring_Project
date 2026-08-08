@@ -282,39 +282,49 @@ def frontend_start(request: FrontendStartRequest):
 
         time.sleep(check_interval)
 
+
 can0_asyncio_event = asyncio.Event()
+can0_event_loop = None
 @app.websocket("/telemetry/can0/ws")
 async def can0_ws_endpoint(websocket: WebSocket):
-    can0_dequeue_len = 0
+    global can0_event_loop
+
     await websocket.accept()
 
-    while(True):
-        if(len(can0_dequeue) == 0):
-           await can0_asyncio_event.wait()
+    can0_event_loop = asyncio.get_running_loop()
+
+    while True:
+        if len(can0_dequeue) == 0:
+            await can0_asyncio_event.wait()
+
         else:
             can0_dequeue_len = len(can0_dequeue)
 
-            while(can0_dequeue_len > 0):
+            while can0_dequeue_len > 0:
                 latest = can0_dequeue.popleft()
+
                 await websocket.send_json(
                     {
                         "latest": latest["latest"],
-                        "version" : latest["version"],
-                        "size" : len(can0_dequeue)
+                        "version": latest["version"],
+                        "size": len(can0_dequeue)
                     }
                 )
 
-                can0_dequeue_len = can0_dequeue_len -1
+                can0_dequeue_len -= 1
 
-            if(len(can0_dequeue) == 0):
+            if len(can0_dequeue) == 0:
                 can0_asyncio_event.clear()
-           
+
 
 
 def get_can0_data(data):
     can0_dequeue.append(data)
-    can0_detail_dequeue.append(data)
-    can0_asyncio_event.set()
+    print("호출됨")
+    if can0_event_loop is not None:
+        can0_event_loop.call_soon_threadsafe(
+            can0_asyncio_event.set
+        )
 
 def get_tps_data(data):
     tps_dequeue.append(data)
@@ -322,7 +332,6 @@ def get_tps_data(data):
 def get_desired_yawrate_data(data):
     desired_yawrate_dequeue.append(data)
     desired_yawrate_detail_dequeue.append(data)
-    can0_asyncio_event.set()
 
 def get_yawrate_data(data):
     yawrate_dequeue.append(data)

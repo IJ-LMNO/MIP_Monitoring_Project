@@ -544,6 +544,30 @@ function Dashboard() {
     //     };
     // }, []);
 
+    useEffect(() => {
+        const socket = new WebSocket("ws://localhost:8000/telemetry/can0/ws")
+
+        socket.onopen = () =>{
+            frontend_start()
+            console.log("can0 websocket 연결됨")
+        }
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data)
+
+            console.log("can0 수신 : ", data)
+
+        }
+
+        socket.onclose = () =>{
+            console.log("can0 통신 종료")
+        }
+
+        return () =>{
+            socket.close()
+        }
+    },[])
+
     
 
     return (
