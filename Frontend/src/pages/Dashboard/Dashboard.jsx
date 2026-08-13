@@ -14,7 +14,7 @@ import DropdownMenu from "../../components/panels/DropdownMenu/DropdownMenu";
 
 import "./Dashboard.css";
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "ws://localhost:8000";
 
 const CAN0_TIME = 1000;
 const CAN1_TIME = 1000;
@@ -114,234 +114,307 @@ function Dashboard() {
     const can1_hysteresis_time = useRef(null)
     const gps_hysteresis_time = useRef(null)
 
-    function startTelemetry_for_can0(endpoint, setter, intervalTime) {
-        let timer= null
+    // function startTelemetry_for_can0(endpoint, setter, intervalTime) {
+    //     let timer= null
 
-        const fetchTelemetry = async () => {
-            const response_problem = false;
+    //     const fetchTelemetry = async () => {
+    //         const response_problem = false;
 
-            try {
-                const response = await fetch(
-                    `${API_BASE_URL}${endpoint}`
-                );
+    //         try {
+    //             const response = await fetch(
+    //                 `${API_BASE_URL}${endpoint}`
+    //             );
 
-                if (response.status == 404) {
-                    throw new Error(
-                        `${endpoint} 요청 실패: ${response.status}`
-                    );
+    //             if (response.status == 404) {
+    //                 throw new Error(
+    //                     `${endpoint} 요청 실패: ${response.status}`
+    //                 );
 
-                    const response_problem = true;
+    //                 const response_problem = true;
 
-                }
+    //             }
 
-                const data = await response.json();
-
-
-                setter((prev) => {
-                    return{
-                        latest: data["latest"],
-                        history: {
-                            current_right: [
-                                ...prev.history.current_right,
-                                data.latest.current_right
-                            ].slice(-40),
-
-                            current_left: [
-                                ...prev.history.current_left,
-                                data.latest.current_left
-                            ].slice(-40),
-
-                            avg_power: [
-                                ...prev.history.avg_power,
-                                data.latest.avg_power
-                            ].slice(-40),
-                        },
-                        version: data["version"]
-                    }
-                });
-
-                if(data["size"] >= 1){
-                    if(can0_hysteresis_time.current == null){
-                        can0_hysteresis_time.current = performance.now()
-                    }
-
-                    if (performance.now() - can0_hysteresis_time.current > 3000){
-                        can0_fetch_time.current = can0_fetch_time.current / 2
-                        can0_hysteresis_time.current = performance.now()
-                    }
-                }
-                else{
-                    can0_fetch_time.current = CAN0_TIME
-                    can0_hysteresis_time.current = null
-                }
-
-                setError(null);
-            } catch (error) {
-                console.error(error);
-                setError(error.message);
-            }finally{
-
-                timer = setTimeout(fetchTelemetry, can0_fetch_time.current);
-            }
-        };
-
-        fetchTelemetry();
-
-        return () => {
-            clearTimeout(timer)
-        };
-    }
+    //             const data = await response.json();
 
 
-    function startTelemetry_for_gps(endpoint, setter, intervalTime) {
-        let timer = null
+    //             setter((prev) => {
+    //                 return{
+    //                     latest: data["latest"],
+    //                     history: {
+    //                         current_right: [
+    //                             ...prev.history.current_right,
+    //                             data.latest.current_right
+    //                         ].slice(-40),
 
-        const fetchTelemetry = async () => {
-            try {
-                const response = await fetch(
-                    `${API_BASE_URL}${endpoint}`
-                );
+    //                         current_left: [
+    //                             ...prev.history.current_left,
+    //                             data.latest.current_left
+    //                         ].slice(-40),
 
-                if (response.status == 404) {
-                    throw new Error(
-                        `${endpoint} 요청 실패: ${response.status}`
-                    );
-                    return
-                }
+    //                         avg_power: [
+    //                             ...prev.history.avg_power,
+    //                             data.latest.avg_power
+    //                         ].slice(-40),
+    //                     },
+    //                     version: data["version"]
+    //                 }
+    //             });
 
-                const data = await response.json();
+    //             if(data["size"] >= 1){
+    //                 if(can0_hysteresis_time.current == null){
+    //                     can0_hysteresis_time.current = performance.now()
+    //                 }
 
-                setter((prev) => {
-                    return {
-                        latest: data["latest"],
+    //                 if (performance.now() - can0_hysteresis_time.current > 3000){
+    //                     can0_fetch_time.current = can0_fetch_time.current / 2
+    //                     can0_hysteresis_time.current = performance.now()
+    //                 }
+    //             }
+    //             else{
+    //                 can0_fetch_time.current = CAN0_TIME
+    //                 can0_hysteresis_time.current = null
+    //             }
 
-                        history : [...prev.history, data["latest"]],
-                        version: data["version"]
-                    }
-                });
+    //             setError(null);
+    //         } catch (error) {
+    //             console.error(error);
+    //             setError(error.message);
+    //         }finally{
 
-                if (data["size"] >= 3) {
-                    if (gps_hysteresis_time.currnent == null) {
-                        gps_hysteresis_time.current = performance.now()
-                    }
+    //             timer = setTimeout(fetchTelemetry, can0_fetch_time.current);
+    //         }
+    //     };
 
-                    if (performance.now()  - gps_hysteresis_time.current > 3000) {
-                        gps_fetch_time.current = GPS_TIME / 2
-                        gps_hysteresis_time.current = performance.now()
-                    }
-                }
-                else {
-                    gps_fetch_time.current = GPS_TIME
-                    gps_hysteresis_time.current = null
-                }
+    //     fetchTelemetry();
 
-                setError(null);
-            } catch (error) {
-                console.error(error);
-                setError(error.message);
-            }finally{
-                timer = setTimeout(fetchTelemetry, gps_fetch_time.current);
-            }
-        };
-        fetchTelemetry();
+    //     return () => {
+    //         clearTimeout(timer)
+    //     };
+    // }
 
-        return () => {
-            clearTimeout(timer);
-        };
-    }
 
-    function startTelemetry_for_can1(endpoint, setter, intervalTime) {
-        let timer = null
-        let idx = 0
+    // function startTelemetry_for_gps(endpoint, setter, intervalTime) {
+    //     let timer = null
 
-        const fetchTelemetry = async () => {
-            try {
-                const response = await fetch(
-                    `${API_BASE_URL}${endpoint}`
-                );
+    //     const fetchTelemetry = async () => {
+    //         try {
+    //             const response = await fetch(
+    //                 `${API_BASE_URL}${endpoint}`
+    //             );
 
-                if (response.status == 404) {
-                    throw new Error(
-                        `${endpoint} 요청 실패: ${response.status}`
-                    );
-                    return
-                }
+    //             if (response.status == 404) {
+    //                 throw new Error(
+    //                     `${endpoint} 요청 실패: ${response.status}`
+    //                 );
+    //                 return
+    //             }
 
-                const data = await response.json();
+    //             const data = await response.json();
 
-                while(idx < data.length){
-                    let inputdata = data[idx]
+    //             setter((prev) => {
+    //                 return {
+    //                     latest: data["latest"],
 
-                    setter[idx]((prev) => {
-                        return{
-                            latest: inputdata["latest"],
+    //                     history : [...prev.history, data["latest"]],
+    //                     version: data["version"]
+    //                 }
+    //             });
 
-                            history: [...prev.history, inputdata["latest"]],
-                            version: inputdata["version"],
-                        }
-                    })
+    //             if (data["size"] >= 3) {
+    //                 if (gps_hysteresis_time.currnent == null) {
+    //                     gps_hysteresis_time.current = performance.now()
+    //                 }
 
-                    idx = idx + 1
-                }
+    //                 if (performance.now()  - gps_hysteresis_time.current > 3000) {
+    //                     gps_fetch_time.current = GPS_TIME / 2
+    //                     gps_hysteresis_time.current = performance.now()
+    //                 }
+    //             }
+    //             else {
+    //                 gps_fetch_time.current = GPS_TIME
+    //                 gps_hysteresis_time.current = null
+    //             }
 
-                idx = 0
+    //             setError(null);
+    //         } catch (error) {
+    //             console.error(error);
+    //             setError(error.message);
+    //         }finally{
+    //             timer = setTimeout(fetchTelemetry, gps_fetch_time.current);
+    //         }
+    //     };
+    //     fetchTelemetry();
+
+    //     return () => {
+    //         clearTimeout(timer);
+    //     };
+    // }
+
+    // function startTelemetry_for_can1(endpoint, setter, intervalTime) {
+    //     let timer = null
+    //     let idx = 0
+
+    //     const fetchTelemetry = async () => {
+    //         try {
+    //             const response = await fetch(
+    //                 `${API_BASE_URL}${endpoint}`
+    //             );
+
+    //             if (response.status == 404) {
+    //                 throw new Error(
+    //                     `${endpoint} 요청 실패: ${response.status}`
+    //                 );
+    //                 return
+    //             }
+
+    //             const data = await response.json();
+
+    //             while(idx < data.length){
+    //                 let inputdata = data[idx]
+
+    //                 setter[idx]((prev) => {
+    //                     return{
+    //                         latest: inputdata["latest"],
+
+    //                         history: [...prev.history, inputdata["latest"]],
+    //                         version: inputdata["version"],
+    //                     }
+    //                 })
+
+    //                 idx = idx + 1
+    //             }
+
+    //             idx = 0
             
-                if (data[0]["size"] >= 3) {
-                    if (can1_hysteresis_time.current == null) {
-                        can1_hysteresis_time.current = performance.now()
-                    }
+    //             if (data[0]["size"] >= 3) {
+    //                 if (can1_hysteresis_time.current == null) {
+    //                     can1_hysteresis_time.current = performance.now()
+    //                 }
 
-                    if (performance.now() - can1_hysteresis_time.current > 3000) {
-                        can1_fetch_time.current = can1_fetch_time.current / 2
-                        can1_hysteresis_time.current = performance.now()
-                    }
-                }
-                else {
-                    can1_fetch_time.current = CAN1_TIME
-                    can1_hysteresis_time.current = null
-                }
-                setError(null);
-            } catch (error) {
-                console.error(error);
-                setError(error.message);
-            }finally{
-                timer = setTimeout(fetchTelemetry, can1_fetch_time.current);
-            }
-        };
+    //                 if (performance.now() - can1_hysteresis_time.current > 3000) {
+    //                     can1_fetch_time.current = can1_fetch_time.current / 2
+    //                     can1_hysteresis_time.current = performance.now()
+    //                 }
+    //             }
+    //             else {
+    //                 can1_fetch_time.current = CAN1_TIME
+    //                 can1_hysteresis_time.current = null
+    //             }
+    //             setError(null);
+    //         } catch (error) {
+    //             console.error(error);
+    //             setError(error.message);
+    //         }finally{
+    //             timer = setTimeout(fetchTelemetry, can1_fetch_time.current);
+    //         }
+    //     };
 
-        fetchTelemetry();
+    //     fetchTelemetry();
 
-        return () => {
-            clearTimeout(timer);
-        };
-    }
+    //     return () => {
+    //         clearTimeout(timer);
+    //     };
+    // }
 
-    function telemetryCan0() {
-        return startTelemetry_for_can0(
-            "/telemetry/can0",
-            setCan0,
-            can0_fetch_time.current
-        );
+    // function telemetryCan0() {
+    //     return startTelemetry_for_can0(
+    //         "/telemetry/can0",
+    //         setCan0,
+    //         can0_fetch_time.current
+    //     );
 
     
-    }
+    // }
 
-    function telemetryCan1(){
-        return startTelemetry_for_can1(
-            "/telemetry/can1",
-            [setTps, setDesiredYawrate, setYawrate, setRollrate, setSteeringhandle, setTireDegree],
-            can1_fetch_time.current
-        )
-    }
+    // function telemetryCan1(){
+    //     return startTelemetry_for_can1(
+    //         "/telemetry/can1",
+    //         [setTps, setDesiredYawrate, setYawrate, setRollrate, setSteeringhandle, setTireDegree],
+    //         can1_fetch_time.current
+    //     )
+    // }
 
 
-    function telemetryGps() {
-        return startTelemetry_for_gps(
-            "/telemetry/gps",
-            setGps,
-            gps_fetch_time.current
-        );
-    }
+    // function telemetryGps() {
+    //     return startTelemetry_for_gps(
+    //         "/telemetry/gps",
+    //         setGps,
+    //         gps_fetch_time.current
+    //     );
+    // }
+
+        //useEffect for https protocol
+
+    // useEffect(() => {
+    //     let stopped = false;
+    //     let readyCheckTimer = null;
+    //     let cleanupFunctions = [];
+
+    //     const startDashboard = () => {
+    //         if (stopped) {
+    //             return;
+    //         }
+
+    //         cleanupFunctions = [
+    //             telemetryCan0(),
+    //             telemetryCan1(),
+    //             telemetryGps(),
+    //         ];
+    //     };
+
+    //     const checkFrontendReady = async () => {
+    //         if (stopped) {
+    //             return;
+    //         }
+
+    //         try {
+    //             const frontendReady = await frontend_start();
+
+    //             if (stopped) {
+    //                 return;
+    //             }
+
+    //             console.log(frontendReady);
+
+    //             if (frontendReady) {
+    //                 console.log("서버 및 센서 데이터 준비 완료");
+
+    //                 startDashboard();
+    //                 return;
+    //             }
+
+    //             readyCheckTimer = setTimeout(
+    //                 checkFrontendReady,
+    //                 200
+    //             );
+    //         } catch (error) {
+    //             console.error(error);
+
+    //             if (!stopped) {
+    //                 readyCheckTimer = setTimeout(
+    //                     checkFrontendReady,
+    //                     1000
+    //                 );
+    //             }
+    //         }
+    //     };
+
+    //     checkFrontendReady();
+
+    //     return () => {
+    //         stopped = true;
+
+    //         if (readyCheckTimer !== null) {
+    //             clearTimeout(readyCheckTimer);
+    //         }
+
+    //         cleanupFunctions.forEach((cleanup) => {
+    //             if (typeof cleanup === "function") {
+    //                 cleanup();
+    //             }
+    //         });
+    //     };
+    // }, []);
 
     const downloadRaceLog = async () => {
         try {
@@ -471,102 +544,219 @@ function Dashboard() {
 
     }
 
-    //useEffect for https protocol
-
-    // useEffect(() => {
-    //     let stopped = false;
-    //     let readyCheckTimer = null;
-    //     let cleanupFunctions = [];
-
-    //     const startDashboard = () => {
-    //         if (stopped) {
-    //             return;
-    //         }
-
-    //         cleanupFunctions = [
-    //             telemetryCan0(),
-    //             telemetryCan1(),
-    //             telemetryGps(),
-    //         ];
-    //     };
-
-    //     const checkFrontendReady = async () => {
-    //         if (stopped) {
-    //             return;
-    //         }
-
-    //         try {
-    //             const frontendReady = await frontend_start();
-
-    //             if (stopped) {
-    //                 return;
-    //             }
-
-    //             console.log(frontendReady);
-
-    //             if (frontendReady) {
-    //                 console.log("서버 및 센서 데이터 준비 완료");
-
-    //                 startDashboard();
-    //                 return;
-    //             }
-
-    //             readyCheckTimer = setTimeout(
-    //                 checkFrontendReady,
-    //                 200
-    //             );
-    //         } catch (error) {
-    //             console.error(error);
-
-    //             if (!stopped) {
-    //                 readyCheckTimer = setTimeout(
-    //                     checkFrontendReady,
-    //                     1000
-    //                 );
-    //             }
-    //         }
-    //     };
-
-    //     checkFrontendReady();
-
-    //     return () => {
-    //         stopped = true;
-
-    //         if (readyCheckTimer !== null) {
-    //             clearTimeout(readyCheckTimer);
-    //         }
-
-    //         cleanupFunctions.forEach((cleanup) => {
-    //             if (typeof cleanup === "function") {
-    //                 cleanup();
-    //             }
-    //         });
-    //     };
-    // }, []);
-
+    initial_check_time = 100
+    timer = null
+    local
     useEffect(() => {
-        const socket = new WebSocket("ws://localhost:8000/telemetry/can0/ws")
+        let stopped = false;
+        let timer = null;
 
-        socket.onopen = () =>{
-            frontend_start()
-            console.log("can0 websocket 연결됨")
-        }
+        let can0 = null;
+        let can1 = null;
+        let gps = null;
 
-        socket.onmessage = (event) => {
-            const data = JSON.parse(event.data)
+        const initial_check_time = 100;
+        
+        const start = async () => {
 
-            console.log("can0 수신 : ", data)
+            while (!stopped) {
 
-        }
+                const first_response = await frontend_start();
 
-        socket.onclose = () =>{
-            console.log("can0 통신 종료")
-        }
+                if (first_response === true) {
+                    break;
+                }
 
-        return () =>{
-            socket.close()
-        }
-    },[])
+                await new Promise((resolve) => {
+                    timer = setTimeout(resolve, initial_check_time);
+                });
+            }
+
+            if (stopped) {
+                return;
+            }
+
+            can0 = new WebSocket(
+                `${API_BASE_URL}/telemetry/can0/ws`
+            );
+
+            can1 = new WebSocket(
+                `${API_BASE_URL}/telemetry/can1/ws`
+            );
+
+            gps = new WebSocket(
+                `${API_BASE_URL}/telemetry/gps/ws`
+            );
+
+            //can0 websocket
+            can0.onopen = () => {
+                console.log("can0 websocket 연결됨");
+            };
+
+            can0.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                setCan0((prev) => {
+                    return {
+                        latest: data["latest"],
+
+                        history: {
+                            current_right: [
+                                ...prev.history.current_right,
+                                data.latest.current_right
+                            ].slice(-40),
+
+                            current_left: [
+                                ...prev.history.current_left,
+                                data.latest.current_left
+                            ].slice(-40),
+
+                            avg_power: [
+                                ...prev.history.avg_power,
+                                data.latest.avg_power
+                            ].slice(-40),
+                        },
+
+                        version: data["version"]
+                    };
+                });
+            };
+
+            can0.onclose = () => {
+                console.log("can0 통신 종료");
+            };
+
+
+            //can1 websocket
+            can1.onopen = () => {
+                console.log("can1 websocket 연결됨");
+            };
+
+            can1.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                setTps((prev) => {
+                    return {
+                        latest: data["tps"]["latest"],
+                        history: [
+                            ...prev.history,
+                            data["tps"]["latest"]
+                        ].slice(-40),
+                        version: data["version"]
+                    };
+                });
+
+                setDesiredYawrate((prev) => {
+                    return {
+                        latest: data["desired_yawrate"]["latest"],
+                        history: [
+                            ...prev.history,
+                            data["desired_yawrate"]["latest"]
+                        ].slice(-40),
+                        version: data["version"]
+                    };
+                });
+
+                setYawrate((prev) => {
+                    return {
+                        latest: data["yawrate"]["latest"],
+                        history: [
+                            ...prev.history,
+                            data["yawrate"]["latest"]
+                        ].slice(-40),
+                        version: data["version"]
+                    };
+                });
+
+                setrollrate((prev) => {
+                    return {
+                        latest: data["rollrate"]["latest"],
+                        history: [
+                            ...prev.history,
+                            data["rollrate"]["latest"]
+                        ].slice(-40),
+                        version: data["version"]
+                    };
+                });
+
+                setSteeringhandle((prev) => {
+                    return {
+                        latest: data["steeringhandle"]["latest"],
+                        history: [
+                            ...prev.history,
+                            data["steeringhandle"]["latest"]
+                        ].slice(-40),
+                        version: data["version"]
+                    };
+                });
+
+                setTireDegree((prev) => {
+                    return {
+                        latest: data["tiredegree"]["latest"],
+                        history: [
+                            ...prev.history,
+                            data["tiredegree"]["latest"]
+                        ].slice(-40),
+                        version: data["version"]
+                    };
+                });
+            };
+
+            can1.onclose = () => {
+                console.log("can1 통신 종료");
+            };
+
+
+            //gps websocket
+            gps.onopen = () => {
+                console.log("gps websocket 연결됨");
+            };
+
+            gps.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                setGps((prev) => {
+                    return {
+                        latest: data["latest"],
+
+                        history: [
+                            ...prev.history,
+                            data["latest"]
+                        ].slice(-40),
+
+                        version: data["version"]
+                    };
+                });
+            };
+
+            gps.onclose = () => {
+                console.log("gps 통신 종료");
+            };
+
+        };
+        start();
+
+        return () => {
+            stopped = true;
+
+            if (timer !== null) {
+                clearTimeout(timer);
+            }
+
+            if (can0 !== null) {
+                can0.close();
+            }
+
+            if (can1 !== null) {
+                can1.close();
+            }
+
+            if (gps !== null) {
+                gps.close();
+            }
+        };
+
+    }, []);
 
     
 

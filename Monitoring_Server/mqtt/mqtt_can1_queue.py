@@ -1,50 +1,46 @@
 from collections import deque
 import copy
 
-from Monitoring_Server.api.main import get_tps_data, get_desired_yawrate_data, get_yawrate_data, get_rollrate_data, get_steeringhandle_data, get_tiredegree_data
+from Monitoring_Server.api.main import get_can1_data
 
 class can1_data_set():
     def __init__(self):
-        self.tps = {
-            "latest" : 0.0,
-            "history" : deque(maxlen=40),
+        self.can1 = {
+            "tps" : {
+                "latest" : 0.0,
+                "history" : deque(maxlen=40),
+            },
+
+            "desired_yawrate" :{
+                "latest" : 0.0,
+                "history" : deque(maxlen=40),
+            },
+
+            "yawrate" : {
+                "latest" : 0.0,
+                "history" : deque(maxlen=40),
+            },
+
+            "rollrate" : {
+                "latest" : 0.0,
+                "history" : deque(maxlen=40),
+            },
+
+            "steeringhandle" : {
+                "latest" : 0.0,
+                "history" : deque(maxlen=40),
+            },
+
+            "tiredegree" : {
+                "latest" : 0.0,
+                "history" : deque(maxlen=40),
+            },
+
             "version" : 0
         }
 
 
-        self.desired_yawrate = {
-            "latest" : 0.0,
-            "history" : deque(maxlen=40),
-            "version" : 0
-        }
-
-        self.yawrate = {
-            "latest" : 0.0,
-            "history" : deque(maxlen=40),
-            "version" : 0
-        }
-
-        self.rollrate = {
-            "latest" : 0.0,
-            "history" : deque(maxlen=40),
-            "version" : 0
-        }
-
-        self.steeringhandle = {
-            "latest" : 0.0,
-            "history" : deque(maxlen=40),
-            "version" : 0
-        }
-
-        self.tiredegree = {
-            "latest" : 0.0,
-            "history" : deque(maxlen=40),
-            "version" : 0
-        }
-
-        self.data_list = [self.tps, self.desired_yawrate, self.yawrate, self.rollrate, self.steeringhandle, self.tiredegree]
-        self.function_list= [get_tps_data, get_desired_yawrate_data, get_yawrate_data, get_rollrate_data, get_steeringhandle_data, get_tiredegree_data]
-
+        self.data_list = [self.can1["tps"], self.can1["desired_yawrate"], self.can1["yawrate"], self.can1["rollrate"], self.can1["steeringhandle"], self.can1["tiredegree"]]
 
 
 def main(queue):
@@ -55,14 +51,14 @@ def main(queue):
             can1_key = list(queue.get().values())
 
             for data in data_set.data_list:
-                data["latest"] = can1_key[idx]["latest"]
-                data["history"].append(can1_key[idx]["latest"])
-                data["version"] += 1
-
-                data_set.function_list[idx](copy.deepcopy(data))
+                data["latest"] = can1_key[idx]
+                data["history"].append(can1_key[idx])
 
                 idx += 1
-                          
+
+            data_set.can1["version"] += 1
+            get_can1_data(copy.deepcopy(data_set.can1))
+
         finally:
             queue.task_done()
 

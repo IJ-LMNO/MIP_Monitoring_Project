@@ -78,55 +78,51 @@ def create_can0_data(elapsed_time: float) -> dict:
 def create_tps_data(elapsed_time: float) -> dict:
     throttle = 50 + 40 * math.sin(elapsed_time * 0.7)
 
-    return {
-        "latest" : round(max(0, min(100, throttle)), 2)
+    return(
+        round(max(0, min(100, throttle)), 2)
+    )
 
-    }
-
+    
 
 def create_desired_yawrate_data(elapsed_time: float) -> dict:
     desired_yawrate = 20 * math.sin(elapsed_time * 0.8)
 
-    return {
-        "latest" : round(desired_yawrate, 2)
-
-    }
+    return (
+        round(desired_yawrate, 2)
+    )
 
 
 def create_yawrate_data(elapsed_time: float) -> dict:
     yawrate = 20 * math.sin(elapsed_time * 0.8)
     yawrate += random.uniform(-1, 1)
 
-    return {
-        "latest": round(yawrate, 2)
-
-    }
+    return (
+        round(yawrate, 2)
+    )
 
 
 def create_rollrate_data(elapsed_time: float) -> dict:
     rollrate = 8 * math.sin(elapsed_time * 0.6)
 
-    return {
-        "latest" : round(rollrate, 2) 
-        
-    }
+    return (
+        round(rollrate, 2) 
+    )
 
 
 def create_steeringhandle_data(elapsed_time: float) -> dict:
     steering_angle = 180 * math.sin(elapsed_time * 0.3)
 
-    return {
-        "latest" : round(steering_angle, 2)
-        
-    }
+    return (
+        round(steering_angle, 2)    
+    )
 
 
 def create_tiredegree_data(elapsed_time: float) -> dict:
     tire_degree = 30 * math.sin(elapsed_time * 0.3)
 
-    return {
-        "latest" : round(tire_degree, 2)
-    }
+    return (
+        round(tire_degree, 2)
+    )
 
 
 def create_gps_data(elapsed_time: float) -> dict:
