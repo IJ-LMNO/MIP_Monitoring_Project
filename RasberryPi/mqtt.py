@@ -7,10 +7,10 @@ import time
 import paho.mqtt.client as mqtt
 
 
-BROKER_HOST = "100.70.221.71"
+BROKER_HOST = "100.84.183.9"
 BROKER_PORT = 1883
 KEEPALIVE = 60
-QOS = 2
+QOS = 0
 
 
 mqtt_connected = threading.Event()
@@ -92,7 +92,7 @@ def publish_worker(
                     publish_count += 1
 
         
-                    if publish_count == 1 or publish_count % 10 == 0:
+                    if publish_count == 1 or publish_count % 100 == 0:
                         print(
                             f"[MQTT][{telemetry_name}] "
                             f"publish 성공 #{publish_count} "

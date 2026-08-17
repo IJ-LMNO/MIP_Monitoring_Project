@@ -207,24 +207,6 @@ def main() -> None:
                 "gps": create_gps_data(elapsed_time),
             }
 
-            # if(elapsed_time > 5):
-            #     print("5초 지남")              
-            #     sensor_data = {
-            #         "can0": create_can0_data(elapsed_time),
-            #         "can1" : {
-            #             "tps": create_tps_data(elapsed_time),
-            #             "desired-yawrate": create_desired_yawrate_data(elapsed_time),
-            #             "yawrate": create_yawrate_data(elapsed_time),
-            #             "rollrate": create_rollrate_data(elapsed_time),
-            #             "steeringhandle": create_steeringhandle_data(elapsed_time),
-            #             "tiredegree": create_tiredegree_data(elapsed_time),
-            #         },
-            #         "gps": create_gps_data(elapsed_time),
-            #     }
-            # else:
-            #     sensor_data = {
-            #         "can0": can0
-            #     }
 
             for sensor_name, payload in sensor_data.items():
                 payload["version"] = sequence
