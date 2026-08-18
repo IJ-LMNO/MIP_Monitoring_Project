@@ -28,23 +28,22 @@ function YawRateDetailPage(){
             let desired_yawrate_arr = []
 
             if (!first_telemetry.current) {
-                console.log("line31 : ok")
+                console.log("첫번째 로직 시작")
                 try {
                     const response_can1 = await fetch(
                         "http://localhost:8000/first/detail/yawrate"
                     )
 
                     const can1 = await response_can1.json()
-    
+
+                    console.log(Array.isArray(can1))
+
+                    for(let i = 0; i < can1.length; i++){
+                        yawrate_arr.push(can1[i]["yawrate"]["latest"])
+                        desired_yawrate_arr.push(can1[i]["desired_yawrate"]["latest"])
+                    }
 
                     if(response_can1.ok){
-
-
-                        for(let i =0; i < length(can1); i++){
-                            yawrate_arr.append(can1["yawrate"]["latest"])
-                            desired_yawrate_arr.append(can1["desired_yawrate"]["latest"])
-                        }
-
                         setYawrate((prev) => {
                             return {
                                 ...prev,
@@ -73,17 +72,57 @@ function YawRateDetailPage(){
                     timer = setTimeout(start_telemetry, 1000)
                 }
             }else{
-                console.log("두번쨰 로직 시작")
-            }
-        
-            
-            start_telemetry()
+                console.log("두번째 로직 시작")
+                let ws = new WebSocket("ws://localhost:8000/detail/yawrate")
 
-            return(() => {
-                clearTimeout(timer)
-            })
+                ws.onopen = () =>{
+                    console.log("yawrate detail websocket 연결됨")
+                }
+
+                ws.onmessage = ((event) => {
+                    const data = JSON.parse(event.data)
+
+                    console.log(data)
+
+                    setYawrate((prev) => {
+                        return{
+                            latest : data["yawrate"],
+                            history : [
+                                ...prev.history,
+                                data["yawrate"]
+                            ].slice(-9000)
+                        }
+                    })
+
+                    setDesiredYawrate((prev) => {
+                        return{
+                            latest : data["desired_yawrate"],
+                            history : [
+                                ...prev.history,
+                                data["desired_yawrate"]
+                            ].slice(-9000)
+                        }
+                    })
+                })
+
+
+                ws.onclose = () => {
+                        console.log(
+                            "websocket 종료",
+                            event.code,
+                            event.reason,
+                            event.wasClean
+    )
+                }
+            }
 
         }
+
+        start_telemetry()
+
+        return(() => {
+            clearInterval(timer)
+        })
 
     },[])
 

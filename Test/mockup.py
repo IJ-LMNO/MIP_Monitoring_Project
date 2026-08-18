@@ -10,7 +10,7 @@ import paho.mqtt.client as mqtt
 BROKER_HOST = "127.0.0.1"
 BROKER_PORT = 1883
 
-PUBLISH_HZ = 1
+PUBLISH_HZ = 10
 PUBLISH_INTERVAL = 1 / PUBLISH_HZ
 
 BASE_TOPIC = "vehicle/car_01"

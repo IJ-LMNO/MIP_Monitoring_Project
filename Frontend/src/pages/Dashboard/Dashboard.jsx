@@ -280,8 +280,6 @@ function Dashboard() {
 
             can0.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-                console.log(data["latest"])
-                console.log(data["size"])
 
                 setCan0((prev) => {
                     return {

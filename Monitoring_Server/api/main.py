@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi import HTTPException
-from fastapi import WebSocket
+from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import copy
@@ -23,9 +23,7 @@ gps_dequeue = deque(maxlen=dequeue_size)
 
 can1_detail_dequeue = deque(maxlen = 9000)
 
-
 app = FastAPI()
-
 
 origins = [
     "http://localhost:5173",
@@ -103,15 +101,14 @@ def frontend_start(request: FrontendStartRequest):
         return False
 
 
+
+
+
+    
+##--------------------------------------------------------------------------
+##--------------------------------------------------------------------------
 can0_asyncio_event = asyncio.Event()
 can0_event_loop = None
-
-from fastapi import WebSocket, WebSocketDisconnect
-
-can0_asyncio_event = asyncio.Event()
-can0_event_loop = None
-
-
 @app.websocket("/telemetry/can0/ws")
 async def can0_ws_endpoint(websocket: WebSocket):
     global can0_event_loop
@@ -145,11 +142,16 @@ async def can0_ws_endpoint(websocket: WebSocket):
 
     except WebSocketDisconnect:
         print("can0 websocket 연결 종료")
+##--------------------------------------------------------------------------
+##--------------------------------------------------------------------------
 
 
+
+
+##--------------------------------------------------------------------------
+##--------------------------------------------------------------------------
 gps_asyncio_event = asyncio.Event()
 gps_event_loop = None
-
 @app.websocket("/telemetry/gps/ws")
 async def gps_ws_endpoint(websocket: WebSocket):
     global gps_event_loop
@@ -179,9 +181,14 @@ async def gps_ws_endpoint(websocket: WebSocket):
                 gps_dequeue_len -= 1
 
             if len(gps_dequeue) == 0:
-                gps_asyncio_event.clear()
+                gps_asyncio_event.clear()\
+##--------------------------------------------------------------------------
+##--------------------------------------------------------------------------
 
 
+
+##--------------------------------------------------------------------------
+##--------------------------------------------------------------------------
 can1_asyncio_event = asyncio.Event()
 can1_event_loop = None
 @app.websocket("/telemetry/can1/ws")
@@ -219,30 +226,26 @@ async def can1_ws_endpoint(websocket: WebSocket):
             if len(can1_dequeue) == 0:
                 can1_asyncio_event.clear()
 
-
-
 @app.get("/first/detail/yawrate")
 def yawrate_detail_page_first_telemetry():
     if(len(can1_detail_dequeue) == 0):
-        print("fuck you")
+        print("can1 detail no data")
         raise HTTPException(
             status_code = 404,
-            detail = "fuck you first detail yawrate"
+            detail = "no data in can1 detail dequeue"
         )
     else:
         can1_detail = copy.deepcopy(can1_detail_dequeue)
-
         can1_detail_dequeue.clear()
 
-        return{
-            "can1" : can1_detail
-        }
+        return(
+            can1_detail
+        )
 
 
 @app.websocket("/detail/yawrate")
 async def yawrate_detial_page(websocket : WebSocket):
     global can1_event_loop
-
     await websocket.accept()
 
     can1_event_loop = asyncio.get_running_loop()
@@ -257,18 +260,16 @@ async def yawrate_detial_page(websocket : WebSocket):
             while can1_detail_dequeue_len > 0:
                 can1 = can1_detail_dequeue.popleft()
 
-                await websocket.send_json(
-                    {
-                        "can1" : can1
-                    }
-                )
-
-                can1_detail_dequeue -= 1
+                await websocket.send_json({
+                    "yawrate" : can1["yawrate"]["latest"],
+                    "desired_yawrate" : can1["desired_yawrate"]["latest"]
+                })
+                can1_detail_dequeue_len-= 1
 
             if len(can1_dequeue) == 0:
                 can1_asyncio_event.clear()
-
-
+##--------------------------------------------------------------------------
+##--------------------------------------------------------------------------
 
 
 
