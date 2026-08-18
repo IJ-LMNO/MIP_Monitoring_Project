@@ -544,9 +544,6 @@ function Dashboard() {
 
     }
 
-    initial_check_time = 100
-    timer = null
-    local
     useEffect(() => {
         let stopped = false;
         let timer = null;
