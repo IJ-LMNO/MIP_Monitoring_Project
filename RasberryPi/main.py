@@ -38,9 +38,7 @@ def main():
         threading.Thread(
             name="can1-reader",
             target=can1_main,
-            args=(
-                can1_queue
-            ),
+            args=(can1_queue,),
             daemon=True,
         ),
 

@@ -1,18 +1,13 @@
 import math
 import time
 import copy
-
 import can
 
 
 CAN_CHANNEL = "can0"
-
 PUBLISH_INTERVAL = 0.1
-
 RECONNECT_INTERVAL = 2.0
-
 MAX_FRAMES_PER_CYCLE = 200
-
 
 class Can0:
     def __init__(self, channel=CAN_CHANNEL):
@@ -131,7 +126,8 @@ class Can0:
         if self.bus is None:
             return False
 
-        received_count = 0
+        cur_received_count = 0
+        init_received_count = 0
 
         try:
             for frame_index in range(MAX_FRAMES_PER_CYCLE):
@@ -143,24 +139,16 @@ class Can0:
                     break
 
                 self.process_message(message)
-                received_count += 1
+                cur_received_count += 1
 
         except (can.CanError, OSError) as error:
-            print(f"[CAN0] CAN 수신 오류: {error}")
-            self.shutdown()
+            print("fuck you can0")
+            raise
+
+        if(cur_received_count == init_received_count):
             return False
-
-        if received_count == 0:
-            current_time = time.monotonic()
-
-            if current_time - self.last_no_data_log_time >= 5:
-                print(
-                    "[CAN0] 인터페이스는 연결됐지만 "
-                    "0x331/0x341 프레임을 기다리는 중"
-                )
-                self.last_no_data_log_time = current_time
-
-        return True
+        else:
+            return True
 
     def make_payload(self):
         right_data = self.right_data.copy()
@@ -214,8 +202,6 @@ class Can0:
                 "torque_left": left_data["torque"],
                 "torque_right": right_data["torque"],
             },
-
-            "version": self.version,
         }
 
     def shutdown(self):
@@ -230,30 +216,34 @@ class Can0:
 
 def main(can0_queue):
     can0 = Can0()
-    next_publish_time = time.monotonic()
 
-    try:
-        while True:
-            if can0.bus is None:
-                if not can0.init_can():
-                    time.sleep(RECONNECT_INTERVAL)
-                    continue
+    while True:
+        if can0.bus is None:
+            if not can0.init_can():
+                time.sleep(RECONNECT_INTERVAL)
+                continue
+            else:
+                break
 
-                next_publish_time = time.monotonic()
-
+    while True:
+        try: 
             if not can0.read_can_data():
                 time.sleep(RECONNECT_INTERVAL)
                 continue
-
-            current_time = time.monotonic()
-
-            if current_time >= next_publish_time:
+            else:
                 payload = can0.make_payload()
                 can0_queue.put(copy.deepcopy(payload))
+        except(can.CanError, OSError) as error:
+            print(f"error : {error}")
 
-                next_publish_time = (
-                    current_time + PUBLISH_INTERVAL
-                )
+            while True:
+                    if can0.bus is None:
+                        if not can0.init_can():
+                            time.sleep(RECONNECT_INTERVAL)
+                            continue
+                        else:
+                            break
+        except KeyboardInterrupt:
+                can0.shutdown()
+            
 
-    finally:
-        can0.shutdown()

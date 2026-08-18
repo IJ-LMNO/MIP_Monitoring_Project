@@ -58,11 +58,11 @@ function PowerStatusPanel({ can0 }) {
                 <PowerMetricRow
                     label="Power"
                     value={can0["latest"]["avg_power"]}
-                    unit="kW"
+                    // unit="kW"
                     color="green"
                     chartData={can0["history"]["avg_power"]}
-                    min={0}
-                    max={15}
+                    min={800}
+                    max={1200}
                 />
 
             </div>

@@ -21,6 +21,8 @@ can0_dequeue = deque(maxlen=dequeue_size)
 can1_dequeue = deque(maxlen=dequeue_size)
 gps_dequeue = deque(maxlen=dequeue_size)
 
+can1_detail_dequeue = deque(maxlen = 9000)
+
 
 app = FastAPI()
 
@@ -44,178 +46,6 @@ class FrontendStartRequest(BaseModel):
     status : bool
 
 
-# @app.get("/telemetry/can0")
-# def get_can0():
-#     if(len(can0_dequeue) == 0):
-#         raise HTTPException(
-#             status_code=404,
-#             detail="can0 데이터 없음"
-#         )
-#     else:
-#         latest = can0_dequeue.popleft()
-#         return {
-#             "latest": latest["latest"],
-#             "version" : latest["version"],
-#             "size" : len(can0_dequeue)
-#         }
-
-# @app.get("/telemetry/can1")
-# def get_tps():
-#     if(len(tps_dequeue) == 0):
-#         raise HTTPException(
-#             status_code=404,
-#             detail = "tps 데이터 없음"
-#         )
-
-#     if(len(desired_yawrate_dequeue) == 0):
-#         raise HTTPException(
-#             status_code=404,
-#             detail = "desired_yawrate 데이터 없음"
-#         )
-
-#     if(len(yawrate_dequeue) == 0):
-#         raise HTTPException(
-#             status_code=404,
-#             detail = "yawrate 데이터 없음"
-#         )
-
-#     if(len(rollrate_dequeue) == 0):
-#         raise HTTPException(
-#             status_code=404,
-#             detail = "rollrate 데이터 없음"
-#         )
-#     if(len(steeringhandle_dequeue) == 0):
-#         raise HTTPException(
-#             status_code=404,
-#             detail = "steeringhandle 데이터 없음"
-#         )
-#     if(len(tiredegree_dequeue) == 0):
-#         raise HTTPException(
-#             status_code=404,
-#             detail = "tiredegree 데이터 없음"
-#         )
-    
-#     tps_latest = tps_dequeue.popleft()
-#     print(f"tps_len 108 : {len(tps_dequeue)}")
-#     desired_yawrate_latest = desired_yawrate_dequeue.popleft()
-#     yawrate_latest = yawrate_dequeue.popleft()
-#     rollrate_latest = rollrate_dequeue.popleft()
-#     steeringhandle_latest = steeringhandle_dequeue.popleft()
-#     tiredegree_latest = tiredegree_dequeue.popleft()
-
-#     return (
-#         [
-#             {
-#                 "latest": tps_latest["latest"],
-#                 "version" : tps_latest["version"],
-#                 "size" : len(tps_dequeue)
-#             },
-#             {
-#                 "latest": desired_yawrate_latest["latest"],
-#                 "version" : desired_yawrate_latest["version"],
-#                 "size" : len(desired_yawrate_dequeue)
-#             },
-#             {
-#                 "latest": yawrate_latest["latest"],
-#                 "version" : yawrate_latest["version"],
-#                 "size" : len(yawrate_dequeue)
-#             },
-#             {
-#                 "latest": rollrate_latest["latest"],
-#                 "version" : rollrate_latest["version"],
-#                 "size" : len(rollrate_dequeue)
-#             },
-#             {
-#                 "latest": steeringhandle_latest["latest"],
-#                 "version" : steeringhandle_latest["version"],
-#                 "size" : len(steeringhandle_dequeue)
-#             },
-#             {
-#                 "latest": tiredegree_latest["latest"],
-#                 "version" : tiredegree_latest["version"],
-#                 "size" : len(tiredegree_dequeue)
-#             },
-#         ]      
-#     )
-    
-# @app.get("/telemetry/gps")
-# def get_gps():
-#     if(len(gps_dequeue) == 0):
-#         raise HTTPException(
-#             status_code=404,
-#             detail = "gps 데이터 없음"
-#         )
-#     else:
-#         latest = gps_dequeue.popleft()
-#         return {
-#             "latest": latest["latest"],
-#             "version" : latest["version"],
-#             "size" : len(gps_dequeue)
-#         }
-
-
-
-# @app.get("/detail/first/yawrate")
-# def get_first_detail_yawrate():
-#     if(len(yawrate_detail_dequeue) ==0):
-#         raise HTTPException(
-#             status_code=404,
-#             detail = "데이터 없음"
-#         )
-#     else:
-#         tmp = yawrate_detail_dequeue
-#         yawrate_detail_dequeue.clear()
-#         return{
-#             "history" : list(tmp),
-#             "size" : len(tmp)
-#         }
-
-# @app.get("/detail/yawrate")
-# def get_detail_yawrate():
-#     if(len(yawrate_detail_dequeue) == 0):
-#         raise HTTPException(
-#             status_code=404,
-#             detail = "데이터 없음"
-#         )
-#     else:
-#         latest = yawrate_detail_dequeue.popleft()
-#         return {
-#             "latest": latest["latest"],
-#             "size" : len(yawrate_detail_dequeue)
-#         }
-
-# @app.get("/detail/first/desired/yawrate")
-# def get_first_detail_desired_yawrate():
-#     if(len(desired_yawrate_detail_dequeue) ==0):
-#             raise HTTPException(
-#             status_code=404,
-#             detail = "데이터 없음"
-#         )
-#     else:
-#         tmp = desired_yawrate_detail_dequeue
-#         desired_yawrate_detail_dequeue.clear()
-#         return{
-#             "history" : list(tmp),
-#             "size" : len(tmp)
-#         }
-
-# @app.get("/detail/desired/yawrate")
-# def get_detail_desired_yawrate():
-#     if(len(desired_yawrate_detail_dequeue) == 0):
-#         raise HTTPException(
-#             status_code=404,
-#             detail = "데이터 없음"
-#         )
-#     else:
-#         latest = desired_yawrate_detail_dequeue.popleft()
-#         return {
-#             "latest": latest["latest"],
-#             "size" : len(desired_yawrate_detail_dequeue)
-#         }
-
-
-
-
 # @app.get("/race/latest/download")
 # def return_log_from_server():
 #     latest_race = return_log()
@@ -228,20 +58,24 @@ class FrontendStartRequest(BaseModel):
 #     else:
 #         return copy.deepcopy(latest_race)
 
+
 @app.post("/race/start")
 def race_start_button():
-    race_start()
+    print("race start")
+    # race_start()
 
 
 @app.post("/race/stop")
 def race_stop_button():
-    race_stop()
+    print("race stop")
+    # race_stop()
 
 
 
 @app.post("/race/reset")
 def race_reset_button():
-    race_reset()
+    print("race reset")
+    # race_reset()
 
 
 @app.post("/frontend/start")
@@ -253,19 +87,31 @@ def frontend_start(request: FrontendStartRequest):
     MQTT_event.set()
 
 
-    while True:
-        data_ready = (
-            len(can0_dequeue) >= 1
-            and len(can1_dequeue) >= 1
-            and len(gps_dequeue) >= 1
-        )
+    data_ready = (
+        len(can0_dequeue) >= 1
+        # and len(can1_dequeue) >= 1
+        and len(gps_dequeue) >= 1
 
-        if data_ready:
-            return True
+    )
+
+    print(len(can0_dequeue))
+    print(len(gps_dequeue))
+
+    if data_ready:
+        return True
+    else:
+        return False
 
 
 can0_asyncio_event = asyncio.Event()
 can0_event_loop = None
+
+from fastapi import WebSocket, WebSocketDisconnect
+
+can0_asyncio_event = asyncio.Event()
+can0_event_loop = None
+
+
 @app.websocket("/telemetry/can0/ws")
 async def can0_ws_endpoint(websocket: WebSocket):
     global can0_event_loop
@@ -274,39 +120,43 @@ async def can0_ws_endpoint(websocket: WebSocket):
 
     can0_event_loop = asyncio.get_running_loop()
 
-    while True:
-        if len(can0_dequeue) == 0:
-            await can0_asyncio_event.wait()
-
-        else:
-            can0_dequeue_len = len(can0_dequeue)
-
-            while can0_dequeue_len > 0:
-                latest = can0_dequeue.popleft()
-
-                await websocket.send_json(
-                    {
-                        "latest": latest["latest"],
-                        "version": latest["version"],
-                        "size": len(can0_dequeue)
-                    }
-                )
-
-                can0_dequeue_len -= 1
-
+    try:
+        while True:
             if len(can0_dequeue) == 0:
-                can0_asyncio_event.clear()
+                await can0_asyncio_event.wait()
+
+            else:
+                can0_dequeue_len = len(can0_dequeue)
+
+                while can0_dequeue_len > 0:
+                    latest = can0_dequeue.popleft()
+
+                    await websocket.send_json(
+                        {
+                            "latest": latest["latest"],
+                            "size": len(can0_dequeue)
+                        }
+                    )
+
+                    can0_dequeue_len -= 1
+
+                if len(can0_dequeue) == 0:
+                    can0_asyncio_event.clear()
+
+    except WebSocketDisconnect:
+        print("can0 websocket 연결 종료")
 
 
 gps_asyncio_event = asyncio.Event()
 gps_event_loop = None
+
 @app.websocket("/telemetry/gps/ws")
 async def gps_ws_endpoint(websocket: WebSocket):
     global gps_event_loop
 
     await websocket.accept()
 
-    gps_asyncio_event = asyncio.get_running_loop()
+    gps_event_loop = asyncio.get_running_loop()
 
     while True:
         if len(gps_dequeue) == 0:
@@ -321,28 +171,29 @@ async def gps_ws_endpoint(websocket: WebSocket):
                 await websocket.send_json(
                     {
                         "latest": latest["latest"],
-                        "version" : latest["version"],
-                        "size" : len(gps_dequeue)
+                        "version": latest["version"],
+                        "size": len(gps_dequeue)
                     }
                 )
 
-                can0_dequeue_len -= 1
+                gps_dequeue_len -= 1
 
-            if len(can0_dequeue) == 0:
-                can0_asyncio_event.clear()
+            if len(gps_dequeue) == 0:
+                gps_asyncio_event.clear()
+
 
 can1_asyncio_event = asyncio.Event()
 can1_event_loop = None
 @app.websocket("/telemetry/can1/ws")
-async def gps_ws_endpoint(websocket: WebSocket):
+async def can1_ws_endpoint(websocket: WebSocket):
     global can1_event_loop
 
     await websocket.accept()
 
-    can1_asyncio_event = asyncio.get_running_loop()
+    can1_event_loop = asyncio.get_running_loop()
 
     while True:
-        if len(gps_dequeue) == 0:
+        if len(can1_dequeue) == 0:
             await can1_asyncio_event.wait()
 
         else:
@@ -353,21 +204,75 @@ async def gps_ws_endpoint(websocket: WebSocket):
 
                 await websocket.send_json(
                     {
-                        
                         "tps": latest["tps"]["latest"],
-                        "desired_yawrate": latest["desired_yawrate"]["latest"],               
+                        "desired_yawrate": latest["desired_yawrate"]["latest"],
                         "yawrate": latest["yawrate"]["latest"],
                         "rollrate": latest["rollrate"]["latest"],
                         "steeringhandle": latest["steeringhandle"]["latest"],
                         "tiredegree": latest["tiredegree"]["latest"],
-                        "version" : 0
+                        "version": 0
                     }
                 )
 
-                can0_dequeue_len -= 1
+                can1_dequeue_len -= 1
 
-            if len(can0_dequeue) == 0:
-                can0_asyncio_event.clear()
+            if len(can1_dequeue) == 0:
+                can1_asyncio_event.clear()
+
+
+
+@app.get("/first/detail/yawrate")
+def yawrate_detail_page_first_telemetry():
+    if(len(can1_detail_dequeue) == 0):
+        print("fuck you")
+        raise HTTPException(
+            status_code = 404,
+            detail = "fuck you first detail yawrate"
+        )
+    else:
+        can1_detail = copy.deepcopy(can1_detail_dequeue)
+
+        can1_detail_dequeue.clear()
+
+        return{
+            "can1" : can1_detail
+        }
+
+
+@app.websocket("/detail/yawrate")
+async def yawrate_detial_page(websocket : WebSocket):
+    global can1_event_loop
+
+    await websocket.accept()
+
+    can1_event_loop = asyncio.get_running_loop()
+
+    while True:
+        if len(can1_detail_dequeue) == 0:
+            await can1_asyncio_event.wait()
+
+        else:
+            can1_detail_dequeue_len = len(can1_detail_dequeue)
+
+            while can1_detail_dequeue_len > 0:
+                can1 = can1_detail_dequeue.popleft()
+
+                await websocket.send_json(
+                    {
+                        "can1" : can1
+                    }
+                )
+
+                can1_detail_dequeue -= 1
+
+            if len(can1_dequeue) == 0:
+                can1_asyncio_event.clear()
+
+
+
+
+
+
 
 
 
@@ -391,6 +296,8 @@ def get_gps_data(data):
 
 def get_can1_data(data):
     can1_dequeue.append(data)
+    can1_detail_dequeue.append(data)
+    print(f"api main 300 : {len(can1_detail_dequeue)}")
 
     if can1_event_loop is not None:
         can1_event_loop.call_soon_threadsafe(

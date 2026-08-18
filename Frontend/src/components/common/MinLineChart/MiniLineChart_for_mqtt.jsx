@@ -44,7 +44,7 @@ function MiniLineChart({
                 </text>
 
                 <text x="4" y="39" className="chart-label">
-                    0
+                    {(min + max) / 2}
                 </text>
 
                 <text x="4" y="66" className="chart-label">

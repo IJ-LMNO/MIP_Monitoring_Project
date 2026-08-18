@@ -4,8 +4,6 @@ import TwoMiniLineChart from "../../../components/common/TwoMiniLineChart/TwoMin
 import "./YawRateDetailPage.css"
 
 function YawRateDetailPage(){
-    const TIME = 5000
-
 
     const [desiredYawrate, setDesiredYawrate] = useState({
         latest: 0.0,
@@ -21,128 +19,83 @@ function YawRateDetailPage(){
     const [error, setError] = useState(null);
 
     const first_telemetry = useRef(false)
-    const fetch_time = useRef(TIME)
-    const hysteresis_time = useRef(null)
 
-    function startTelemetry_for_yawrate_desiredyawrate() {
-        let timer = null
-        let size = null
-        let stop = false
-
+    useEffect(() => {
+        let timer = null 
+    
         const start_telemetry = async () => {
+            let yawrate_arr = []
+            let desired_yawrate_arr = []
+
             if (!first_telemetry.current) {
+                console.log("line31 : ok")
                 try {
-                    const response_yawrate = await fetch(
-                        "http://localhost:8000/detail/first/yawrate"
-                    )
-                    const response_desired_yawrate = await fetch(
-                        "http://localhost:8000/detail/first/desired/yawrate"
+                    const response_can1 = await fetch(
+                        "http://localhost:8000/first/detail/yawrate"
                     )
 
-                    const yawrate_data = await response_yawrate.json()
-                    const desired_yawrate_data = await response_desired_yawrate.json()
+                    const can1 = await response_can1.json()
+    
 
-                    setYawrate((prev) => {
-                        return {
-                            ...prev,
-                            history: yawrate_data["history"]
-                        }
-                    })
+                    if(response_can1.ok){
 
-                    setDesiredYawrate((prev) => {
-                        return {
-                            ...prev,
-                            history: desired_yawrate_data["history"]
+
+                        for(let i =0; i < length(can1); i++){
+                            yawrate_arr.append(can1["yawrate"]["latest"])
+                            desired_yawrate_arr.append(can1["desired_yawrate"]["latest"])
                         }
-                    })
+
+                        setYawrate((prev) => {
+                            return {
+                                ...prev,
+                                history: yawrate_arr
+                            }
+                        })
+
+                        setDesiredYawrate((prev) => {
+                            return {
+                                ...prev,
+                                history: desired_yawrate_arr
+                            }
+                        })
+
+                        first_telemetry.current = true
+
+                        start_telemetry()
+
+                    }
+                    else{
+                        timer = setTimeout(start_telemetry, 1000)
+                    }
 
                 } catch (err) {
                     setError(err)
+                    timer = setTimeout(start_telemetry, 1000)
                 }
-                finally {
-                    timer = setTimeout(start_telemetry, fetch_time.current);
-                    first_telemetry.current = true
-                }
+            }else{
+                console.log("두번쨰 로직 시작")
             }
-            else {
-                try {
-                    const response_yawrate = await fetch(
-                        "http://localhost:8000/detail/yawrate"
-                    )
-                    const response_desired_yawrate = await fetch(
-                        "http://localhost:8000/detail/desired/yawrate"
-                    )
+        
+            
+            start_telemetry()
 
-                    const yawrate_data = await response_yawrate.json()
-                    const desired_yawrate_data = await response_desired_yawrate.json()
+            return(() => {
+                clearTimeout(timer)
+            })
 
-                    setYawrate((prev) => {
-                        return {
-                            latest: yawrate_data["latest"],
-                            history: [...prev, yawrate_data["latest"]]
-                        }
-                    })
-
-                    setDesiredYawrate((prev) => {
-                        return {
-                            latest: desired_yawrate_data["latest"],
-                            history: [...prev, desired_yawrate_data["latest"]]
-                        }
-                    })
-
-
-                } catch (err) {
-                    setError(err)
-                }
-                finally {
-                    timer = setTimeout(start_telemetry, fetch_time.current);
-                }
-
-                if (size >= 3) {
-                    if (hysteresis_time.currnent == null) {
-                        hysteresis_time.current = performance.now()
-                    }
-
-                    if (performance.now() - hysteresis_time.current > 3000) {
-                        fetch_time.current = TIME / 2
-                        hysteresis_time.current = performance.now()
-                    }
-                }
-                else {
-                    fetch_time.current = TIME
-                    hysteresis_time.current = null
-                }
-            }
         }
 
-        start_telemetry()
+    },[])
 
-        return() =>{
-            clearTimeout(timer)
-        }
-    }
-
-    // useEffect(() => {
-
-    //     const cleanup = startTelemetry_for_yawrate_desiredyawrate()
-
-    //     return () =>{
-    //         cleanup()
-    //     }
-
-    // }, []);
 
     return(
-        // <div className="yawrate-desired-yawrate-detail-page">
-        //     <div className="chart">
-        //         <TwoMiniLineChart 
-        //             yawrate={yawrate["history"]}
-        //             desiredyawrate={desiredYawrate["history"]}
-        //         />
-        //     </div>
-        // </div>
-        <div>
-            구현예정
+        <div className="yawrate-desired-yawrate-detail-page">
+            <div className="chart">
+                <TwoMiniLineChart 
+                    yawrate={yawrate["history"]}
+                    desiredyawrate={desiredYawrate["history"]}
+                />
+            </div>
         </div>
     )
 }

@@ -232,11 +232,66 @@ class Can1:
 
         return True
 
+    def calculate_tire_degree(self):
+            handle_degree = self.steering_handle_degree
+
+            absolute_degree = abs(handle_degree)
+
+            maximum_index = len(TIRE_DEGREE_TABLE) - 1
+
+            clamped_degree = min(
+                max(absolute_degree, 0.0),
+                float(maximum_index),
+            )
+
+            lower_index = int(clamped_degree)
+
+            upper_index = min(
+                lower_index + 1,
+                maximum_index,
+            )
+
+            ratio = clamped_degree - lower_index
+
+            lower_value = TIRE_DEGREE_TABLE[lower_index]
+            upper_value = TIRE_DEGREE_TABLE[upper_index]
+
+            tire_degree = (
+                lower_value
+                + (upper_value - lower_value) * ratio
+            )
+
+            if handle_degree < 0:
+                tire_degree *= -1
+
+            return round(tire_degree, 1)
+    
+    def make_payloads(self):
+        return ({
+            "tps" : self.throttle_percent,
+            "desired_yawrate" : self.desired_yaw_rate,
+            "yawrate" : self.measured_yaw_rate,
+            "rollrate" : self.measured_roll_rate,
+            "steeringhandle" : self.steering_handle_degree,
+            "tiredegree" : self.calculate_tire_degree()
+        })
+    
+    def shutdown(self):
+        if self.bus is not None:
+            try:
+                self.bus.shutdown()
+
+            except (can.CanError, OSError):
+                pass
+
+            self.bus = None
+
     def read_can_data(self):
         if self.bus is None:
             return False
 
-        supported_frame_count = 0
+        cur_can1_count = 0
+        init_can1_count = 0
 
         try:
             for frame_index in range(MAX_FRAMES_PER_CYCLE):
@@ -248,134 +303,48 @@ class Can1:
                     break
 
                 if self.process_message(message):
-                    supported_frame_count += 1
+                    cur_can1_count += 1
 
-        except (can.CanError, OSError) as error:
-            print(f"[CAN1] CAN 수신 오류: {error}")
-            self.shutdown()
+        except (can.CanError, OSError):
+            print("fuck you can1")
+            raise
+
+        if(cur_can1_count == init_can1_count):
             return False
-
-        if supported_frame_count == 0:
-            current_time = time.monotonic()
-            if (
-                current_time - self.last_no_data_log_time
-                >= 5.0
-            ):
-                print(
-                    "[CAN1] 인터페이스는 연결됐지만 "
-                    "0x202 프레임을 기다리는 중"
-                )
-
-                self.last_no_data_log_time = current_time
-
-        return True
-
-    def calculate_tire_degree(self):
-        handle_degree = self.steering_handle_degree
-
-        absolute_degree = abs(handle_degree)
-
-        maximum_index = len(TIRE_DEGREE_TABLE) - 1
-
-        clamped_degree = min(
-            max(absolute_degree, 0.0),
-            float(maximum_index),
-        )
-
-        lower_index = int(clamped_degree)
-
-        upper_index = min(
-            lower_index + 1,
-            maximum_index,
-        )
-
-        ratio = clamped_degree - lower_index
-
-        lower_value = TIRE_DEGREE_TABLE[lower_index]
-        upper_value = TIRE_DEGREE_TABLE[upper_index]
-
-        tire_degree = (
-            lower_value
-            + (upper_value - lower_value) * ratio
-        )
-
-        if handle_degree < 0:
-            tire_degree *= -1
-
-        return round(tire_degree, 1)
-
-    def make_payloads(self):
-        return ({
-            "tps" : self.throttle_percent,
-            "desired_yawrate" : self.desired_yaw_rate,
-            "yawrate" : self.measured_yaw_rate,
-            "rollrate" : self.measured_roll_rate,
-            "steeringhandle" : self.steering_handle_degree,
-            "tiredegree" : self.calculate_tire_degree()
-        })
-
-    def shutdown(self):
-        if self.bus is not None:
-            try:
-                self.bus.shutdown()
-
-            except (can.CanError, OSError):
-                pass
-
-            self.bus = None
+        else:
+            return True
 
 
-def put_latest(data_queue, data):
 
-    try:
-        data_queue.put_nowait(data)
-
-    except queue.Full:
-        try:
-            data_queue.get_nowait()
-            data_queue.task_done()
-
-        except queue.Empty:
-            pass
-
-        try:
-            data_queue.put_nowait(data)
-
-        except queue.Full:
-            pass
-
-
-def main(
-    can1_queue
-):
+def main(can1_queue):
     can1 = Can1()
 
-    next_publish_time = time.monotonic()
+    while True:
+        if can1.bus is None:
+            if not can1.init_can():
+                time.sleep(RECONNECT_INTERVAL)
+                continue
+            else:
+                break
 
-    try:
-        while True:
-            if can1.bus is None:
-                if not can1.init_can():
-                    time.sleep(RECONNECT_INTERVAL)
-                    continue
-
-                next_publish_time = time.monotonic()
-
+    while True:
+        try:
             if not can1.read_can_data():
                 time.sleep(RECONNECT_INTERVAL)
                 continue
+            else:
+                payloads = can1.make_payloads()
+                can1_queue.put(copy.deepcopy(payloads))
+        except(can.CanError, OSError) as error:
+            print(f"error : {error}")
 
-            current_time = time.monotonic()
+            while True:
+                if can1.bus is None:
+                    if not can1.init_can():
+                        time.sleep(RECONNECT_INTERVAL)
+                        continue
+                    else:
+                        break
+        except KeyboardInterrupt:
+            can1.shutdown()
 
-            if current_time < next_publish_time:
-                continue
-
-            payloads = can1.make_payloads()
-
-            can1_queue.put(copy.deepcopy(payloads))
-
-    except KeyboardInterrupt:
-        print("[CAN1] 종료 요청")
-
-    finally:
-        can1.shutdown()
