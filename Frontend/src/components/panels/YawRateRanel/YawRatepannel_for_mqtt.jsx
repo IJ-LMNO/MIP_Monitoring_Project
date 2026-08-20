@@ -1,4 +1,4 @@
-import TwoMiniLineChart from "../../common/TwoMiniLineChart/TwoMiniLineChart_for_mqtt";
+import TwoMiniLineChart from "../../common/TwoMiniLineChart/TwoMiniLineChart";
 import "./YawRatePanel.css";
 
 function YawRatePanel({ yawRate, desiredyawRate }) {
@@ -23,8 +23,8 @@ function YawRatePanel({ yawRate, desiredyawRate }) {
                     <TwoMiniLineChart
                         yawrate={yawRate["history"]}
                         desiredyawrate={desiredyawRate["history"]}
-                        min={-100}
-                        max={100}
+                        min={-10}
+                        max={10}
                     />
                 </div>
 
@@ -33,7 +33,7 @@ function YawRatePanel({ yawRate, desiredyawRate }) {
                         YawRATE
 
                         <div className="YawRATE-value">
-                            {currentyawrate}
+                            {Math.round(currentdesiredyawrate * 100) / 100}
                         </div>
                     </div>
 
@@ -41,7 +41,7 @@ function YawRatePanel({ yawRate, desiredyawRate }) {
                         DesiredYawRATE
 
                         <div className="DesiredYawRATE-value">
-                            {currentdesiredyawrate}
+                            {Math.round(currentdesiredyawrate * 100) / 100}
                         </div>
                     </div>
                 </div>

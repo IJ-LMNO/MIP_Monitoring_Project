@@ -4,7 +4,7 @@ from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import copy
-import time
+import threading as thread
 import asyncio
 from collections import deque
 from pydantic import BaseModel
@@ -226,6 +226,7 @@ async def can1_ws_endpoint(websocket: WebSocket):
             if len(can1_dequeue) == 0:
                 can1_asyncio_event.clear()
 
+can1_lock = thread.Lock()
 @app.get("/first/detail/yawrate")
 def yawrate_detail_page_first_telemetry():
     if(len(can1_detail_dequeue) == 0):
@@ -235,24 +236,28 @@ def yawrate_detail_page_first_telemetry():
             detail = "no data in can1 detail dequeue"
         )
     else:
-        can1_detail = copy.deepcopy(can1_detail_dequeue)
-        can1_detail_dequeue.clear()
+        with can1_lock:
+            can1_detail = copy.deepcopy(can1_detail_dequeue)
+            can1_detail_dequeue.clear()
 
         return(
             can1_detail
         )
 
-
+    
+can1_lock = thread.Lock()
+can1_detail_asyncio_event = asyncio.Event()
+can1_detail_event_loop = None
 @app.websocket("/detail/yawrate")
 async def yawrate_detial_page(websocket : WebSocket):
-    global can1_event_loop
+    global can1_detail_event_loop
     await websocket.accept()
 
-    can1_event_loop = asyncio.get_running_loop()
+    can1_detail_event_loop = asyncio.get_running_loop()
 
     while True:
         if len(can1_detail_dequeue) == 0:
-            await can1_asyncio_event.wait()
+            await can1_detail_asyncio_event.wait()
 
         else:
             can1_detail_dequeue_len = len(can1_detail_dequeue)
@@ -266,8 +271,8 @@ async def yawrate_detial_page(websocket : WebSocket):
                 })
                 can1_detail_dequeue_len-= 1
 
-            if len(can1_dequeue) == 0:
-                can1_asyncio_event.clear()
+            if len(can1_detail_dequeue) == 0:
+                can1_detail_asyncio_event.clear()
 ##--------------------------------------------------------------------------
 ##--------------------------------------------------------------------------
 
@@ -297,12 +302,18 @@ def get_gps_data(data):
 
 def get_can1_data(data):
     can1_dequeue.append(data)
-    can1_detail_dequeue.append(data)
-    print(f"api main 300 : {len(can1_detail_dequeue)}")
+
+    with can1_lock:
+        can1_detail_dequeue.append(data)
 
     if can1_event_loop is not None:
         can1_event_loop.call_soon_threadsafe(
             can1_asyncio_event.set
+        )
+
+    if can1_detail_event_loop is not None:
+        can1_detail_event_loop.call_soon_threadsafe(
+            can1_detail_asyncio_event.set
         )
 
 

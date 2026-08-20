@@ -1,11 +1,10 @@
-.tchart-wrapper{
-    flex : 1;
-
-
+.tchart-wrapper-for-detail {
+    width: 90%;
+    height: 100%;
     display: flex;
 }
 
-.tmini-line-chart {
+.tmini-line-chart-for-detail {
     background: #020617;
     border: 1px solid #1f2937;
     border-radius: 6px;
@@ -20,12 +19,12 @@
 }
 
 
-.tchart-zero-line {
+.tchart-zero-line-for-detail {
     stroke: #374151;
     stroke-width: 1;
 }
 
-.tchart-label {
+.tchart-label-for-detail {
     fill: #9ca3af;
     font-size: 10px;
 }

@@ -1,16 +1,17 @@
-import "./TwoMiniLineChart.css";
+import "./TwoMiniLineChart_for_detail.css"
 
-function TwoMiniLineChart({
+function TwoMiniLineChart_for_detail({
     yawrate= [],
     desiredyawrate = [],
     color = "#3b82f6",
     desiredColor = "#ef4444",
     min = -100,
-    max = 100
+    max = 100,
+    len = 500
 }) {
     const width = 300;
     const height = 75;
-    const maxLength = 40;
+    const maxLength = len;
 
     const makePoints = (data) => {
         const visibleData = data.slice(-maxLength);
@@ -35,10 +36,11 @@ function TwoMiniLineChart({
     const yawratePoints = makePoints(yawrate);
     const desiredYawratePoints = makePoints(desiredyawrate);
 
+
     return (
-        <div className="tchart-wrapper">
+        <div className="tchart-wrapper-for-detail">
             <svg
-                className="tmini-line-chart"
+                className="tmini-line-chart-for-detail"
                 viewBox={`0 0 ${width} ${height}`}
             >
                 <line
@@ -46,22 +48,22 @@ function TwoMiniLineChart({
                     y1={height / 2}
                     x2={width}
                     y2={height / 2}
-                    className="tchart-zero-line"
+                    className="tchart-zero-line-for-detail"
                 />
 
-                <text x="4" y="12" className="tchart-label">
+                <text x="4" y="12" className="tchart-label-for-detail">
                     {max}
                 </text>
 
                 <text
                     x="4"
                     y={height / 2 + 4}
-                    className="chart-label"
+                    className="tchart-label-for-detail"
                 >
                     0
                 </text>
 
-                <text x="4" y={height - 4} className="tchart-label">
+                <text x="4" y={height - 4} className="tchart-label-for-detail">
                     {min}
                 </text>
 
@@ -83,4 +85,4 @@ function TwoMiniLineChart({
     );
 }
 
-export default TwoMiniLineChart;
+export default TwoMiniLineChart_for_detail;

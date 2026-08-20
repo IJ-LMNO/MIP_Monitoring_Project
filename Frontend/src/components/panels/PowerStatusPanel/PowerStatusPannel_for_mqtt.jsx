@@ -1,4 +1,4 @@
-import MiniLineChart from "../../common/MinLineChart/MiniLineChart_for_mqtt";
+import MiniLineChart from "../../common/MinLineChart/MiniLineChart";
 
 import "./PowerStatusPanel.css";
 
@@ -17,7 +17,7 @@ function PowerMetricRow({
                 <div className={`metric-label ${color}`}>{label}</div>
 
                 <div className={`metric-main-value ${color}`}>
-                    {value}
+                    {Math.round( value * 10) / 10}
                     <span>{unit}</span>
                 </div>
             </div>
@@ -40,29 +40,33 @@ function PowerStatusPanel({ can0 }) {
                 <PowerMetricRow
                     label="Current L"
                     value={can0["latest"]["current_left"]}
-                    unit="A"
+                    // unit="A"
                     color="blue"
                     chartData={can0["history"]["current_left"]}
+                    min={0}
+                    max = {100}
                 />
             </div>
             <div className="power-status-panel">
                 <PowerMetricRow
                     label="Current R"
                     value={can0["latest"]["current_right"]}
-                    unit="A"
+                    // unit="A"
                     color="red"
                     chartData={can0["history"]["current_right"]}
+                    min={0}
+                    max={100}
                 />
             </div>
             <div className="power-status-panel">
                 <PowerMetricRow
                     label="Power"
                     value={can0["latest"]["avg_power"]}
-                    // unit="kW"
+                    unit="kW"
                     color="green"
                     chartData={can0["history"]["avg_power"]}
-                    min={800}
-                    max={1200}
+                    min={0}
+                    max={15}
                 />
 
             </div>

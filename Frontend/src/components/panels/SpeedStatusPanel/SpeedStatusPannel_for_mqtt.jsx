@@ -18,7 +18,7 @@ function SpeedStatusPanel({ speed = 0 }) {
         <div className="speed-panel">
             <div className="speed-value">
                 <div className="speed-value-data">
-                    {displayspeed }
+                    {Math.round(displayspeed * 10) / 10}
                 </div>
                 <div style={{display : "flex", alignItems : "center"}}>
                      km

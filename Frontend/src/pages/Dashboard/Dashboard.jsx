@@ -307,7 +307,7 @@ function Dashboard() {
                 });
             };
 
-            can0.onclose = () => {
+            can0.onclose = (event) => {
                 console.log("can0 통신 종료");
             };
 
@@ -387,7 +387,7 @@ function Dashboard() {
                 });
             };
 
-            can1.onclose = () => {
+            can1.onclose = (event) => {
                 console.log("can1 통신 종료", event.code);
             };
 
@@ -414,7 +414,7 @@ function Dashboard() {
                 });
             };
 
-            gps.onclose = () => {
+            gps.onclose = (evnet) => {
                 console.log("gps 통신 종료", event.code);
             };
 

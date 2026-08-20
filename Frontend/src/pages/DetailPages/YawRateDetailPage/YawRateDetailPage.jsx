@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import TwoMiniLineChart from "../../../components/common/TwoMiniLineChart/TwoMiniLineChart_for_mqtt"
+import { useState, useRef, useEffect, useMemo } from "react";
+import TwoMiniLineChart_for_detail from "../../../components/common/TwoMiniLineChart_for_detail/TwoMiniLineChart_for_detail"
 
 import "./YawRateDetailPage.css"
 
@@ -20,6 +20,61 @@ function YawRateDetailPage(){
 
     const first_telemetry = useRef(false)
 
+    function caculate(){
+        let min_yawrate = 0
+        let max_yawrate = 0
+        let min_desired_yawrate = 0
+        let max_desried_yawrate = 0
+        let yawrate_avg = 0
+        let yawrate_sum = 0
+        let desried_yawrate_avg = 0
+        let desired_yawrate_sum = 0
+        let avg_err = 0
+
+        if(yawrate["history"].length == 0 || desiredYawrate["history"].length == 0 ){
+
+            return {
+                min_yawrate,
+                max_yawrate,
+                min_desired_yawrate,
+                max_desried_yawrate,
+                yawrate_avg,
+                desried_yawrate_avg,
+                avg_err
+            }
+
+
+            
+        }
+        min_yawrate = Math.min(...yawrate["history"])
+        max_yawrate = Math.max(...yawrate["history"])
+
+        min_desired_yawrate = Math.min(...desiredYawrate["history"])
+        max_desried_yawrate = Math.max(...desiredYawrate["history"])
+
+        yawrate_sum = yawrate["history"].reduce((acc, cur) => acc + cur, 0)
+        yawrate_avg = yawrate_sum / yawrate["history"].length
+
+        desired_yawrate_sum = desiredYawrate["history"].reduce((acc, cur) => acc + cur, 0)
+        desried_yawrate_avg = desired_yawrate_sum / desiredYawrate["history"].length
+
+        avg_err = yawrate_avg - desried_yawrate_avg
+
+        return{
+            min_yawrate,
+            max_yawrate,
+            min_desired_yawrate,
+            max_desried_yawrate,
+            yawrate_avg,
+            desried_yawrate_avg,
+            avg_err
+        }
+    }
+
+    const calculate_data = useMemo(() =>{
+        return caculate();
+    },[yawrate["history"], desiredYawrate["history"]])
+
     useEffect(() => {
         let timer = null 
     
@@ -36,7 +91,6 @@ function YawRateDetailPage(){
 
                     const can1 = await response_can1.json()
 
-                    console.log(Array.isArray(can1))
 
                     for(let i = 0; i < can1.length; i++){
                         yawrate_arr.push(can1[i]["yawrate"]["latest"])
@@ -81,9 +135,6 @@ function YawRateDetailPage(){
 
                 ws.onmessage = ((event) => {
                     const data = JSON.parse(event.data)
-
-                    console.log(data)
-
                     setYawrate((prev) => {
                         return{
                             latest : data["yawrate"],
@@ -106,13 +157,13 @@ function YawRateDetailPage(){
                 })
 
 
-                ws.onclose = () => {
+                ws.onclose = (event) => {
                         console.log(
                             "websocket 종료",
                             event.code,
                             event.reason,
                             event.wasClean
-    )
+                        )
                 }
             }
 
@@ -128,14 +179,58 @@ function YawRateDetailPage(){
 
 
     return(
-        <div className="yawrate-desired-yawrate-detail-page">
-            <div className="chart">
-                <TwoMiniLineChart 
+        <div className="yawrate-detail-page">
+            <div className="yawrate-detail-page-chart">
+                <TwoMiniLineChart_for_detail
                     yawrate={yawrate["history"]}
                     desiredyawrate={desiredYawrate["history"]}
                 />
             </div>
+            <div className="yawrate-detail-page-pannel">
+                <div className="yawrate-detail-page-text min-and-max">
+
+                        <div className="yawrate-detail-page-text-min">
+
+                            <div className="yawrate-detail-page-text-min-text">
+                                최솟값
+                            </div>
+                            <div className="yawrate-detail-page-text-min-data">
+                                    {calculate_data.min_yawrate} / {calculate_data.min_desired_yawrate}
+                            </div>
+        
+                        </div>
+                        <div className="yawrate-detail-page-text-max">
+                            
+                            <div className="yawrate-detail-page-text-max-text">
+                                최대값
+                            </div>
+                            <div className="yawrate-detail-page-text-max-data">
+                                {calculate_data.max_yawrate} / {calculate_data.max_desried_yawrate}
+                            </div>
+
+                        </div>
+                </div>
+                <div className="yawrate-detail-page-text average-average-error">
+                    <div className="yawrate-detail-page-text-average">
+                        <div className="yawrate-detail-page-text-average-text">
+                            평균
+                        </div>
+                        <div className="yawrate-detail-page-text-average-data">
+                            {calculate_data.yawrate_avg}  / {calculate_data.desried_yawrate_avg}
+                        </div>
+                    </div>
+                    <div className="yawrate-detail-page-text-average-error">
+                        <div className="yawrate-detail-page-text-average-error-text">
+                            평균 오차
+                        </div>
+                        <div className="yawrate-detail-page-text-average-error-data">
+                            {calculate_data.avg_err}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+
     )
 }
 

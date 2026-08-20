@@ -1,4 +1,4 @@
-import "./MiniLineChart.css";
+
 
 function MiniLineChart({
     data,

@@ -1,6 +1,6 @@
 import "./RpmPannel.css";
 
-function RpmGauge({ label, value, max = 9000, colorClass }) {
+function RpmGauge({ label, value, max = 6000, colorClass }) {
     const safeValue = Math.min(Math.max(value, 0), max);
     const percentage = (safeValue / max) * 100;
 
@@ -9,7 +9,7 @@ function RpmGauge({ label, value, max = 9000, colorClass }) {
     return (
         <div className="rpm-gauge">
             <div className="rpm-title">{label}</div>
-            <div className="rpm-value">{value}</div>
+            <div className="rpm-value">{Math.ceil(value)}</div>
 
             <div className="rpm-meter-area">
                 <div className="rpm-bar-frame">
@@ -28,17 +28,17 @@ function RpmGauge({ label, value, max = 9000, colorClass }) {
                 <div className="rpm-scale">
                     <div className="rpm-scale-item scale-top">
                         <span className="rpm-scale-line" />
-                        <span>9000</span>
+                        <span>6000</span>
                     </div>
 
                     <div className="rpm-scale-item scale-middle">
                         <span className="rpm-scale-line" />
-                        <span>6000</span>
+                        <span>4000</span>
                     </div>
 
                     <div className="rpm-scale-item scale-low">
                         <span className="rpm-scale-line" />
-                        <span>3000</span>
+                        <span>2000</span>
                     </div>
 
                     <div className="rpm-scale-item scale-bottom">
@@ -51,7 +51,7 @@ function RpmGauge({ label, value, max = 9000, colorClass }) {
     );
 }
 
-function RpmPannel({rpm_left = 3500, rpm_right = 4000}) {
+function RpmPannel({rpm_left = 0, rpm_right = 0}) {
     return (
         <div className="rpm-panel">
             <RpmGauge

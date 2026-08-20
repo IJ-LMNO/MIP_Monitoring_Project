@@ -11,7 +11,7 @@ function BatteryStatusPaneel({ battery }) {
                     </div>
 
                     <div className="battery-value">
-                        {battery}
+                        {Math.round(battery * 10) / 10}
                         <span>V</span>
                     </div>
                 </div>
@@ -31,11 +31,11 @@ function BatteryStatusPaneel({ battery }) {
                     </div>
                 </div>
 
-                <div className="soc-value">
+                {/* <div className="soc-value">
                     <div className="soc-value-battery">
                         {battery}%
                     </div>
-                </div>
+                </div> */}
 
             </div>
         </div>

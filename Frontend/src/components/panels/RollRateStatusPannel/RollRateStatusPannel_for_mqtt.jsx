@@ -1,4 +1,4 @@
-import MiniLineChart from "../../common/MinLineChart/MiniLineChart_for_mqtt"
+import MiniLineChart from "../../common/MinLineChart/MiniLineChart"
 
 import "./RollRateStatusPannel.css"
 
@@ -8,14 +8,14 @@ function RollRateStatusPannel({ RollRate }) {
             <div className="rollrate-chart">
                 <MiniLineChart
                     data={RollRate["history"]}
-                    min={-100}
-                    max={100}
+                    min={-10}
+                    max={10}
                 />
             </div>
             <div className="rollrate-text">
                 RollRate
                 <div className="rollrate-value">
-                    {RollRate["latest"]}
+                   {Math.round(RollRate["latest"] * 100) / 100}
                 </div>
 
             </div>
