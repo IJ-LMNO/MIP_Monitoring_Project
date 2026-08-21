@@ -58,7 +58,9 @@ function YawRateDetailPage(){
         desired_yawrate_sum = desiredYawrate["history"].reduce((acc, cur) => acc + cur, 0)
         desried_yawrate_avg = desired_yawrate_sum / desiredYawrate["history"].length
 
-        avg_err = yawrate_avg - desried_yawrate_avg
+        index_avg = (yawrate, desired_yawrate) => {
+            
+        }
 
         return{
             min_yawrate,

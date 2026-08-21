@@ -3,6 +3,7 @@ import json
 import time
 from Monitoring_Server.mqtt.shared_state import MQTT_event as MQTT_event
 
+# "127.0.0.1"
 BROKER_HOST = "127.0.0.1"
 BROKER_PORT = 1883
 TOPIC = "vehicle/car_01/#"

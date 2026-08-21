@@ -298,7 +298,7 @@ function Dashboard() {
 
                             avg_power: [
                                 ...prev.history.avg_power,
-                                data.latest.avg_power
+                                Math.round((data.latest.avg_power / 1000) *10) /10 
                             ].slice(-40),
                         },
 
