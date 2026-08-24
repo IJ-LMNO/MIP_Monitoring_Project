@@ -7,6 +7,7 @@ import copy
 import threading as thread
 import asyncio
 from collections import deque
+import queue
 from pydantic import BaseModel
 
 from Logging_Service.main import race_start as race_start
@@ -15,6 +16,7 @@ from Logging_Service.main import race_reset as race_reset
 from Logging_Service.main import return_log as return_log
 from Monitoring_Server.mqtt.shared_state import MQTT_event as MQTT_event
 
+
 dequeue_size = 10
 
 can0_dequeue = deque(maxlen=dequeue_size)
@@ -22,6 +24,12 @@ can1_dequeue = deque(maxlen=dequeue_size)
 gps_dequeue = deque(maxlen=dequeue_size)
 
 can1_detail_dequeue = deque(maxlen = 9000)
+yawrate_detail_dequeue = deque(maxlen=9000)
+desired_yawrate_detail_dequeue = deque(maxlen=9000)
+rollrate_detail_dequeue = deque(maxlen=9000)
+can0_detail_dequeue = deque(maxlen = 9000)
+
+face_queue = queue.Queue()
 
 app = FastAPI()
 
@@ -42,6 +50,9 @@ app.add_middleware(
 
 class FrontendStartRequest(BaseModel):
     status : bool
+
+class FaceUpDownRequest(BaseModel):
+    status : str
 
 
 # @app.get("/race/latest/download")
@@ -76,6 +87,21 @@ def race_reset_button():
     # race_reset()
 
 
+@app.post("/face/up")
+def face_up(request : FaceUpDownRequest):
+    print("api main.py line 89 up")
+
+    face_queue.put(request.status)
+    print(face_queue.qsize())
+
+@app.post("/face/down")
+def face_down(request : FaceUpDownRequest):
+    print("api main.py line 93 down")
+
+    face_queue.put(request.status)
+    print(face_queue.qsize())
+
+
 @app.post("/frontend/start")
 def frontend_start(request: FrontendStartRequest):
     if not request.status:
@@ -91,9 +117,6 @@ def frontend_start(request: FrontendStartRequest):
         and len(gps_dequeue) >= 1
 
     )
-
-    print(len(can0_dequeue))
-    print(len(gps_dequeue))
 
     if data_ready:
         return True
@@ -142,6 +165,52 @@ async def can0_ws_endpoint(websocket: WebSocket):
 
     except WebSocketDisconnect:
         print("can0 websocket 연결 종료")
+
+
+@app.get("/first/detail/can0")
+def yawrate_detail_page_first_telemetry():
+    if(len(can0_detail_dequeue) == 0):
+        print("can0 detail no data")
+        raise HTTPException(
+            status_code = 404,
+            detail = "no data in can0 detail dequeue"
+        )
+    else:
+        with can0_lock:
+            can0_detail = copy.deepcopy(can0_detail_dequeue)
+            can0_detail_dequeue.clear()
+
+        return(
+            can0_detail
+        )
+
+    
+can0_lock = thread.Lock()
+can0_detail_asyncio_event = asyncio.Event()
+can0_detail_event_loop = None
+@app.websocket("/detail/can0")
+async def yawrate_detial_page(websocket : WebSocket):
+    global can0_detail_event_loop
+    await websocket.accept()
+
+    can0_detail_event_loop = asyncio.get_running_loop()
+
+    while True:
+        if len(can0_detail_dequeue) == 0:
+            await can0_detail_asyncio_event.wait()
+
+        else:
+            can0_detail_dequeue_len = len(can0_detail_dequeue)
+
+            while can0_detail_dequeue_len > 0:
+                can0 = can0_detail_dequeue.popleft()
+
+                await websocket.send_json(can0["latest"])
+
+                can0_detail_dequeue_len-= 1
+
+            if len(can0_detail_dequeue) == 0:
+                can0_detail_asyncio_event.clear()
 ##--------------------------------------------------------------------------
 ##--------------------------------------------------------------------------
 
@@ -181,7 +250,7 @@ async def gps_ws_endpoint(websocket: WebSocket):
                 gps_dequeue_len -= 1
 
             if len(gps_dequeue) == 0:
-                gps_asyncio_event.clear()\
+                gps_asyncio_event.clear()
 ##--------------------------------------------------------------------------
 ##--------------------------------------------------------------------------
 
@@ -226,70 +295,128 @@ async def can1_ws_endpoint(websocket: WebSocket):
             if len(can1_dequeue) == 0:
                 can1_asyncio_event.clear()
 
-can1_lock = thread.Lock()
+
+yawrate_lock = thread.Lock()
+yawrate_detail_asyncio_event = asyncio.Event()
+yawrate_detail_event_loop = None
 @app.get("/first/detail/yawrate")
 def yawrate_detail_page_first_telemetry():
-    if(len(can1_detail_dequeue) == 0):
+    if(len(yawrate_detail_dequeue) == 0):
         print("can1 detail no data")
         raise HTTPException(
             status_code = 404,
             detail = "no data in can1 detail dequeue"
         )
     else:
-        with can1_lock:
-            can1_detail = copy.deepcopy(can1_detail_dequeue)
-            can1_detail_dequeue.clear()
+        with yawrate_lock:
+            yarate_return = copy.deepcopy(yawrate_detail_dequeue)
+            desired_yawrate_return = copy.deepcopy(desired_yawrate_detail_dequeue)
+            yawrate_detail_dequeue.clear()
+            desired_yawrate_detail_dequeue.clear()
 
         return(
-            can1_detail
+            {
+                "yawrate" : yarate_return,
+                "desired_yawrate" : desired_yawrate_return
+            }
         )
 
-    
-can1_lock = thread.Lock()
-can1_detail_asyncio_event = asyncio.Event()
-can1_detail_event_loop = None
 @app.websocket("/detail/yawrate")
 async def yawrate_detial_page(websocket : WebSocket):
-    global can1_detail_event_loop
+    global yawrate_detail_event_loop
     await websocket.accept()
 
-    can1_detail_event_loop = asyncio.get_running_loop()
+    yawrate_detail_event_loop = asyncio.get_running_loop()
 
     while True:
-        if len(can1_detail_dequeue) == 0:
-            await can1_detail_asyncio_event.wait()
+        if len(yawrate_detail_dequeue) == 0 or len(desired_yawrate_detail_dequeue) == 0:
+            await yawrate_detail_asyncio_event.wait()
 
         else:
-            can1_detail_dequeue_len = len(can1_detail_dequeue)
+            yawrate_detail_dequeue_len = len(yawrate_detail_dequeue)
+            desired_yawrate_detail_dequeue_len = len(desired_yawrate_detail_dequeue)
 
-            while can1_detail_dequeue_len > 0:
-                can1 = can1_detail_dequeue.popleft()
+            while yawrate_detail_dequeue_len > 0 and desired_yawrate_detail_dequeue_len >0:
+
+                yawrate_return = yawrate_detail_dequeue.popleft()
+                desired_yawrate_return = desired_yawrate_detail_dequeue.popleft()
 
                 await websocket.send_json({
-                    "yawrate" : can1["yawrate"]["latest"],
-                    "desired_yawrate" : can1["desired_yawrate"]["latest"]
+                    "yawrate" : yawrate_return["latest"],
+                    "desired_yawrate" : desired_yawrate_return["latest"]
                 })
-                can1_detail_dequeue_len-= 1
+            
+                yawrate_detail_dequeue_len -= 1
+                desired_yawrate_detail_dequeue_len -= 1
 
             if len(can1_detail_dequeue) == 0:
-                can1_detail_asyncio_event.clear()
+                yawrate_detail_asyncio_event.clear()
+
+
+
+
+rollrate_lock = thread.Lock()
+rollrate_detail_asyncio_event = asyncio.Event()
+rollrate_detail_event_loop = None
+@app.get("/first/detail/rollrate")
+def rollrate_detail_page_first_telemetry():
+    if(len(rollrate_detail_dequeue) == 0):
+        print("can1 detail no data")
+        raise HTTPException(
+            status_code = 404,
+            detail = "no data in can1 detail dequeue"
+        )
+    else:
+        with rollrate_lock:
+            rollrate_return = copy.deepcopy(rollrate_detail_dequeue)
+            rollrate_detail_dequeue.clear()
+
+        return{
+            "rollrate" : rollrate_return
+        }
+
+@app.websocket("/detail/rollrate")
+async def rollrate_detial_page(websocket : WebSocket):
+    global rollrate_detail_event_loop
+    await websocket.accept()
+
+    rollrate_detail_event_loop = asyncio.get_running_loop()
+
+    while True:
+        if len(rollrate_detail_dequeue) == 0:
+            await rollrate_detail_asyncio_event.wait()
+
+        else:
+            rollrate_detail_dequeue_len = len(rollrate_detail_dequeue)
+
+            while rollrate_detail_dequeue_len > 0:
+                rollrate_return = rollrate_detail_dequeue.popleft()
+
+                await websocket.send_json({
+                    "rollrate" : rollrate_return["latest"],
+                })
+                rollrate_detail_dequeue_len-= 1
+
+            if len(rollrate_detail_dequeue) == 0:
+                rollrate_detail_asyncio_event.clear()
 ##--------------------------------------------------------------------------
 ##--------------------------------------------------------------------------
-
-
-
-
-
-
-
 
 
 def get_can0_data(data):
     can0_dequeue.append(data)
 
+    with can0_lock:
+        can0_detail_dequeue.append(data)
+
     if can0_event_loop is not None:
         can0_event_loop.call_soon_threadsafe(
             can0_asyncio_event.set
+        )
+
+    if can0_detail_event_loop is not None:
+        can0_detail_event_loop.call_soon_threadsafe(
+            can0_detail_asyncio_event.set
         )
 
 def get_gps_data(data):
@@ -303,17 +430,25 @@ def get_gps_data(data):
 def get_can1_data(data):
     can1_dequeue.append(data)
 
-    with can1_lock:
-        can1_detail_dequeue.append(data)
+    with yawrate_lock:
+        yawrate_detail_dequeue.append(data["yawrate"])
+        desired_yawrate_detail_dequeue.append(data["desired_yawrate"])
+    with rollrate_lock:
+        rollrate_detail_dequeue.append(data["rollrate"])
 
     if can1_event_loop is not None:
         can1_event_loop.call_soon_threadsafe(
             can1_asyncio_event.set
         )
 
-    if can1_detail_event_loop is not None:
-        can1_detail_event_loop.call_soon_threadsafe(
-            can1_detail_asyncio_event.set
+    if yawrate_detail_event_loop is not None:
+        yawrate_detail_event_loop.call_soon_threadsafe(
+            yawrate_detail_asyncio_event.set
+        )
+
+    if rollrate_detail_event_loop is not None:
+        rollrate_detail_event_loop.call_soon_threadsafe(
+            rollrate_detail_asyncio_event.set
         )
 
 

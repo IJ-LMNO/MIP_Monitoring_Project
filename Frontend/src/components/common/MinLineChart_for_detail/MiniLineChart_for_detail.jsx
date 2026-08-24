@@ -1,4 +1,4 @@
-
+import "./MiniLineChart_for_detail.css"
 
 function MiniLineChart({
     data,
@@ -8,7 +8,7 @@ function MiniLineChart({
 }) {
     const width = 300;
     const height = 75;
-    const maxLength = 40;
+    const maxLength = 9000;
 
     const emptyCount = maxLength - data.length;
 
@@ -26,28 +26,29 @@ function MiniLineChart({
         .join(" ");
 
     return (
-        <div className="chart-wrapper">
+        <div className="detail-chart-wrapper">
             <svg
-                className="mini-line-chart"
+                className="detail-chart-line-chart"
                 viewBox={`0 0 ${width} ${height}`}
+                preserveAspectRatio="none"
             >
                 <line
                     x1="0"
                     y1="35"
                     x2={width}
                     y2="35"
-                    className="chart-zero-line"
+                    className="detail-chart-zero-line"
                 />
 
-                <text x="4" y="12" className="chart-label">
+                <text x="4" y="12" className="detail-chart-label">
                     {max}
                 </text>
 
-                <text x="4" y="39" className="chart-label">
+                <text x="4" y="39" className="detail-chart-label">
                     {(min + max) / 2}
                 </text>
 
-                <text x="4" y="66" className="chart-label">
+                <text x="4" y="66" className="detail-chart-label">
                     {min}
                 </text>
 
@@ -56,7 +57,7 @@ function MiniLineChart({
                         points={points}
                         fill="none"
                         stroke={`var(--${color})`}
-                        strokeWidth="2"
+                        strokeWidth="0.1"
                     />
                 )}
             </svg>

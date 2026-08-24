@@ -50,21 +50,21 @@ def create_can0_data(elapsed_time: float) -> dict:
     torque_left =  20 + random.uniform(-2, 2)
     torque_right = 20 + random.uniform(-2,2)
 
-    power_left = voltage * current_left
-    power_right = voltage * current_right
+    power_left = 750 + random.uniform(-500, 500)
+    power_right = 750 + random.uniform(-500, 500)
 
     return {
         "latest" : {
-            "avg_rpm": int(round((rpm_left + rpm_right) / 2, 2)),
-            "avg_voltage": int(round(voltage, 2)),
-            "avg_power": int(round((power_left + power_right) / 2, 2)),
-            "speed": int(round(speed, 2)),
+            "avg_rpm": (round((rpm_left + rpm_right) / 2, 2)),
+            "avg_voltage": (round(voltage, 2)),
+            "avg_power": (round((power_left + power_right) / 2, 2)),
+            "speed": (round(speed, 2)),
 
-            "power_left": int(round(power_left, 2)),
-            "power_right": int(round(power_right, 2)),
+            "power_left": (round(power_left, 2)),
+            "power_right": (round(power_right, 2)),
 
-            "current_left": int(round(current_left, 2)),
-            "current_right": int(round(current_right, 2)),
+            "current_left": (round(current_left, 2)),
+            "current_right": (round(current_right, 2)),
 
             "rpm_left": round(rpm_left, 2),
             "rpm_right": round(rpm_right, 2),

@@ -1,13 +1,14 @@
-.chart-wrapper{
+.detail-chart-wrapper{
     width: 95%;
     height: 100%;
 
     display: flex;
-
+    justify-content: center;
+    align-items: center;
 
 }
 
-.mini-line-chart {
+.detail-chart-line-chart {
     background: #020617;
     border: 1px solid #1f2937;
     border-radius: 6px;
@@ -21,12 +22,12 @@
     display: block;
 }
 
-.chart-zero-line {
+.detail-chart-zero-line {
     stroke: #374151;
     stroke-width: 1;
 }
 
-.chart-label {
+.detail-chart-label {
     fill: #9ca3af;
     font-size: 10px;
 }

@@ -7,7 +7,7 @@ function TwoMiniLineChart_for_detail({
     desiredColor = "#ef4444",
     min = -100,
     max = 100,
-    len = 500
+    len = 9000
 }) {
     const width = 300;
     const height = 75;
@@ -42,6 +42,7 @@ function TwoMiniLineChart_for_detail({
             <svg
                 className="tmini-line-chart-for-detail"
                 viewBox={`0 0 ${width} ${height}`}
+                preserveAspectRatio="None"
             >
                 <line
                     x1="0"
@@ -71,14 +72,14 @@ function TwoMiniLineChart_for_detail({
                     points={yawratePoints}
                     fill="none"
                     stroke={color}
-                    strokeWidth="2"
+                    strokeWidth="0.1"
                 />
 
                 <polyline
                     points={desiredYawratePoints}
                     fill="none"
                     stroke={desiredColor}
-                    strokeWidth="2"
+                    strokeWidth="0.1"
                 />
             </svg>
         </div>

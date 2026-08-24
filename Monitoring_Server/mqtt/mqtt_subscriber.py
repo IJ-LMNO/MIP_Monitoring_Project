@@ -4,7 +4,8 @@ import time
 from Monitoring_Server.mqtt.shared_state import MQTT_event as MQTT_event
 
 # "127.0.0.1"
-BROKER_HOST = "100.70.221.71"
+# "100.70.221.71"
+BROKER_HOST = "127.0.0.1"
 BROKER_PORT = 1883
 TOPIC = "vehicle/car_01/#"
 START_TIME = time.time()

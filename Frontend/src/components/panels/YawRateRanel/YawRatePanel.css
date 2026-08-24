@@ -10,13 +10,42 @@
 
 }
 
-.yawrate-pannel-header{
+.yawrate-pannel-header {
     flex: 1;
 
     display: flex;
     justify-content: flex-end;
 
 
+}
+
+
+
+.power-status-pannels-header button {
+    color: white;
+    background: transparent;
+
+    background: #070b12;
+    border: 1px solid #070b12;
+    border-radius: 0;
+
+    box-shadow: none;
+
+    appearance: none;
+    -webkit-appearance: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: background-color 0.2s, border-color 0.2s;
+
+    cursor: pointer;
+}
+
+.power-status-pannels-header button:hover {
+    background-color: #1a2230;
+    border-color: #4da3ff;
 }
 
 .yawrate-pannel-header button{

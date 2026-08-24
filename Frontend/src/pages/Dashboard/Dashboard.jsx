@@ -11,6 +11,8 @@ import Timer from "../../components/common/Timer/Timer";
 import RpmPannel from "../../components/panels/RpmStatusPannel/RpmStatusPannel_for_mqtt";
 import GpsMaPPannel from "../../components/panels/GpsMapPannel/GpsMapPannel_for_Mqtt";
 import DropdownMenu from "../../components/panels/DropdownMenu/DropdownMenu";
+import FaceButton from "../../components/panels/FaceButton/FaceButton";
+
 
 import "./Dashboard.css";
 
@@ -103,6 +105,10 @@ function Dashboard() {
     const [elapsedMs, setElapsedMs] = useState(0);
     const [error, setError] = useState(null);
 
+    const [face, setFace] = useState({
+        state : "Hold" // Hold, Up, Down
+    })
+
 
     const downloadRaceLog = async () => {
         try {
@@ -139,8 +145,8 @@ function Dashboard() {
             alert(error.message);
         }
     };
-
-    async function fetchButton() {
+    
+    async function fetchRaceStartButton() {
         try {
             if (racestart.start === false) {
                 if (racestart.reset === false) {
@@ -206,6 +212,98 @@ function Dashboard() {
             setError(error.message);
         }
     }
+
+    async function FaceUpFetchButton() {
+        try{
+            if (face["state"] === "Down") {
+                await fetch(
+                    "http://localhost:8000/face/up",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            "status": "Hold"
+                        })
+                    }
+                )
+
+                setFace({
+                    state: "Hold"
+                })
+            }
+            else if (face["state"] === "Hold") {
+                await fetch(
+                    "http://localhost:8000/face/up",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            "status": "Up"
+                        })
+                    }
+                )
+
+                setFace({
+                    state: "Up"
+                })
+
+            }
+
+        }catch(err){
+            console.log("line 244 : 뭔가 오류 발생 : " ,{err} )
+        }
+
+    }
+
+    async function FaceDownFetchButton() {
+        try {
+            if (face["state"] === "Up") {
+                const response = await fetch(
+                    "http://localhost:8000/face/down",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            "status": "Hold"
+                        })
+                    }
+                )
+
+                setFace({
+                    state: "Hold"
+                })
+            }
+            else if (face["state"] === "Hold") {
+                await fetch(
+                    "http://localhost:8000/face/down",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            "status": "Down"
+                        })
+                    }
+                )
+
+                setFace({
+                    state: "Down"
+                })
+
+            }
+
+        } catch (err) {
+            console.log("line 244 : 뭔가 오류 발생 : ", { err })
+        }
+    }
+
 
     async function frontend_start(){
         try{
@@ -298,7 +396,7 @@ function Dashboard() {
 
                             avg_power: [
                                 ...prev.history.avg_power,
-                                Math.round((data.latest.avg_power / 1000) *10) /10 
+                                Math.round((data.latest.avg_power / 1000) * 10) / 10
                             ].slice(-40),
                         },
 
@@ -448,11 +546,11 @@ function Dashboard() {
     return (
         <div className="dashboard-page">
             <div className="dashboard-header">
-                <div className="header_dropbox_button">
+                {/* <div className="header_dropbox_button">
                     <DropdownMenu
                         latest_race_download={downloadRaceLog}
                     />
-                </div>
+                </div> */}
 
                 <div
                     className={
@@ -541,7 +639,7 @@ function Dashboard() {
 
             <div className="dashboard-page-footer">
                 <RaceButton
-                    onClick={fetchButton}
+                    onClick={fetchRaceStartButton}
                     text={
                         racestart.start
                             ? "주행 종료"
@@ -551,6 +649,19 @@ function Dashboard() {
                     }
                     state={racestart}
                 />
+                <FaceButton 
+                    text="FaceUp"
+                    onClick={FaceUpFetchButton}
+                    state={face.state}
+                    color={face["state"] === "Up" ? "green" : "white"}
+                />
+                <FaceButton
+                    text="FaceDown"
+                    onClick={FaceDownFetchButton}
+                    state={face.state}
+                    color={face["state"] === "Down" ? "red" : "white"}
+                />
+
             </div>
         </div>
     );

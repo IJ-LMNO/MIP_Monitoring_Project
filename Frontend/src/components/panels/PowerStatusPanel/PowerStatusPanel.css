@@ -4,15 +4,34 @@
     --green: #22c55e;
 }
 
-.power-status-pannels{
+.power-status-pannels {
     display: flex;
     flex-direction: column;
 
     justify-content: center;
 
+    width: 100%;
     height: 100%;
+}
 
+.power-status-pannels-header {
+    flex: 1;
 
+    display: flex;
+    justify-content: flex-start;
+}
+
+.power-status-pannels-body {
+    flex: 9;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+
+    width: 100%;
+    min-height: 0;
 }
 
 .power-status-panel {
@@ -21,16 +40,25 @@
 
     flex: 1;
 
+    width: 100%;
+    min-height: 0;
 }
 
 .power-metric-row {
     display: flex;
 
+    width: 100%;
     height: 100%;
+
+    min-width: 0;
+    min-height: 0;
 }
 
 .power-metric-text {
-    flex : 1;
+    flex: 1;
+
+    min-width: 0;
+    min-height: 0;
 
     display: flex;
     flex-direction: column;
@@ -39,8 +67,11 @@
     align-items: center;
 }
 
-.minlinechart-row{
-    flex : 3;
+.minlinechart-row {
+    flex: 3;
+
+    min-width: 0;
+    min-height: 0;
 
     height: 100%;
 }
@@ -71,7 +102,7 @@
     font-weight: 700;
 }
 
-.metric-main-value span{
+.metric-main-value span {
     font-size: 25px;
     margin-left: 4px;
 }

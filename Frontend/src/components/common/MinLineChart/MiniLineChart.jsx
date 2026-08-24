@@ -4,7 +4,8 @@ function MiniLineChart({
     data,
     color = "blue",
     min = -150,
-    max = 150
+    max = 150,
+
 }) {
     const width = 300;
     const height = 75;
@@ -33,21 +34,22 @@ function MiniLineChart({
             >
                 <line
                     x1="0"
-                    y1="35"
+                    y1="40"
                     x2={width}
-                    y2="35"
+                    y2="40"
                     className="chart-zero-line"
                 />
 
-                <text x="4" y="12" className="chart-label">
+
+                <text x="4" y="7" className="chart-label">
                     {max}
                 </text>
 
-                <text x="4" y="39" className="chart-label">
+                <text x="4" y="40" className="chart-label">
                     {(min + max) / 2}
                 </text>
 
-                <text x="4" y="66" className="chart-label">
+                <text x="4" y="70" className="chart-label">
                     {min}
                 </text>
 

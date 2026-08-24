@@ -10,6 +10,7 @@ function PowerMetricRow({
     chartData,
     min = -150,
     max = 150,
+
 }) {
     return (
         <div className="power-metric-row">
@@ -17,7 +18,7 @@ function PowerMetricRow({
                 <div className={`metric-label ${color}`}>{label}</div>
 
                 <div className={`metric-main-value ${color}`}>
-                    {Math.round((value /1) * 10) / 10 }
+                    {value}
                     <span>{unit}</span>
                 </div>
             </div>
@@ -34,42 +35,58 @@ function PowerMetricRow({
 }
 
 function PowerStatusPanel({ can0 }) {
+
+    const handleOpenDetail = () => {
+        window.open("/detail/powerstatus", "_blank");
+    };
+
+
     return (
         <div className="power-status-pannels">
-            <div className="power-status-panel">
-                <PowerMetricRow
-                    label="Current L"
-                    value={Math.round((can0["latest"]["current_left"]) * 10) / 10}
-                    // unit="A"
-                    color="blue"
-                    chartData={can0["history"]["current_left"]}
-                    min={0}
-                    max = {100}
-                />
+            <div className="power-status-pannels-header">
+                <button onClick={handleOpenDetail}>
+                    +
+                </button>
             </div>
-            <div className="power-status-panel">
-                <PowerMetricRow
-                    label="Current R"
-                    value={Math.round((can0["latest"]["current_right"]) * 10) / 10}
-                    // unit="A"
-                    color="red"
-                    chartData={can0["history"]["current_right"]}
-                    min={0}
-                    max={100}
-                />
-            </div>
-            <div className="power-status-panel">
-                <PowerMetricRow
-                    label="Power"
-                    value={Math.round((can0["latest"]["avg_power"] / 1000) * 10) / 10}
-                    unit="kW"
-                    color="green"
-                    chartData={can0["history"]["avg_power"]}
-                    min={0}
-                    max={15}
-                />
+            <div className="power-status-pannels-body">
+                <div className="power-status-panel">
+                    <PowerMetricRow
+                        label="Current L"
+                        value={Math.round((can0["latest"]["current_left"]) * 10) / 10}
+                        // unit="A"
+                        color="blue"
+                        chartData={can0["history"]["current_left"]}
+                        min={0}
+                        max={100}
+                    />
+                </div>
+                <div className="power-status-panel">
+                    <PowerMetricRow
+                        label="Current R"
+                        value={Math.round((can0["latest"]["current_right"]) * 10) / 10}
+                        // unit="A"
+                        color="red"
+                        chartData={can0["history"]["current_right"]}
+                        min={0}
+                        max={100}
+                    />
+                </div>
+                <div className="power-status-panel">
+                    <PowerMetricRow
+                        label="Power"
+                        value={Math.round((can0["latest"]["avg_power"] / 1000) * 10) / 10}
+                        unit="kW"
+                        color="green"
+                        chartData={can0["history"]["avg_power"]}
+                        min={0}
+                        max={15}
+
+                    />
+
+                </div>
 
             </div>
+            
         </div>
     );
 }
