@@ -1,7 +1,7 @@
 from collections import deque
 import copy
 
-from Monitoring_Server.api.main import get_can1_data
+from Monitoring_Server.api.api_main import get_can1_data
 
 class can1_data_set():
     def __init__(self):
@@ -48,6 +48,7 @@ def main(queue):
     while(True):
         try:
             idx = 0
+            # print(f"mqtt_Can1_line51>{queue.qsize()}")
             can1_key = list(queue.get().values())
 
             for data in data_set.data_list:

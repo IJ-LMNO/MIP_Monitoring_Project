@@ -95,15 +95,15 @@ function GpsMap({ gps }) {
                     url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                 />
 
-                {/* {route.length >= 2 && (
+                {route.length >= 2 && (
                     <Polyline
                         positions={route}
                         pathOptions={{
                             color: "#38bdf8",
-                            weight: 4
+                            weight: 0.5
                         }}
                     />
-                )} */}
+                )}
 
                 {currentPosition && (
                     <>

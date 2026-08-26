@@ -68,6 +68,7 @@ function Dashboard() {
             timestamp: 0.0,
             latitude: 0.0,
             longitude: 0.0,
+            status : 0
         },
         history: [],
         version: 0,
@@ -497,6 +498,7 @@ function Dashboard() {
 
             gps.onmessage = (event) => {
                 const data = JSON.parse(event.data);
+                console.log(data["latest"])
 
                 setGps((prev) => {
                     return {
@@ -512,7 +514,7 @@ function Dashboard() {
                 });
             };
 
-            gps.onclose = (evnet) => {
+            gps.onclose = (event) => {
                 console.log("gps 통신 종료", event.code);
             };
 

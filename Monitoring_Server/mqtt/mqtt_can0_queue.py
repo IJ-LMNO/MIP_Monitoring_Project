@@ -1,7 +1,7 @@
 from collections import deque
 import copy
 
-from Monitoring_Server.api.main import get_can0_data
+from Monitoring_Server.api.api_main import get_can0_data
 
 class can0_data_sturcture():
     def __init__(self):
@@ -37,6 +37,7 @@ def main(queue):
     can0_data = can0_data_sturcture()
     while(True):
         try:
+            # print(f"mqtt_can0_queue line40> {queue.qsize()}" )
             latest_data = queue.get()
 
             can0_data.can0["latest"].update(latest_data["latest"])

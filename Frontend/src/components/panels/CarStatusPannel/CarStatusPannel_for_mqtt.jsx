@@ -96,12 +96,12 @@ function CarStatusPannel({tiredegree, steeringhandle, leftTorque, rightTorque}) 
 
             <div className="torque torque-left">
                 <div style={{fontSize : "16px"}}>Left_Torque</div>
-                {leftTorque}Nm
+                {curleftTorque}Nm
             </div>
 
             <div className="torque torque-right">
                 <div style={{fontSize : "16px"}}>Right_Torque</div>
-                {rightTorque}Nm
+                {currightTorque}Nm
             </div>
         </div>
     );

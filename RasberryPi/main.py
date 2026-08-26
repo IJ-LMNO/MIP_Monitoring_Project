@@ -7,7 +7,7 @@ from gps import main as gps_main
 from mqtt import main as mqtt_main
 
 
-QUEUE_MAX_SIZE = 500
+QUEUE_MAX_SIZE = 50
 
 
 can0_queue = queue.Queue(maxsize=QUEUE_MAX_SIZE)

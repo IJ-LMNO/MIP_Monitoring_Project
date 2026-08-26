@@ -2,7 +2,7 @@ import threading as thread
 import queue
 from collections import deque
 from Monitoring_Server.mqtt.mqtt_subscriber import main as monitoring_server_main
-from Monitoring_Server.api.main import main as fast_api_main
+from Monitoring_Server.api.api_main import main as fast_api_main
 from Monitoring_Server.mqtt.mqtt_can1_queue import main as mqtt_can1_queue
 from Monitoring_Server.mqtt.mqtt_can0_queue import main as mqtt_can0_queue
 from Monitoring_Server.mqtt.mqtt_gps_queue import main as mqtt_gps_queue
@@ -71,5 +71,5 @@ def queue_start():
 def main():
     mqtt_subscriber_thread()
     queue_start()
-    fast_api_main()
+    run_fast_api()
 
