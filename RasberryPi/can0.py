@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import math
 import time
 import copy
@@ -202,6 +203,7 @@ class Can0:
                 "torque_left": left_data["torque"],
                 "torque_right": right_data["torque"],
             },
+            "timestamp" : datetime.now(timezone.utc).isoformat()
         }
 
     def shutdown(self):

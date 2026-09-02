@@ -4,11 +4,12 @@ function MiniLineChart({
     data,
     color = "blue",
     min = -150,
-    max = 150
+    max = 150,
+    setIdx
 }) {
     const width = 300;
     const height = 75;
-    const maxLength = 9000;
+    const maxLength = 6000;
 
     const emptyCount = maxLength - data.length;
 
@@ -17,20 +18,46 @@ function MiniLineChart({
             const slotIndex = emptyCount + index;
 
             const x = (slotIndex / (maxLength - 1)) * width;
+
             const y =
                 height -
-                ((value - min) / (max - min)) * height;
+                ((value[0] - min) / (max - min)) * height;
 
             return `${x},${y}`;
         })
         .join(" ");
+
+
+    const handleMouseMove = (event) => {
+        const svg = event.currentTarget
+        const rect = svg.getBoundingClientRect()
+        const mouseX = ((event.clientX - rect.left) / rect.width) * width
+
+        setIdx(() => {
+            return{
+                "type" :  color,
+                "idx": Math.round((mouseX / width) * (maxLength - 1)) - emptyCount
+            }
+        })
+    };
+
+    const handleMouseLeave = (event) => {
+        setIdx(() => {
+            return {
+                "type": null,
+                "idx": null
+            }
+        })
+    }
+
 
     return (
         <div className="detail-chart-wrapper">
             <svg
                 className="detail-chart-line-chart"
                 viewBox={`0 0 ${width} ${height}`}
-                preserveAspectRatio="none"
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
             >
                 <line
                     x1="0"

@@ -5,7 +5,7 @@ import pynmea2
 import serial
 import time
 import copy
-import queue
+
 
 RECONNECT_INTERVAL = 0.1
 
@@ -19,10 +19,10 @@ class GPS:
 
         self.gps = {
             "latest" : {
-                "timestamp" : 0.0,
                 "latitude" : 0.0,
                 "longitude" : 0.0
-            }
+            },
+            "timestamp" : 0.0
         }
 
     def shutdown(self):

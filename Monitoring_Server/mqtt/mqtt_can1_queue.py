@@ -6,37 +6,13 @@ from Monitoring_Server.api.main import get_can1_data
 class can1_data_set():
     def __init__(self):
         self.can1 = {
-            "tps" : {
-                "latest" : 0.0,
-                "history" : deque(maxlen=40),
-            },
-
-            "desired_yawrate" :{
-                "latest" : 0.0,
-                "history" : deque(maxlen=40),
-            },
-
-            "yawrate" : {
-                "latest" : 0.0,
-                "history" : deque(maxlen=40),
-            },
-
-            "rollrate" : {
-                "latest" : 0.0,
-                "history" : deque(maxlen=40),
-            },
-
-            "steeringhandle" : {
-                "latest" : 0.0,
-                "history" : deque(maxlen=40),
-            },
-
-            "tiredegree" : {
-                "latest" : 0.0,
-                "history" : deque(maxlen=40),
-            },
-
-            "version" : 0
+            "tps" : 0.0,
+            "desired_yawrate" : 0.0,
+            "yawrate" : 0.0,
+            "rollrate" : 0.0,
+            "steeringhandle" : 0.0,
+            "tiredegree" : 0.0,
+            "timestamp" : None
         }
 
 
@@ -47,16 +23,10 @@ def main(queue):
     data_set = can1_data_set()
     while(True):
         try:
-            idx = 0
-            can1_key = list(queue.get().values())
 
-            for data in data_set.data_list:
-                data["latest"] = can1_key[idx]
-                data["history"].append(can1_key[idx])
+            latest = queue.get()
 
-                idx += 1
-
-            data_set.can1["version"] += 1
+            data_set.can1.update(latest)
             get_can1_data(copy.deepcopy(data_set.can1))
 
         finally:

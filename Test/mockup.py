@@ -33,7 +33,9 @@ can0 ={
 
             "torque_left" : 0,
             "torque_right" : 0
-        }}
+        },
+        "timestamp" : None
+    }
 
 
 def create_can0_data(elapsed_time: float) -> dict:
@@ -71,7 +73,8 @@ def create_can0_data(elapsed_time: float) -> dict:
 
             "torque_left" : round(torque_left,2),
             "torque_right" : round(torque_right, 2)
-        }
+        },
+        "timestamp" : datetime.now(timezone.utc).isoformat()
     }
 
 
@@ -137,10 +140,10 @@ def create_gps_data(elapsed_time: float) -> dict:
 
     return {
         "latest" : {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
             "latitude": round(latitude, 7),
             "longitude": round(longitude, 7),
-        }
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 
@@ -202,7 +205,8 @@ def main() -> None:
                     "yawrate": create_yawrate_data(elapsed_time),
                     "rollrate": create_rollrate_data(elapsed_time),
                     "steeringhandle": create_steeringhandle_data(elapsed_time),
-                    "tiredegree": create_tiredegree_data(elapsed_time),            
+                    "tiredegree": create_tiredegree_data(elapsed_time),
+                    "timestamp" : datetime.now(timezone.utc).isoformat(),     
                 },
                 "gps": create_gps_data(elapsed_time),
             }

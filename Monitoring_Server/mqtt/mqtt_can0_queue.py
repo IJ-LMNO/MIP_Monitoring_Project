@@ -23,29 +23,20 @@ class can0_data_sturcture():
                 "rpm_right": 0.0,
 
                 "torque_right" : 0.0,
-                "torque_left" : 0.0
+                "torque_left" : 0.0,
             },
-            "history" : {
-                "current_right" : deque(maxlen=40),
-                "current_left" : deque(maxlen=40),
-                "avg_power" : deque(maxlen=40)
-            },
-            "version" : 0
+            "timestamp" : None
+           
         }
 
 def main(queue):
     can0_data = can0_data_sturcture()
     while(True):
         try:
-            latest_data = queue.get()
+            latest = queue.get()
 
-            can0_data.can0["latest"].update(latest_data["latest"])
-
-            can0_data.can0["history"]["current_right"].append(latest_data["latest"]["current_right"])
-            can0_data.can0["history"]["current_left"].append(latest_data["latest"]["current_left"])
-            can0_data.can0["history"]["avg_power"].append(latest_data["latest"]["avg_power"])
-
-            can0_data.can0["version"] += 1
+            can0_data.can0["latest"].update(latest["latest"])
+            can0_data.can0["timestamp"] = latest["timestamp"]
 
             get_can0_data(copy.deepcopy(can0_data.can0))
 

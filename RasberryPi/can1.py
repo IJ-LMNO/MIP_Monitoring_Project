@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import queue
 import time
 import copy
@@ -273,7 +274,8 @@ class Can1:
             "yawrate" : self.measured_yaw_rate,
             "rollrate" : self.measured_roll_rate,
             "steeringhandle" : self.steering_handle_degree,
-            "tiredegree" : self.calculate_tire_degree()
+            "tiredegree" : self.calculate_tire_degree(),
+            "timestamp" : datetime.now(timezone.utc).isoformat()
         })
     
     def shutdown(self):

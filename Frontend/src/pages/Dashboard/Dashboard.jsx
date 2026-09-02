@@ -13,14 +13,17 @@ import GpsMaPPannel from "../../components/panels/GpsMapPannel/GpsMapPannel_for_
 import DropdownMenu from "../../components/panels/DropdownMenu/DropdownMenu";
 import FaceButton from "../../components/panels/FaceButton/FaceButton";
 
-
 import "./Dashboard.css";
 
 const API_BASE_URL = "ws://localhost:8000";
 
-
-
 function Dashboard() {
+
+
+
+
+    //state-------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------
     const [can0, setCan0] = useState({
         latest: {
             avg_rpm: 0.0,
@@ -48,53 +51,53 @@ function Dashboard() {
             avg_power: [],
         },
 
-        version: 0,
+        timestamp : null
     });
 
     const [tps, setTps] = useState({
         latest: 0.0,
         history: [],
-        version: 0,
+        timestamp : null
     });
 
     const [desiredYawrate, setDesiredYawrate] = useState({
         latest: 0.0,
         history: [],
-        version: 0,
+        timestamp: null
     });
 
     const [gps, setGps] = useState({
         latest: {
-            timestamp: 0.0,
             latitude: 0.0,
             longitude: 0.0,
         },
         history: [],
-        version: 0,
+        timestamp : null
+
     });
 
     const [yawrate, setYawrate] = useState({
         latest: 0.0,
         history: [],
-        version: 0,
+        timestamp: null
     });
 
     const [rollrate, setRollrate] = useState({
         latest: 0.0,
         history: [],
-        version: 0,
+        timestamp: null
     });
 
     const [steeringhandle, setSteeringhandle] = useState({
         latest: 0.0,
         history: [],
-        version: 0,
+        timestamp: null
     });
 
     const [tiredegree, setTireDegree] = useState({
         latest: 0.0,
         history: [],
-        version: 0,
+        timestamp: null
     });
 
     const [racestart, setRacestart] = useState({
@@ -108,44 +111,288 @@ function Dashboard() {
     const [face, setFace] = useState({
         state : "Hold" // Hold, Up, Down
     })
+    //----------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------
 
 
-    const downloadRaceLog = async () => {
-        try {
-            const response = await fetch(
-                `http://localhost:8000/race/latest/download`
-            );
 
-            if (response.status === 404) {
-                alert("주행로그 없음");
+
+
+
+
+
+
+
+
+
+
+
+// useEffect ---------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
+    useEffect(() => {
+        let stopped = false;
+        let timer = null;
+
+        let can0 = null;
+        let can1 = null;
+        let gps = null;
+
+        const initial_check_time = 100;
+
+        const start = async () => {
+
+            while (!stopped) {
+
+                const first_response = await frontend_start();
+
+                if (first_response === true) {
+                    break;
+                }
+
+                await new Promise((resolve) => {
+                    timer = setTimeout(resolve, initial_check_time);
+                });
+            }
+
+            if (stopped) {
                 return;
             }
 
-            if (!response.ok) {
-                throw new Error(
-                    `다운로드 실패: ${response.status}`
-                );
+            can0 = new WebSocket(
+                `${API_BASE_URL}/telemetry/can0/ws`
+            );
+
+            can1 = new WebSocket(
+                `${API_BASE_URL}/telemetry/can1/ws`
+            );
+
+            gps = new WebSocket(
+                `${API_BASE_URL}/telemetry/gps/ws`
+            );
+
+            //can0 websocket
+            can0.onopen = () => {
+                console.log("can0 websocket 연결됨");
+            };
+
+            can0.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                setCan0((prev) => {
+                    return {
+                        latest: data["latest"],
+
+                        history: {
+                            current_right: [
+                                ...prev.history.current_right,
+                                data.latest.current_right
+                            ].slice(-40),
+
+                            current_left: [
+                                ...prev.history.current_left,
+                                data.latest.current_left
+                            ].slice(-40),
+
+                            avg_power: [
+                                ...prev.history.avg_power,
+                                Math.round((data.latest.avg_power / 1000) * 10) / 10
+                            ].slice(-40),
+                        },
+
+                        timestamp : data["timestamp"]
+                    };
+                });
+            };
+
+            can0.onclose = (event) => {
+                console.log("can0 통신 종료");
+            };
+
+
+            //can1 websocket
+            can1.onopen = () => {
+                console.log("can1 websocket 연결됨");
+            };
+
+            can1.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                setTps((prev) => {
+                    return {
+                        latest: data["tps"],
+                        history: [
+                            ...prev.history,
+                            data["tps"]
+                        ].slice(-40),
+                        timestamp : data["timestamp"]
+                    };
+                });
+
+                setDesiredYawrate((prev) => {
+                    return {
+                        latest: data["desired_yawrate"],
+                        history: [
+                            ...prev.history,
+                            data["desired_yawrate"]
+                        ].slice(-40),
+                        timestamp: data["timestamp"]
+                    };
+                });
+
+                setYawrate((prev) => {
+                    return {
+                        latest: data["yawrate"],
+                        history: [
+                            ...prev.history,
+                            data["yawrate"]
+                        ].slice(-40),
+                        timestamp: data["timestamp"]
+                    };
+                });
+
+                setRollrate((prev) => {
+                    return {
+                        latest: data["rollrate"],
+                        history: [
+                            ...prev.history,
+                            data["rollrate"]
+                        ].slice(-40),
+                        timestamp: data["timestamp"]
+                    };
+                });
+
+                setSteeringhandle((prev) => {
+                    return {
+                        latest: data["steeringhandle"],
+                        history: [
+                            ...prev.history,
+                            data["steeringhandle"]
+                        ].slice(-40),
+                        timestamp: data["timestamp"]
+                    };
+                });
+
+                setTireDegree((prev) => {
+                    return {
+                        latest: data["tiredegree"],
+                        history: [
+                            ...prev.history,
+                            data["tiredegree"]
+                        ].slice(-40),
+                        timestamp: data["timestamp"]
+                    };
+                });
+            };
+
+            can1.onclose = (event) => {
+                console.log("can1 통신 종료", event.code);
+            };
+
+
+            //gps websocket
+            gps.onopen = () => {
+                console.log("gps websocket 연결됨 : ");
+            };
+
+            gps.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log(data)
+
+                setGps((prev) => {
+                    return {
+                        latest: data["latest"],
+
+                        history: [
+                            ...prev.history,
+                            data["latest"]
+                        ].slice(-40),
+
+                        timestamp: data["timestamp"]
+                    };
+                });
+            };
+
+            gps.onclose = (evnet) => {
+                console.log("gps 통신 종료", event.code);
+            };
+
+        };
+        start();
+
+        return () => {
+            stopped = true;
+
+            if (timer !== null) {
+                clearTimeout(timer);
             }
 
-            const blob = await response.blob();
-            const downloadUrl = URL.createObjectURL(blob);
+            if (can0 !== null) {
+                can0.close();
+            }
 
-            const link = document.createElement("a");
+            if (can1 !== null) {
+                can1.close();
+            }
 
-            link.href = downloadUrl;
-            link.download = "race_log.json";
+            if (gps !== null) {
+                gps.close();
+            }
+        };
 
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+    }, []);
+    //---------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
 
-            URL.revokeObjectURL(downloadUrl);
-        } catch (error) {
-            console.error(error);
-            alert(error.message);
-        }
-    };
+
+
+
+
+
+
+
+
+
+// common ----------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
+    // const downloadRaceLog = async () => {
+    //     try {
+    //         const response = await fetch(
+    //             `http://localhost:8000/race/latest/download`
+    //         );
+
+    //         if (response.status === 404) {
+    //             alert("주행로그 없음");
+    //             return;
+    //         }
+
+    //         if (!response.ok) {
+    //             throw new Error(
+    //                 `다운로드 실패: ${response.status}`
+    //             );
+    //         }
+
+    //         const blob = await response.blob();
+    //         const downloadUrl = URL.createObjectURL(blob);
+
+    //         const link = document.createElement("a");
+
+    //         link.href = downloadUrl;
+    //         link.download = "race_log.json";
+
+    //         document.body.appendChild(link);
+    //         link.click();
+    //         link.remove();
+
+    //         URL.revokeObjectURL(downloadUrl);
+    //     } catch (error) {
+    //         console.error(error);
+    //         alert(error.message);
+    //     }
+    // };
     
+
+
+
     async function fetchRaceStartButton() {
         try {
             if (racestart.start === false) {
@@ -329,220 +576,25 @@ function Dashboard() {
         }
 
     }
-
-    useEffect(() => {
-        let stopped = false;
-        let timer = null;
-
-        let can0 = null;
-        let can1 = null;
-        let gps = null;
-
-        const initial_check_time = 100;
-        
-        const start = async () => {
-
-            while (!stopped) {
-
-                const first_response = await frontend_start();
-
-                if (first_response === true) {
-                    break;
-                }
-
-                await new Promise((resolve) => {
-                    timer = setTimeout(resolve, initial_check_time);
-                });
-            }
-
-            if (stopped) {
-                return;
-            }
-
-            can0 = new WebSocket(
-                `${API_BASE_URL}/telemetry/can0/ws`
-            );
-
-            can1 = new WebSocket(
-                `${API_BASE_URL}/telemetry/can1/ws`
-            );
-
-            gps = new WebSocket(
-                `${API_BASE_URL}/telemetry/gps/ws`
-            );
-
-            //can0 websocket
-            can0.onopen = () => {
-                console.log("can0 websocket 연결됨");
-            };
-
-            can0.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-
-                setCan0((prev) => {
-                    return {
-                        latest: data["latest"],
-
-                        history: {
-                            current_right: [
-                                ...prev.history.current_right,
-                                data.latest.current_right
-                            ].slice(-40),
-
-                            current_left: [
-                                ...prev.history.current_left,
-                                data.latest.current_left
-                            ].slice(-40),
-
-                            avg_power: [
-                                ...prev.history.avg_power,
-                                Math.round((data.latest.avg_power / 1000) * 10) / 10
-                            ].slice(-40),
-                        },
-
-                        version: data["version"]
-                    };
-                });
-            };
-
-            can0.onclose = (event) => {
-                console.log("can0 통신 종료");
-            };
+    //-------------------------------------------------------------------------------------
+    //-------------------------------------------------------------------------------------
 
 
-            //can1 websocket
-            can1.onopen = () => {
-                console.log("can1 websocket 연결됨");
-            };
-
-            can1.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-
-                setTps((prev) => {
-                    return {
-                        latest: data["tps"],
-                        history: [
-                            ...prev.history,
-                            data["tps"]
-                        ].slice(-40),
-                        version: data["version"]
-                    };
-                });
-
-                setDesiredYawrate((prev) => {
-                    return {
-                        latest: data["desired_yawrate"],
-                        history: [
-                            ...prev.history,
-                            data["desired_yawrate"]
-                        ].slice(-40),
-                        version: data["version"]
-                    };
-                });
-
-                setYawrate((prev) => {
-                    return {
-                        latest: data["yawrate"],
-                        history: [
-                            ...prev.history,
-                            data["yawrate"]
-                        ].slice(-40),
-                        version: data["version"]
-                    };
-                });
-
-                setRollrate((prev) => {
-                    return {
-                        latest: data["rollrate"],
-                        history: [
-                            ...prev.history,
-                            data["rollrate"]
-                        ].slice(-40),
-                        version: data["version"]
-                    };
-                });
-
-                setSteeringhandle((prev) => {
-                    return {
-                        latest: data["steeringhandle"],
-                        history: [
-                            ...prev.history,
-                            data["steeringhandle"]
-                        ].slice(-40),
-                        version: data["version"]
-                    };
-                });
-
-                setTireDegree((prev) => {
-                    return {
-                        latest: data["tiredegree"],
-                        history: [
-                            ...prev.history,
-                            data["tiredegree"]
-                        ].slice(-40),
-                        version: data["version"]
-                    };
-                });
-            };
-
-            can1.onclose = (event) => {
-                console.log("can1 통신 종료", event.code);
-            };
 
 
-            //gps websocket
-            gps.onopen = () => {
-                console.log("gps websocket 연결됨 : ");
-            };
 
-            gps.onmessage = (event) => {
-                const data = JSON.parse(event.data);
 
-                setGps((prev) => {
-                    return {
-                        latest: data["latest"],
 
-                        history: [
-                            ...prev.history,
-                            data["latest"]
-                        ].slice(-40),
 
-                        version: data["version"]
-                    };
-                });
-            };
 
-            gps.onclose = (evnet) => {
-                console.log("gps 통신 종료", event.code);
-            };
 
-        };
-        start();
 
-        return () => {
-            stopped = true;
 
-            if (timer !== null) {
-                clearTimeout(timer);
-            }
 
-            if (can0 !== null) {
-                can0.close();
-            }
 
-            if (can1 !== null) {
-                can1.close();
-            }
 
-            if (gps !== null) {
-                gps.close();
-            }
-        };
-
-    }, []);
-
-    
-
+//  return ------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------
     return (
         <div className="dashboard-page">
             <div className="dashboard-header">
@@ -665,6 +717,8 @@ function Dashboard() {
             </div>
         </div>
     );
+    //----------------------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------
 }
 
 export default Dashboard;
