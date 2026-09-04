@@ -33,8 +33,12 @@ const INITIAL_POSITION = [
 ];
 
 
-let timestampindex = []
-let index = null
+const timestampindex = []; //gps가 들어온 timestamp보관
+let lastIndexGpsHistory = null
+
+
+// 추가: GPS 전체 index와 좌표를 대응해서 보관
+const gpsCoordinateIndex = [];
 
 
 function OpenFreeMapLayer() {
@@ -83,84 +87,73 @@ function MoveMapCenter({ position }) {
 }
 
 
-function GpsMapPannel({
-    gps,
-    type,
-    setGpstimestamp,
-    can0FirstLast
-}) {
+function GpsMapPannel({ gps, type, can0FirstLast }) {
     const [route, setRoute] = useState([]);
-    const [signRoute, setSignRoute] = useState([]);
-
-    const prevTimestampRef = useRef(null);
-    const indexRef = useRef(0);
-    const timestampIndexRef = useRef([]);
 
 
-    // GPS 데이터 처리
+    // 추가: 선택된 GPS 구간
+    const [selectedRoute, setSelectedRoute] = useState([]);
+
+
     useEffect(() => {
 
-        if (type === "arr") {
-            const history_arr = [];
-            let prev_timestamp = null;
+        if(type === "arr"){
+            const history_arr = []
+            let prevTimestamp = null
 
-            timestampIndexRef.current = [];
-
-            for (let i = 0; i < gps.history.length; i++) {
-
-                const latitude =
-                    Number(gps.history[i].latest.latitude);
-
-                const longitude =
-                    Number(gps.history[i].latest.longitude);
-
+            for(let i=0; i < gps.history.length; i++){
                 history_arr.push([
-                    latitude,
-                    longitude
-                ]);
-
-                const timestamp =
-                    gps.history[i].timestamp
-                        .split("T")[1]
-                        .split(".")[0];
+                    gps["history"][i]["latest"]["latitude"],
+                    gps["history"][i]["latest"]["longitude"]
+                ].slice(-1200))
 
 
-                if (prev_timestamp !== timestamp) {
+                // 추가: GPS index와 좌표 저장
+                gpsCoordinateIndex[i] = [
+                    gps["history"][i]["latest"]["latitude"],
+                    gps["history"][i]["latest"]["longitude"]
+                ];
 
-                    timestampIndexRef.current.push([
-                        i,
-                        timestamp
-                    ]);
 
-                    prev_timestamp = timestamp;
-                }
-
-                indexRef.current = i;
-            }
-
-            setRoute(history_arr);
-
-            if (gps.history.length > 0) {
-                const last =
-                    gps.history[gps.history.length - 1];
-
-                setGpstimestamp(
-                    last.timestamp
+                if (
+                    prevTimestamp !=
+                    gps["history"][i]["timestamp"]
                         .split("T")[1]
                         .split(".")[0]
-                );
+                ){
+                    timestampindex.push([
+                        i,
+                        gps["history"][i]["timestamp"]
+                            .split("T")[1]
+                            .split(".")[0]
+                    ])
+                
+                    prevTimestamp =
+                        gps["history"][i]["timestamp"]
+                            .split("T")[1]
+                            .split(".")[0]
+                }
             }
+
+            setRoute(history_arr)
+            lastIndexGpsHistory = gps.history.length
         }
 
+        else if(type === "latest"){
+            let prevTimestamp = null
+            const data = gps["latest"]
 
-        else if (type === "latest") {
+            console.log(data)
 
-            indexRef.current += 1;
+            const latitude =
+                Number(
+                    data.latitude
+                );
 
-            const data = gps.latest;
-
-            const latitude = Number(data.latitude);
-            const longitude = Number(data.longitude);
+            const longitude =
+                Number(
+                    data.longitude
+                );
 
 
             if (
@@ -186,129 +179,174 @@ function GpsMapPannel({
 
 
             setRoute((prev) => {
-
                 const previousPosition =
                     prev[prev.length - 1];
 
+
                 if (
                     previousPosition &&
-                    previousPosition[0] === latitude &&
-                    previousPosition[1] === longitude
+                    previousPosition[0]
+                    === latitude &&
+                    previousPosition[1]
+                    === longitude
                 ) {
                     return prev;
                 }
 
+
                 return [
                     ...prev,
                     nextPosition
-                ].slice(-120);
+                ].slice(-1200);
             });
 
 
-            const timestamp =
-                gps.timestamp
-                    .split("T")[1]
-                    .split(".")[0];
-
-
-            setGpstimestamp(timestamp);
+            // 추가: latest GPS 좌표도 동일한 index 기준으로 저장
+            gpsCoordinateIndex[lastIndexGpsHistory] = [
+                latitude,
+                longitude
+            ];
 
 
             if (
-                prevTimestampRef.current !== timestamp
+                prevTimestamp !=
+                gps["timestamp"]
+                    .split("T")[1]
+                    .split(".")[0]
             ) {
+                timestampindex.push([
+                    lastIndexGpsHistory,
+                    gps["timestamp"]
+                        .split("T")[1]
+                        .split(".")[0]
+                ])
 
-                timestampIndexRef.current.push([
-                    indexRef.current,
-                    timestamp
-                ]);
-
-                prevTimestampRef.current =
-                    timestamp;
+                prevTimestamp =
+                    gps["timestamp"]
+                        .split("T")[1]
+                        .split(".")[0]
             }
+
+            lastIndexGpsHistory = lastIndexGpsHistory +1
         }
 
-    }, [gps, type]);
+        else{
+            return
+        }
+
+    }, [gps,type]);
 
 
-    // CAN 차트의 first ~ last 시간에 해당하는 GPS 구간 찾기
+    // 추가:
+    // CAN0 first_timestamp ~ last_timestamp 사이에 해당하는
+    // GPS 좌표들을 찾아 selectedRoute에 저장
     useEffect(() => {
 
-        const firstTimestamp =
+        if (
+            can0FirstLast == null ||
+            can0FirstLast.first_timestamp == null ||
+            can0FirstLast.last_timestamp == null
+        ) {
+            setSelectedRoute([]);
+            return;
+        }
+
+
+        let firstTimestamp =
             can0FirstLast.first_timestamp;
 
-        const lastTimestamp =
+        let lastTimestamp =
             can0FirstLast.last_timestamp;
 
 
-        if (
-            firstTimestamp == null ||
-            lastTimestamp == null
+        // ISO timestamp가 들어오는 경우 HH:MM:SS만 추출
+        if (firstTimestamp.includes("T")) {
+            firstTimestamp =
+                firstTimestamp
+                    .split("T")[1]
+                    .split(".")[0];
+        }
+
+
+        if (lastTimestamp.includes("T")) {
+            lastTimestamp =
+                lastTimestamp
+                    .split("T")[1]
+                    .split(".")[0];
+        }
+
+
+        let firstIndex = null;
+        let lastIndex = null;
+
+
+        // firstTimestamp 이상이 되는 최초 GPS index
+        for (
+            let i = 0;
+            i < timestampindex.length;
+            i++
         ) {
-            setSignRoute([]);
+            if (
+                timestampindex[i][1] >= firstTimestamp
+            ) {
+                firstIndex =
+                    timestampindex[i][0];
+
+                break;
+            }
+        }
+
+
+        // lastTimestamp 이하인 마지막 GPS index
+        for (
+            let i = timestampindex.length - 1;
+            i >= 0;
+            i--
+        ) {
+            if (
+                timestampindex[i][1] <= lastTimestamp
+            ) {
+                lastIndex =
+                    timestampindex[i][0];
+
+                break;
+            }
+        }
+
+
+        if (
+            firstIndex == null ||
+            lastIndex == null ||
+            firstIndex > lastIndex
+        ) {
+            setSelectedRoute([]);
             return;
         }
 
 
-        const timestamps =
-            timestampIndexRef.current;
+        const selectedGpsCoordinates = [];
 
 
-        // first 이상이 되는 최초 GPS
-        const firstData =
-            timestamps.find(
-                ([idx, timestamp]) =>
-                    timestamp >= firstTimestamp
-            );
-
-
-        // last 이하인 GPS 중 마지막 GPS
-        const lastData =
-            [...timestamps]
-                .reverse()
-                .find(
-                    ([idx, timestamp]) =>
-                        timestamp <= lastTimestamp
+        for (
+            let i = firstIndex;
+            i <= lastIndex;
+            i++
+        ) {
+            if (
+                gpsCoordinateIndex[i] != null
+            ) {
+                selectedGpsCoordinates.push(
+                    gpsCoordinateIndex[i]
                 );
-
-
-        if (
-            firstData == null ||
-            lastData == null
-        ) {
-            setSignRoute([]);
-            return;
+            }
         }
 
 
-        const firstIndex = firstData[0];
-        const lastIndex = lastData[0];
+        setSelectedRoute(
+            selectedGpsCoordinates.slice(-1200)
+        );
 
-
-        if (firstIndex > lastIndex) {
-            setSignRoute([]);
-            return;
-        }
-
-
-        // arr 모드에서는 gps.history index를 그대로 이용 가능
-        if (type === "arr") {
-
-            const selectedRoute =
-                gps.history
-                    .slice(
-                        firstIndex,
-                        lastIndex + 1
-                    )
-                    .map((data) => [
-                        Number(data.latest.latitude),
-                        Number(data.latest.longitude)
-                    ]);
-
-            setSignRoute(selectedRoute);
-        }
-
-    }, [can0FirstLast, gps, type]);
+    }, [can0FirstLast]);
 
 
     const currentPosition =
@@ -333,7 +371,6 @@ function GpsMapPannel({
                 <OpenFreeMapLayer />
 
 
-                {/* 기존 GPS 주행 경로 */}
                 {route.length > 1 && (
                     <Polyline
                         positions={route}
@@ -341,13 +378,13 @@ function GpsMapPannel({
                 )}
 
 
-                {/* 차트에서 선택한 시간 범위 */}
-                {signRoute.length > 1 && (
+                {/* 추가: 선택된 시간 범위의 GPS 경로 */}
+                {selectedRoute.length > 1 && (
                     <Polyline
-                        positions={signRoute}
+                        positions={selectedRoute}
                         pathOptions={{
                             color: "red",
-                            weight: 6
+                            weight: 5
                         }}
                     />
                 )}
@@ -355,7 +392,9 @@ function GpsMapPannel({
 
                 {route.length > 0 && (
                     <CircleMarker
-                        center={currentPosition}
+                        center={
+                            currentPosition
+                        }
                         radius={7}
                     />
                 )}
@@ -363,9 +402,12 @@ function GpsMapPannel({
 
                 {route.length > 0 && (
                     <MoveMapCenter
-                        position={currentPosition}
+                        position={
+                            currentPosition
+                        }
                     />
                 )}
+
 
             </MapContainer>
 

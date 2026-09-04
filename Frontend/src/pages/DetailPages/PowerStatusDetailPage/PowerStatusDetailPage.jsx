@@ -25,19 +25,18 @@ function PowerStatusDetailPage(){
     });
 
     const [error, setError] = useState(null);
+    
     const[idx, setIdx] = useState({
         "type" : null,
         "idx" : null
-    })
+    }) // 마우스 올리면 현재 마우스의 좌표에 대응하는 그래프 인덱스
 
     const first_telemetry = useRef(false)
     const [type, setType] = useState("None")
-    const [gpstimestamp, setGpstimestamp] = useState(null)
-
     const[can0FirstLast, setCan0FirstLast] = useState({
         "first_timestamp" : null,
         "last_timestamp" : null
-    })
+    }) // 마우스를 올린 좌표에 해당하는 인덱스가 그래프에서 어떤 시간 사이에 존재하는지에 대한 state
 
     function returnValue(){
         if(idx.type === "blue"){
@@ -238,8 +237,6 @@ function PowerStatusDetailPage(){
                         min={0}
                         max={100}
                         setIdx={setIdx}
-                        gpstimestamp = {gpstimestamp}
-                        setGpstimestamp={setGpstimestamp}
                         setCan0FirstLast={setCan0FirstLast}
                     />
                 </div>
@@ -250,8 +247,6 @@ function PowerStatusDetailPage(){
                         min={0}
                         max={100}
                         setIdx={setIdx}
-                        gpstimestamp={gpstimestamp}
-                        setGpstimestamp={setGpstimestamp}
                         setCan0FirstLast={setCan0FirstLast}
                     />
                 </div>
@@ -262,8 +257,6 @@ function PowerStatusDetailPage(){
                         min={0}
                         max={15}
                         setIdx={setIdx}
-                        gpstimestamp={gpstimestamp}
-                        setGpstimestamp={setGpstimestamp}
                         setCan0FirstLast={setCan0FirstLast}
                     />
                 </div>
@@ -271,7 +264,7 @@ function PowerStatusDetailPage(){
 
             <div className="powerstatus-detail-page-gps-and-value">
                 <div className="powerstatus-detail-page-gps">
-                    <GpsPannel gps={gps} type={type} setGpstimestamp={setGpstimestamp} can0FirstLast={can0FirstLast} />
+                    <GpsPannel gps={gps} type={type} can0FirstLast={can0FirstLast} />
                 </div>
                 <div className="powerstatus-detail-page-value">
                     {returnValue()}
