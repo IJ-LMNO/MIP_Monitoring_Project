@@ -1,6 +1,10 @@
 import "./DropdownMenu.css"
 
-function DropdownMenu({latest_race_download}) {
+function DropdownMenu() {
+    const handleClick = (sensor) => {
+        window.open("/detail/" + sensor, "_blank");
+    };
+
     return (
         <div className="dropdown">
             <button className="dropdown-button">
@@ -11,12 +15,22 @@ function DropdownMenu({latest_race_download}) {
             </button>
 
             <div className="dropdown-menu">
-                <button onClick={latest_race_download}>이전 주행 다운로드</button>
-                <button>이전 주행 불러오기(구현 예정)</button>
-                <button>설정(구현 예정)</button>
+                <button onClick={() => handleClick("powerstatus")}>
+                    powerstatus 상세보기
+                </button>
+
+                <button onClick={() => handleClick("yawrate")}>
+                    yawrate 상세보기
+                </button>
+
+                <button onClick={() => handleClick("rollrate")}>
+                    rollrate 상세보기
+                </button>
+
+                <button>설정</button>
             </div>
         </div>
     );
 }
 
-export default DropdownMenu;
+export default DropdownMenu

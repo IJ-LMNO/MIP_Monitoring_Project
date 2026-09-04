@@ -12,6 +12,7 @@ import RpmPannel from "../../components/panels/RpmStatusPannel/RpmStatusPannel_f
 import GpsMaPPannel from "../../components/panels/GpsMapPannel/GpsMapPannel_for_Mqtt";
 import DropdownMenu from "../../components/panels/DropdownMenu/DropdownMenu";
 import FaceButton from "../../components/panels/FaceButton/FaceButton";
+import RacePannel from "../../components/panels/RacePannel/RacePannel"
 
 import "./Dashboard.css";
 
@@ -111,6 +112,17 @@ function Dashboard() {
     const [face, setFace] = useState({
         state : "Hold" // Hold, Up, Down
     })
+
+    const[record, setRecord] = useState([])
+    const[button, setButton] = useState(
+        {
+            latest : {
+                "time_interval" : null,
+                "rap" : null
+            },
+            history : []
+        }
+    )
     //----------------------------------------------------------------------------------------
     //----------------------------------------------------------------------------------------
 
@@ -135,7 +147,8 @@ function Dashboard() {
 
         let can0 = null;
         let can1 = null;
-        let gps = null;
+        let gps_ws = null;
+        let btn = null;
 
         const initial_check_time = 100;
 
@@ -166,8 +179,12 @@ function Dashboard() {
                 `${API_BASE_URL}/telemetry/can1/ws`
             );
 
-            gps = new WebSocket(
+            gps_ws = new WebSocket(
                 `${API_BASE_URL}/telemetry/gps/ws`
+            );
+
+            btn = new WebSocket(
+                `${API_BASE_URL}/telemetry/button/ws`
             );
 
             //can0 websocket
@@ -290,13 +307,12 @@ function Dashboard() {
 
 
             //gps websocket
-            gps.onopen = () => {
+            gps_ws.onopen = () => {
                 console.log("gps websocket 연결됨 : ");
             };
 
-            gps.onmessage = (event) => {
+            gps_ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-                console.log(data)
 
                 setGps((prev) => {
                     return {
@@ -310,9 +326,35 @@ function Dashboard() {
                         timestamp: data["timestamp"]
                     };
                 });
+
             };
 
-            gps.onclose = (evnet) => {
+            gps_ws.onclose = (event) => {
+                console.log("gps 통신 종료", event.code);
+            };
+
+
+            //button websocket
+            btn.onopen = () => {
+                console.log("button websocket 연결됨 : ");
+            };
+
+            btn.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                setGps((prev) => {
+                    return {
+                        latest: data["latest"],
+
+                        history: [
+                            ...prev.history,
+                            data["time_interval"]
+                        ]
+                    };
+                });
+            };
+
+            btn.onclose = (event) => {
                 console.log("gps 통신 종료", event.code);
             };
 
@@ -336,6 +378,10 @@ function Dashboard() {
 
             if (gps !== null) {
                 gps.close();
+            }
+
+            if (btn !== null) {
+                btn.close();
             }
         };
 
@@ -572,7 +618,6 @@ function Dashboard() {
         }
         catch(err){
             console.error(error)
-            setError(error.message)
         }
 
     }
@@ -598,11 +643,9 @@ function Dashboard() {
     return (
         <div className="dashboard-page">
             <div className="dashboard-header">
-                {/* <div className="header_dropbox_button">
-                    <DropdownMenu
-                        latest_race_download={downloadRaceLog}
-                    />
-                </div> */}
+                <div className="header_dropbox_button">
+                    <DropdownMenu/>
+                </div>
 
                 <div
                     className={
@@ -623,15 +666,19 @@ function Dashboard() {
 
             <div className="dashboard-page-pannel">
                 <div className="dashboard-page-top">
-                    <div className="powerstatus-panel">
+                    {/* <div className="powerstatus-panel">
                         <PowerStatusPanel can0={can0} />
+                    </div> */}
+
+                    <div className="race-pannel">
+                        <RacePannel record={record}/>
                     </div>
 
                     <div className="gpsmap-pannel">
                         <GpsMaPPannel gps={gps} />
                     </div>
 
-                    <div className="yawrate-rollrate-pannel">
+                    {/* <div className="yawrate-rollrate-pannel">
                         <div className="yawrate-pannel">
                             <YawRatePanel
                                 yawRate={yawrate}
@@ -644,7 +691,7 @@ function Dashboard() {
                                 RollRate={rollrate}
                             />
                         </div>
-                    </div>
+                    </div> */}
                 </div>
 
                 <div className="dashboard-page-bottom">

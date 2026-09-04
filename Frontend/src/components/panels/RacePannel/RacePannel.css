@@ -1,0 +1,20 @@
+.race-pannel-row{
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    background: #111827;
+    border: 1px solid #374151;
+    border-radius: 6px;
+
+    justify-content: center;
+    align-items: center;
+
+    color: white;
+}
+
+.race-rap-pannel{
+    width: 10%;
+    
+}

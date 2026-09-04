@@ -113,8 +113,14 @@ body {
 
 }
 
-.gpsmap-pannel {
+.race-pannel {
     flex: 1;
+    height: 100%;
+
+}
+
+.gpsmap-pannel {
+    flex: 2;
     height: 100%;
 }
 

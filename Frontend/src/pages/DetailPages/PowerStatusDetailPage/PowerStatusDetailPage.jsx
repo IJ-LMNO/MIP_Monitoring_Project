@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import MiniLineChart_for_detail from "../../../components/common/MinLineChart_for_detail/MiniLineChart_for_detail"
-import GpsPannel from "../../../components/panels/GpsMapPannel/GpsMapPannel_for_Mqtt"
+import GpsPannel from "../../../components/panels/GpsMapPannel/GpsMapPannel_for_detail"
 
 import "./PowerStatusDetailPage.css"
 
@@ -14,7 +14,16 @@ function PowerStatusDetailPage(){
         },
     });
 
-    const [gps, setGps] = useState([]);
+    const [gps, setGps] = useState({
+        "latest": {
+            "latitude": 0.0,
+            "longitude": 0.0
+        },
+    
+        "history" : [],
+        "timestamp" : null
+    });
+
     const [error, setError] = useState(null);
     const[idx, setIdx] = useState({
         "type" : null,
@@ -22,6 +31,13 @@ function PowerStatusDetailPage(){
     })
 
     const first_telemetry = useRef(false)
+    const [type, setType] = useState("None")
+    const [gpstimestamp, setGpstimestamp] = useState(null)
+
+    const[can0FirstLast, setCan0FirstLast] = useState({
+        "first_timestamp" : null,
+        "last_timestamp" : null
+    })
 
     function returnValue(){
         if(idx.type === "blue"){
@@ -43,7 +59,7 @@ function PowerStatusDetailPage(){
             else {
                 return (
                     
-                        can0.history.current_right[idx.idx][0]
+                    can0.history.current_right[idx.idx][0]
                     
                 )
             }
@@ -90,14 +106,14 @@ function PowerStatusDetailPage(){
                     for(let i = 0; i < can0.length; i++){
                         current_right_arr.push([can0[i]["latest"]["current_right"], can0[i]["timestamp"]])
                         current_left_arr.push([can0[i]["latest"]["current_left"], can0[i]["timestamp"]])
-                        avg_power_arr.push([can0[i]["latest"]["avg_power"], can0[i]["timestamp"]])
+                        avg_power_arr.push([Math.round((can0[i]["latest"]["avg_power"] / 1000) * 10) / 10, can0[i]["timestamp"]])
                     }
 
                     for(let i =0; i < gps.length; i++){
-                        gps_arr.push([gps[i]["latest"], gps[i]["timestamp"]])
+                        gps_arr.push(gps[i])
                     }
 
-                    if(response_can0.ok){
+                    if(response_can0.ok && response_gps.ok){
                         setCan0(() => {
                             return {
                                 history : {
@@ -108,8 +124,15 @@ function PowerStatusDetailPage(){
                                 }
                             }
                         })
-                        setGps(gps_arr)
 
+                        setGps((prev)=>{
+                            return{
+                                ...prev,
+                                history : gps_arr
+                            }
+                        })
+
+                        setType("arr")
                         first_telemetry.current = true
 
                         start_telemetry()
@@ -139,6 +162,7 @@ function PowerStatusDetailPage(){
 
                 ws_can0.onmessage = ((event) => {
                     const data = JSON.parse(event.data)
+
                     setCan0((prev) => {
                         return{
                             history: {
@@ -165,11 +189,14 @@ function PowerStatusDetailPage(){
                 ws_gps.onmessage = ((event) => {
                     const data = JSON.parse(event.data)
                     setGps((prev) => {
-                        return([
+                        return({
                             ...prev,
-                            [data.latest, data.timestamp]
-                        ].slice(-120))
+                            latest : data["latest"],
+                            timestamp : data["timestamp"]
+                        })
                     })
+
+                    setType("latest")
                 })
 
                 ws_can0.onclose = (event) => {
@@ -211,6 +238,9 @@ function PowerStatusDetailPage(){
                         min={0}
                         max={100}
                         setIdx={setIdx}
+                        gpstimestamp = {gpstimestamp}
+                        setGpstimestamp={setGpstimestamp}
+                        setCan0FirstLast={setCan0FirstLast}
                     />
                 </div>
                 <div className="powerstatus-detail-page-chart-current-r">
@@ -220,6 +250,9 @@ function PowerStatusDetailPage(){
                         min={0}
                         max={100}
                         setIdx={setIdx}
+                        gpstimestamp={gpstimestamp}
+                        setGpstimestamp={setGpstimestamp}
+                        setCan0FirstLast={setCan0FirstLast}
                     />
                 </div>
                 <div className="powerstatus-detail-page-chart-avg-power">
@@ -229,13 +262,16 @@ function PowerStatusDetailPage(){
                         min={0}
                         max={15}
                         setIdx={setIdx}
+                        gpstimestamp={gpstimestamp}
+                        setGpstimestamp={setGpstimestamp}
+                        setCan0FirstLast={setCan0FirstLast}
                     />
                 </div>
             </div>
 
             <div className="powerstatus-detail-page-gps-and-value">
                 <div className="powerstatus-detail-page-gps">
-                    <GpsPannel />
+                    <GpsPannel gps={gps} type={type} setGpstimestamp={setGpstimestamp} can0FirstLast={can0FirstLast} />
                 </div>
                 <div className="powerstatus-detail-page-value">
                     {returnValue()}

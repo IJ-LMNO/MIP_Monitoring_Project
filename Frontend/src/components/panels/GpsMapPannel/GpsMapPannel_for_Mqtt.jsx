@@ -1,14 +1,66 @@
 import { useEffect, useRef, useState } from "react";
+
 import {
     MapContainer,
-    TileLayer,
     Polyline,
     CircleMarker,
     useMap
 } from "react-leaflet";
 
+import L from "leaflet";
+
+import {
+    setWorkerUrl
+} from "maplibre-gl";
+
+import workerUrl from
+    "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
+
 import "leaflet/dist/leaflet.css";
+import "maplibre-gl/dist/maplibre-gl.css";
+
+import "@maplibre/maplibre-gl-leaflet";
+
 import "./GpsMapPannel.css";
+
+
+setWorkerUrl(workerUrl);
+
+
+const INITIAL_POSITION = [
+    37.5665,
+    126.978
+];
+
+
+function OpenFreeMapLayer() {
+    const map = useMap();
+
+    useEffect(() => {
+        const layer = L.maplibreGL({
+            style:
+                "https://tiles.openfreemap.org/styles/dark",
+            interactive: false
+        });
+
+        layer.addTo(map);
+
+
+        requestAnimationFrame(() => {
+            map.invalidateSize();
+        });
+
+
+        return () => {
+            map.removeLayer(layer);
+        };
+
+    }, [map]);
+
+
+    return null;
+}
+
 
 function MoveMapCenter({ position }) {
     const map = useMap();
@@ -19,113 +71,136 @@ function MoveMapCenter({ position }) {
         }
 
         map.panTo(position);
+
     }, [map, position]);
+
 
     return null;
 }
 
-function GpsMap({ gps }) {
+
+function GpsMapPannel({ gps }) {
     const [route, setRoute] = useState([]);
+
     const gpsVersionRef = useRef(0);
 
+
     useEffect(() => {
-        try {
-            if (gps.version === gpsVersionRef.current) {
-                return;
-            }
+        if (!gps || !gps.latest) {
+            return;
+        }
 
-            gpsVersionRef.current = gps.version;
 
-            const latitude = Number(gps.latest.latitude);
-            const longitude = Number(gps.latest.longitude);
+        const latitude =
+            Number(
+                gps.latest.latitude
+            );
+
+        const longitude =
+            Number(
+                gps.latest.longitude
+            );
+
+
+        if (
+            !Number.isFinite(latitude) ||
+            !Number.isFinite(longitude)
+        ) {
+            return;
+        }
+
+
+        if (
+            latitude === 0 &&
+            longitude === 0
+        ) {
+            return;
+        }
+
+
+        const nextPosition = [
+            latitude,
+            longitude
+        ];
+
+
+        setRoute((prev) => {
+            const previousPosition =
+                prev[prev.length - 1];
+
 
             if (
-                !Number.isFinite(latitude) ||
-                !Number.isFinite(longitude)
+                previousPosition &&
+                previousPosition[0]
+                === latitude &&
+                previousPosition[1]
+                === longitude
             ) {
-                return;
+                return prev;
             }
 
-            const nextPosition = [latitude, longitude];
 
-            setRoute((prev) => {
-                const previousPosition = prev.at(-1);
+            return [
+                ...prev,
+                nextPosition
+            ];
+        });
 
-                const isSamePosition =
-                    previousPosition &&
-                    previousPosition[0] === latitude &&
-                    previousPosition[1] === longitude;
-
-                const isInvalidPosition =
-                    latitude === 0 && longitude === 0;
-
-                if (isSamePosition || isInvalidPosition) {
-                    return prev;
-                }
-
-                return [...prev, nextPosition];
-            });
-        } catch (error) {
-            console.error(error);
-        }
     }, [gps]);
 
-    const currentPosition = route.at(-1);
 
-    const initialPosition = currentPosition ?? [
-        37.5665,
-        126.978
-    ];
+    const currentPosition =
+        route.length > 0
+            ? route[route.length - 1]
+            : INITIAL_POSITION;
+
 
     return (
-        <div className="gps-map-container">
-            {!currentPosition && (
-                <div className="gps-map-empty">
-                    GPS 데이터 대기 중
-                </div>
-            )}
+        <div className="gps-map-pannel">
 
             <MapContainer
-                className="gps-map"
-                center={initialPosition}
+                center={INITIAL_POSITION}
                 zoom={17}
+                minZoom={1}
+                style={{
+                    width: "100%",
+                    height: "100%"
+                }}
             >
-                <TileLayer
-                    attribution="&copy; OpenStreetMap contributors &copy; CARTO"
-                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                />
 
-                {/* {route.length >= 2 && (
+                <OpenFreeMapLayer />
+
+
+                {route.length > 1 && (
                     <Polyline
                         positions={route}
-                        pathOptions={{
-                            color: "#38bdf8",
-                            weight: 4
-                        }}
                     />
-                )} */}
-
-                {currentPosition && (
-                    <>
-                        <CircleMarker
-                            center={currentPosition}
-                            radius={7}
-                            pathOptions={{
-                                color: "#ffffff",
-                                fillColor: "#ef4444",
-                                fillOpacity: 1,
-                                weight: 2
-                            }}
-                        />
-
-                        <MoveMapCenter
-                            position={currentPosition}
-                        />
-                    </>
                 )}
+
+
+                {route.length > 0 && (
+                    <CircleMarker
+                        center={
+                            currentPosition
+                        }
+                        radius={7}
+                    />
+                )}
+
+
+                {route.length > 0 && (
+                    <MoveMapCenter
+                        position={
+                            currentPosition
+                        }
+                    />
+                )}
+
             </MapContainer>
+
         </div>
     );
 }
 
-export default GpsMap;
+
+export default GpsMapPannel;

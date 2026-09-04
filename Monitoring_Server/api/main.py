@@ -20,11 +20,12 @@ from Monitoring_Server.mqtt.shared_state import MQTT_event as MQTT_event
 app = FastAPI()
 
 
-## 대시보드를 위한 자료구조-----------------------
+## 백엔드 자료구조 대시보드를 래핑한 데이터를 저장한 자료구조
 dequeue_size = 10
 can0_dequeue = deque(maxlen=dequeue_size)
 can1_dequeue = deque(maxlen=dequeue_size)
 gps_dequeue = deque(maxlen=dequeue_size)
+button_dequeue = deque(maxlen=dequeue_size)
 ##-------------------------------------------------
 
 
@@ -163,10 +164,10 @@ async def can0_ws_endpoint(websocket: WebSocket):
                 can0_dequeue_len = len(can0_dequeue)
 
                 while can0_dequeue_len > 0:
-                    latest = can0_dequeue.popleft()
+                    can0 = can0_dequeue.popleft()
 
                     await websocket.send_json(
-                        latest
+                        can0
                     )
 
                     can0_dequeue_len -= 1
@@ -188,7 +189,11 @@ def can0_detail_page_first_telemetry():
         )
     else:
         with can0_lock:
-            can0_detail = copy.deepcopy(can0_detail_dequeue)
+            can0_detail = copy.deepcopy(
+
+                can0_detail_dequeue
+
+            )
             can0_detail_dequeue.clear()
 
         return(
@@ -214,9 +219,11 @@ async def can0_detial_page(websocket : WebSocket):
             can0_detail_dequeue_len = len(can0_detail_dequeue)
 
             while can0_detail_dequeue_len > 0:
-                latest = can0_detail_dequeue.popleft()
+                can0 = can0_detail_dequeue.popleft()
 
-                await websocket.send_json(latest)
+                await websocket.send_json(
+                    can0
+                )
 
                 can0_detail_dequeue_len-= 1
 
@@ -259,12 +266,10 @@ async def gps_ws_endpoint(websocket: WebSocket):
             gps_dequeue_len = len(gps_dequeue)
 
             while gps_dequeue_len > 0:
-                latest = gps_dequeue.popleft()
+                gps = gps_dequeue.popleft()
 
                 await websocket.send_json(
-                    {
-                        latest
-                    }
+                    gps
                 )
 
                 gps_dequeue_len -= 1
@@ -306,9 +311,11 @@ async def gps_detial_page(websocket : WebSocket):
             gps_detail_dequeue_len = len(gps_detail_dequeue)
 
             while gps_detail_dequeue_len > 0:
-                latest = gps_detail_dequeue.popleft()
+                gps = gps_detail_dequeue.popleft()
 
-                await websocket.send_json(latest)
+                await websocket.send_json(
+                    gps
+                )
 
                 gps_detail_dequeue_len-= 1
 
@@ -418,12 +425,12 @@ async def yawrate_detial_page(websocket : WebSocket):
 
             while yawrate_detail_dequeue_len > 0 and desired_yawrate_detail_dequeue_len >0:
 
-                yawrate_return = yawrate_detail_dequeue.popleft()
-                desired_yawrate_return = desired_yawrate_detail_dequeue.popleft()
+                yawrate = yawrate_detail_dequeue.popleft()
+                desired_yawrate = desired_yawrate_detail_dequeue.popleft()
 
                 await websocket.send_json({
-                    "yawrate" : yawrate_return["latest"],
-                    "desired_yawrate" : desired_yawrate_return["latest"]
+                    "yawrate" : yawrate["latest"],
+                    "desired_yawrate" : desired_yawrate["latest"]
                 })
             
                 yawrate_detail_dequeue_len -= 1
@@ -451,11 +458,11 @@ def rollrate_detail_page_first_telemetry():
         )
     else:
         with rollrate_lock:
-            rollrate_return =  copy.deepcopy(rollrate_detail_dequeue)
+            rollrate =  copy.deepcopy(rollrate_detail_dequeue)
             rollrate_detail_dequeue.clear()
 
         return{
-            "rollrate" : rollrate_return
+            "rollrate" : rollrate
         }
 
 @app.websocket("/detail/rollrate")
@@ -473,10 +480,10 @@ async def rollrate_detial_page(websocket : WebSocket):
             rollrate_detail_dequeue_len = len(rollrate_detail_dequeue)
 
             while rollrate_detail_dequeue_len > 0:
-                rollrate_return = rollrate_detail_dequeue.popleft()
+                rollrate = rollrate_detail_dequeue.popleft()
 
                 await websocket.send_json({
-                    "rollrate" : rollrate_return["latest"],
+                    "rollrate" : rollrate["latest"],
                 })
                 rollrate_detail_dequeue_len-= 1
 
@@ -489,6 +496,49 @@ async def rollrate_detial_page(websocket : WebSocket):
 
 
 
+
+
+
+
+
+
+
+
+## button  ----------------------------------------------------------------
+##--------------------------------------------------------------------------
+button_asyncio_event = asyncio.Event()
+button_event_loop = None
+@app.websocket("/telemetry/button/ws")
+async def can1_ws_endpoint(websocket: WebSocket):
+    global button_event_loop
+
+    await websocket.accept()
+
+    button_event_loop = asyncio.get_running_loop()
+
+    while True:
+        if len(button_dequeue) == 0:
+            await button_asyncio_event.wait()
+
+        else:
+            button_dequeue_len = len(button_dequeue)
+
+            while button_dequeue_len > 0:
+                latest = button_dequeue.popleft()
+
+                await websocket.send_json(
+                    {
+                        "time_interval" : latest["time_interval"],
+                        "rap" : latest["rap"]
+                    }
+                )
+
+                button_dequeue_len -= 1
+
+            if len(can1_dequeue) == 0:
+                button_asyncio_event.clear()
+##--------------------------------------------------------------------------
+##--------------------------------------------------------------------------
 
 
 
@@ -562,6 +612,16 @@ def get_can1_data(data):
     if rollrate_detail_event_loop is not None:
         rollrate_detail_event_loop.call_soon_threadsafe(
             rollrate_detail_asyncio_event.set
+        )
+
+
+
+def get_button_data(data):
+    button_dequeue.append(data)
+
+    if button_event_loop is not None:
+        button_event_loop.call_soon_threadsafe(
+            button_asyncio_event.set
         )
 ##--------------------------------------------------------------------------
 ##--------------------------------------------------------------------------

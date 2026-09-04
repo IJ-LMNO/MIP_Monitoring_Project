@@ -8,7 +8,6 @@ from Monitoring_Server.mqtt.shared_state import MQTT_event as MQTT_event
 BROKER_HOST = "127.0.0.1"
 BROKER_PORT = 1883
 TOPIC = "vehicle/car_01/#"
-START_TIME = time.time()
 
 
 def on_connect(client, userdata, flags, reason_code):
@@ -29,11 +28,13 @@ def on_message(client, userdata, message):
             userdata["can1_queue"].put(data)
         elif(message.topic.split("/")[-1] == "gps"):
             userdata["gps_queue"].put(data)
+        elif(message.topic.split("/")[-1] == "button"):
+            userdata["gps_queue"].put(data)
     except:
         print("subscriber mqtt error")
      
 
-def main(can0_queue,can1_queue,gps_queue):
+def main(can0_queue,can1_queue,gps_queue,button_queue):
 
     monitoring_client = mqtt.Client() 
 
@@ -41,6 +42,7 @@ def main(can0_queue,can1_queue,gps_queue):
         "can0_queue" : can0_queue,
         "can1_queue" : can1_queue,
         "gps_queue" : gps_queue,
+        "button_queue" : button_queue
     })
 
     print("프론트 실행 대기 중")
@@ -51,5 +53,5 @@ def main(can0_queue,can1_queue,gps_queue):
     monitoring_client.on_message = on_message
 
     monitoring_client.connect(BROKER_HOST, BROKER_PORT, 60)
-    monitoring_client.subscribe(TOPIC, qos= 2)  
+    monitoring_client.subscribe(TOPIC, qos= 0)  
     monitoring_client.loop_forever()

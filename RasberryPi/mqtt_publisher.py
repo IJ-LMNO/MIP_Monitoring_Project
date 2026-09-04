@@ -1,4 +1,3 @@
-
 import json
 import socket
 import threading
@@ -32,14 +31,14 @@ def on_disconnect(client, userdata, reason_code):
 
 def publish_worker(
     client,
-    data_queue,
+    queue,
     topic,
     telemetry_name,
 ):
     publish_count = 0
 
     while True:
-        data = data_queue.get()
+        data = queue.get()
 
         try:
             try:
@@ -110,13 +109,14 @@ def publish_worker(
                     time.sleep(1)
 
         finally:
-            data_queue.task_done()
+            queue.task_done()
 
 
 def main(
     can0_queue,
     can1_queue,
-    gps_queue
+    gps_queue,
+    button_queue
 ):
     client_id = f"car-01-publisher-{socket.gethostname()}"
 
@@ -153,6 +153,11 @@ def main(
             gps_queue,
             "vehicle/car_01/gps",
             "gps",
+        ),
+        (
+            button_queue,
+            "vehicle/car_01/button",
+            "button",
         ),
     ]
 
