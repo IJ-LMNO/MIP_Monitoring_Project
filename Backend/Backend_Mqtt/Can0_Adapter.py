@@ -1,7 +1,10 @@
 from collections import deque
+from Backend.FastAPI.FastAPI import get_can0_data
 import copy
 
-from Monitoring_Server.api.main import get_can0_data
+# =========================================================
+# 프론트로 전달할 can0 데이터 구조 -> 프론트에서 반드시 이 형식으로 받아야 함
+# =========================================================
 
 class can0_data_sturcture():
     def __init__(self):
@@ -29,16 +32,21 @@ class can0_data_sturcture():
            
         }
 
+
+# =========================================================
+# mqtt의 can0 queue에서 get해서 api의 dequeue로 넘기는 함수
+# =========================================================
+
 def main(queue):
-    can0_data = can0_data_sturcture()
+    can0_data_sturcture = can0_data_sturcture()
     while(True):
         try:
             latest = queue.get()
 
-            can0_data.can0["latest"].update(latest["latest"])
-            can0_data.can0["timestamp"] = latest["timestamp"]
+            can0_data_sturcture.can0["latest"].update(latest["latest"])
+            can0_data_sturcture.can0["timestamp"] = latest["timestamp"]
 
-            get_can0_data(copy.deepcopy(can0_data.can0))
+            get_can0_data(copy.deepcopy(can0_data_sturcture.can0))
 
         finally:
             queue.task_done()

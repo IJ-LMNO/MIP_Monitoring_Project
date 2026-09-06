@@ -2,46 +2,57 @@ from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi import WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from collections import deque
+from Backend.Backend_Mqtt.Backend_Mqtt_shared.shared_state import MQTT_event as MQTT_event
+
+
 import uvicorn
 import copy
 import threading as thread
 import asyncio
-from collections import deque
 import queue
-from pydantic import BaseModel
-
-from Logging_Service.main import race_start as race_start
-from Logging_Service.main import race_stop as race_stop
-from Logging_Service.main import race_reset as race_reset
-from Logging_Service.main import return_log as return_log
-from Monitoring_Server.mqtt.shared_state import MQTT_event as MQTT_event
 
 
 app = FastAPI()
 
 
-## 백엔드 자료구조 대시보드를 래핑한 데이터를 저장한 자료구조
+# =========================================================
+# 센서별 Adapter 파일에서 새로 래핑한 데이터 구조를 저장하는 dequeue
+# =========================================================
+
 dequeue_size = 10
 can0_dequeue = deque(maxlen=dequeue_size)
 can1_dequeue = deque(maxlen=dequeue_size)
 gps_dequeue = deque(maxlen=dequeue_size)
 button_dequeue = deque(maxlen=dequeue_size)
-##-------------------------------------------------
 
 
-## 상세보기 페이지를 위한 자료구조 ------------------------------------
+
+# =========================================================
+# 상세보기 페이지를 위한 dequeue
+# =========================================================
+
 can0_detail_dequeue = deque(maxlen = 6000)
 yawrate_detail_dequeue = deque(maxlen= 6000)
 desired_yawrate_detail_dequeue = deque(maxlen = 6000)
 rollrate_detail_dequeue = deque(maxlen = 6000)
 gps_detail_dequeue = deque(maxlen = 120)
-##---------------------------------------------------------------------
 
 
-## face up/down을 위한 자료구조 ---------------------------------------
-face_queue = queue.Queue()
-##--------------------------------------------------------------------
 
+
+# =========================================================
+# pace up / down mqtt 통신을 위해 프론트에서 들어오는 데이터를 저장하는 queue
+# =========================================================
+
+face_queue = deque(maxlen=dequeue_size)
+
+
+
+# =========================================================
+# 프론트와 백엔드 통신을 위한 middleware 설정
+# =========================================================
 
 origins = [
     "http://localhost:5173",
@@ -60,15 +71,22 @@ app.add_middleware(
 
 
 
-## common ------------------------------------------------------------------
-##--------------------------------------------------------------------------
 
+# =========================================================
+# 프론트에서 들어오는 데이터에 대한 BaseModel class
+# =========================================================
 
 class FrontendStartRequest(BaseModel):
     status : bool
 
 class FaceUpDownRequest(BaseModel):
     status : str
+
+
+
+# =========================================================
+# 다운로드를 위한 함수
+# =========================================================
 
 
 # @app.get("/race/latest/download")
@@ -84,6 +102,12 @@ class FaceUpDownRequest(BaseModel):
 #         return copy.deepcopy(latest_race)
 
 
+
+
+# =========================================================
+# 프론트의 race start / stop / reset을 처리하기 위한 함수
+# =========================================================
+
 @app.post("/race/start")
 def race_start_button():
     pass
@@ -98,15 +122,27 @@ def race_reset_button():
     pass
 
 
+
+# =========================================================
+# 프론트의 pace up / down를 처리하기 위한 함수
+# =========================================================
+
 @app.post("/face/up")
 def face_up(request : FaceUpDownRequest):
-    face_queue.put(request.status)
+    face_queue.put(request.status) ## Up, Hold, Down
 
 
 @app.post("/face/down")
 def face_down(request : FaceUpDownRequest):
-    face_queue.put(request.status)
+    face_queue.put(request.status) ## Up, Hold, Down
 
+
+
+
+# =========================================================
+# 프론트가 실행된걸 알리는 신호를 처리하는 함수
+#   -> 백로그 방지를 위해 프론트 - 백엔드 연결 후 백엔드 - 라즈베리파이 연결 구조 구현
+# =========================================================
 
 @app.post("/frontend/start")
 def frontend_start(request: FrontendStartRequest):
@@ -128,8 +164,6 @@ def frontend_start(request: FrontendStartRequest):
         return True
     else:
         return False
-##--------------------------------------------------------------------------
-##--------------------------------------------------------------------------
 
 
 
@@ -143,8 +177,10 @@ def frontend_start(request: FrontendStartRequest):
 
 
 
-## can0 // can0_detail  ----------------------------------------------------------------
-##--------------------------------------------------------------------------
+# =========================================================
+# can0 / can0 detail 처리 
+# =========================================================
+
 can0_asyncio_event = asyncio.Event()
 can0_event_loop = None
 @app.websocket("/telemetry/can0/ws")
@@ -229,8 +265,6 @@ async def can0_detial_page(websocket : WebSocket):
 
             if len(can0_detail_dequeue) == 0:
                 can0_detail_asyncio_event.clear()
-##--------------------------------------------------------------------------
-##--------------------------------------------------------------------------
 
 
 
@@ -239,15 +273,9 @@ async def can0_detial_page(websocket : WebSocket):
 
 
 
-
-
-
-
-
-
-
-## gps----------------------------------------------------------------------------------
-##--------------------------------------------------------------------------
+# =========================================================
+# gps / gps detail 처리 
+# =========================================================
 gps_asyncio_event = asyncio.Event()
 gps_event_loop = None
 @app.websocket("/telemetry/gps/ws")
@@ -321,8 +349,6 @@ async def gps_detial_page(websocket : WebSocket):
 
             if len(gps_detail_dequeue) == 0:
                 gps_detail_asyncio_event.clear()
-##--------------------------------------------------------------------------
-##--------------------------------------------------------------------------
 
 
 
@@ -330,18 +356,10 @@ async def gps_detial_page(websocket : WebSocket):
 
 
 
+# =========================================================
+# can1 처리
+# =========================================================
 
-
-
-
-
-
-
-
-
-
-## can1-----------------------------------------------------------------------
-##--------------------------------------------------------------------------
 can1_asyncio_event = asyncio.Event()
 can1_event_loop = None
 @app.websocket("/telemetry/can1/ws")
@@ -382,6 +400,10 @@ async def can1_ws_endpoint(websocket: WebSocket):
 
 
 
+
+# =========================================================
+# yawrate / desired-yawrate detail 처리
+# =========================================================
 
 yawrate_lock = thread.Lock()
 yawrate_detail_asyncio_event = asyncio.Event()
@@ -444,6 +466,9 @@ async def yawrate_detial_page(websocket : WebSocket):
 
 
 
+# =========================================================
+# rolrate detail 처리
+# =========================================================
 
 rollrate_lock = thread.Lock()
 rollrate_detail_asyncio_event = asyncio.Event()
@@ -489,8 +514,6 @@ async def rollrate_detial_page(websocket : WebSocket):
 
             if len(rollrate_detail_dequeue) == 0:
                 rollrate_detail_asyncio_event.clear()
-##--------------------------------------------------------------------------
-##--------------------------------------------------------------------------
 
 
 
@@ -499,17 +522,13 @@ async def rollrate_detial_page(websocket : WebSocket):
 
 
 
-
-
-
-
-
-## button  ----------------------------------------------------------------
-##--------------------------------------------------------------------------
+# =========================================================
+# button 처리 
+# =========================================================
 button_asyncio_event = asyncio.Event()
 button_event_loop = None
 @app.websocket("/telemetry/button/ws")
-async def can1_ws_endpoint(websocket: WebSocket):
+async def button_ws_endpoint(websocket: WebSocket):
     global button_event_loop
 
     await websocket.accept()
@@ -535,10 +554,8 @@ async def can1_ws_endpoint(websocket: WebSocket):
 
                 button_dequeue_len -= 1
 
-            if len(can1_dequeue) == 0:
+            if len(button_dequeue) == 0:
                 button_asyncio_event.clear()
-##--------------------------------------------------------------------------
-##--------------------------------------------------------------------------
 
 
 
@@ -550,8 +567,10 @@ async def can1_ws_endpoint(websocket: WebSocket):
 
 
 
-##  get can0 / can1 / gps-------------------------------------------------------------------
-##--------------------------------------------------------------------------
+
+# =========================================================
+# get can0 
+# =========================================================
 def get_can0_data(data):
     can0_dequeue.append(data)
 
@@ -570,6 +589,9 @@ def get_can0_data(data):
 
 
 
+# =========================================================
+# get gps
+# =========================================================
 
 def get_gps_data(data):
     gps_dequeue.append(data)
@@ -590,6 +612,9 @@ def get_gps_data(data):
 
 
 
+# =========================================================
+# get can1
+# =========================================================
 def get_can1_data(data):
     can1_dequeue.append(data)
 
@@ -615,6 +640,9 @@ def get_can1_data(data):
         )
 
 
+# =========================================================
+# get button
+# =========================================================
 
 def get_button_data(data):
     button_dequeue.append(data)
@@ -623,11 +651,13 @@ def get_button_data(data):
         button_event_loop.call_soon_threadsafe(
             button_asyncio_event.set
         )
-##--------------------------------------------------------------------------
-##--------------------------------------------------------------------------
 
 
 
+
+# =========================================================
+# FastAPI main
+# =========================================================
 
 def main():
     uvicorn.run(

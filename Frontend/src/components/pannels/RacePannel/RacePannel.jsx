@@ -1,15 +1,15 @@
 import "./RacePannel.css"
 
-function RacePannel({ record }) {
+function RacePannel({ button }) {
 
     const make_pannel = () => {
-        return record.map((value, index) => {
+        return button["history"].map((value, index) => {
             return (
                 <div
                     className="race-rap-pannel"
                     key={index}
                 >
-
+                    {value[0]}
                 </div>
             )
         })
@@ -17,7 +17,7 @@ function RacePannel({ record }) {
 
     return (
         <div className="race-pannel-row">
-            {/* {make_pannel()} */}
+            {make_pannel()}
         </div>
     )
 }

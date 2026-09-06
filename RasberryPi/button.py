@@ -1,6 +1,8 @@
 from gpiozero import Button
 import time
 import threading
+import queue
+import copy
 
 
 # GPIO buttons
@@ -14,7 +16,10 @@ toggle = 0
 count = 0
 previous_time = None
 time_interval = None
-queue = None
+queue_for_mqtt = None
+queue_for_display = None
+prev_rap = -1
+rap_count = -1
 data = {
     "time_interval" : None,
     "rap" : None
@@ -23,9 +28,12 @@ data = {
 _lock = threading.Lock()
 
 
-def init(button_queue):
-    global queue
-    queue = button_queue
+def init(button_queue, button_queue_for_display):
+    global queue_for_mqtt
+    global queue_for_display
+    global rap_count
+    queue_for_mqtt = button_queue
+    queue_for_display = button_queue_for_display
 
 
 def _left_pressed():
@@ -41,19 +49,35 @@ def _right_pressed():
     global previous_time
     global time_interval
     global count
+    global prev_rap
 
     current_time = time.monotonic()
+
+    print("press")
 
     with _lock:
         count = 1
 
         if previous_time is not None:
             time_interval = current_time - previous_time
-            data["time_interval"] = time_interval
 
-            queue.put(data)
+            data["time_interval"] = time_interval
+            cur_rap = prev_rap + 1
+            rap_count += 1
+            prev_rap = cur_rap
+
+            data["rap"] = cur_rap
+
+            snapshot = copy.deepcopy(data)
+
 
         previous_time = current_time
+
+    if data["time_interval"] is None :
+        return
+
+    queue_for_mqtt.put(copy.deepcopy(snapshot))
+    queue_for_display.put(copy.deepcopy(snapshot))
 
 
 def _right_released():
@@ -68,6 +92,12 @@ def _right_released():
 left_b.when_pressed = _left_pressed
 right_b.when_pressed = _right_pressed
 right_b.when_released = _right_released
+
+def get_lap_snapshot():
+    global prev_rap
+    """Return a consistent snapshot of the latest completed lap."""
+    with _lock:
+        return prev_rap+1, time_interval
 
 
 def get_interval():

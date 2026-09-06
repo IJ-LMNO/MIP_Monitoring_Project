@@ -5,14 +5,20 @@ import time
 
 import paho.mqtt.client as mqtt
 
-BROKER_HOST = "100.84.183.9"
+#  "100.70.221.71"
+#  "127.0.0.1"
+BROKER_HOST = "100.70.221.71"
 BROKER_PORT = 1883
 KEEPALIVE = 60
 QOS = 0
-
-
 mqtt_connected = threading.Event()
 
+
+
+
+# =========================================================
+# mqtt on_connect, on_disconnect 오버라이딩
+# =========================================================
 
 def on_connect(client, userdata, flags, reason_code):
     if reason_code == 0:
@@ -26,6 +32,15 @@ def on_connect(client, userdata, flags, reason_code):
 def on_disconnect(client, userdata, reason_code):
     mqtt_connected.clear()
     print(f"[MQTT] 연결 해제: {reason_code}")
+
+
+
+
+
+
+# =========================================================
+# data_queue에서 데이터를 get해서 publish하는 함수 : 발생할 수 있는 예외처리 포함
+# =========================================================
 
 def publish_worker(
     client,
@@ -85,6 +100,13 @@ def publish_worker(
             data_queue.task_done()
 
 
+
+
+
+# =========================================================
+# backend mqtt publisher main
+# =========================================================
+
 def main(
     faceup_queue
 ):
@@ -105,6 +127,7 @@ def main(
         keepalive=KEEPALIVE
     )
 
+    client.loop_start()
 
     publisher_configs = [
         (
@@ -116,7 +139,7 @@ def main(
 
     thread = []
     for data_queue, topic, name in publisher_configs:
-        woker = threading.thread(
+        woker = threading.Thread(
             name = f"mqtt-{name}",
             target = publish_worker,
             args = (client, data_queue, topic, name)

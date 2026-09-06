@@ -1,11 +1,15 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import MiniLineChart_for_detail from "../../../components/common/MinLineChart_for_detail/MiniLineChart_for_detail"
-import GpsPannel from "../../../components/panels/GpsMapPannel/GpsMapPannel_for_detail"
+import GpsPannel from "../../../components/pannels/GpsMapPannel/GpsMapPannel_for_detail"
 
 import "./PowerStatusDetailPage.css"
 
 function PowerStatusDetailPage(){
 
+
+    //--------------------------------------------------------------------------------------
+    // can0
+    //--------------------------------------------------------------------------------------- 
     const [can0, setCan0] = useState({
         history: {
             current_right: [],
@@ -14,6 +18,10 @@ function PowerStatusDetailPage(){
         },
     });
 
+
+    //--------------------------------------------------------------------------------------
+    // gps
+    //--------------------------------------------------------------------------------------- 
     const [gps, setGps] = useState({
         "latest": {
             "latitude": 0.0,
@@ -24,53 +32,101 @@ function PowerStatusDetailPage(){
         "timestamp" : null
     });
 
-    const [error, setError] = useState(null);
     
-    const[idx, setIdx] = useState({
+
+
+    //--------------------------------------------------------------------------------------
+    // 차트위에 마우스를 올리면 해당 좌표에 해당하는 상태를 저장하는 state
+    //  -> type : red , blue, green (차트의 색으로 차트를 구분)
+    //  -> idx : 특정 차트의 마우스 좌표에 매핑되는 인덱스
+    //--------------------------------------------------------------------------------------- 
+    const[mouseoveridx, setMouseoveridx] = useState({
         "type" : null,
         "idx" : null
-    }) // 마우스 올리면 현재 마우스의 좌표에 대응하는 그래프 인덱스
+    })
 
-    const first_telemetry = useRef(false)
-    const [type, setType] = useState("None")
-    const[can0FirstLast, setCan0FirstLast] = useState({
+
+
+
+    //--------------------------------------------------------------------------------------
+    // 특정 차트위에 마우스를 올리면 해당 마우스 좌표에 해당하는 인덱스가 어떤 시간 사이에 존재하는지를 저장하는 state
+    // 차트위에 마우스를 올림 -> 인덱스 반환 -> 인덱스에 해당하는 데이터가 사이에 존재하는 두 timestamp 반환(해당 데이터 저장)
+    // -> gps pannel와 state 공유 -> gps 패널에서 두 timestamp 사이에 있는 데이터를 선으로 이음
+    //
+    //  -> first_timestamp : 특정 데이터가 사이에 존재하는 두 시간 축 중 앞선 timestamp
+    //  -> last_timestamp : 특정 데이터가 사이에 존재하는 두 시간 축 중 뒤에 있는 timestamp
+    //--------------------------------------------------------------------------------------- 
+    const[mouseovertimestamp, setMouseovertimestamp] = useState({
         "first_timestamp" : null,
         "last_timestamp" : null
-    }) // 마우스를 올린 좌표에 해당하는 인덱스가 그래프에서 어떤 시간 사이에 존재하는지에 대한 state
+    })
 
+
+    //--------------------------------------------------------------------------------------
+    // gps components로 현재 들어가는 데이터의 종류를 저장해 components 내부에서 로직 분기에 사용하는 state
+    //  None : 최초에 아무 데이터도 받지 않은 상황
+    //  arr : 백과의 최초 연결 후 배열을 받은 상황 
+    //  latest : 최초 연결 이후 ws연결로 데이터가 하나씩 들어오는 상황
+    //--------------------------------------------------------------------------------------- 
+    const [typeofinsertGpsPannel, setTypeofinsertGpsPannel] = useState("None")
+
+
+
+
+    //--------------------------------------------------------------------------------------
+    // detail페이지는 최초에는 http 이후에는 ws로 백과 통신하기 때문에 어떤 연결을 유지해야하는지 저장하는 Ref
+    //  -> false : http연결(최초 연결)
+    //  -> true : ws연결(최최 연결 성공 후 데이터 하나씩 받기위한 연결)
+    //--------------------------------------------------------------------------------------- 
+    const first_telemetry = useRef(false)
+    
+
+    //--------------------------------------------------------------------------------------
+    // error
+    //--------------------------------------------------------------------------------------- 
+    const [err, setError] = useState(null)
+
+
+
+
+
+
+    //--------------------------------------------------------------------------------------
+    // const[idx, setIdx] = useState에 따른 데이터를 화면에 표시하기 위한 함수
+    //--------------------------------------------------------------------------------------- 
     function returnValue(){
-        if(idx.type === "blue"){
-            if(idx.idx < 0 || idx.idx >= can0.history.current_left.length){
+        if (mouseoveridx.type === "blue"){
+            if (mouseoveridx.idx < 0 || mouseoveridx.idx >= can0.history.current_left.length){
                 return null
             }
             else{
                 return(
                     
-                    can0.history.current_left[idx.idx][0]
+                    can0.history.current_left[mouseoveridx.idx][0]
                     
                 )
             }
         }
-        else if (idx.type === "red") {
-            if (idx.idx < 0 || idx.idx >= can0.history.current_right.length) {
+        else if (mouseoveridx.type === "red") {
+            if (mouseoveridx.idx < 0 || mouseoveridx.idx >= can0.history.current_right.length) {
                 return null
             }
             else {
                 return (
                     
-                    can0.history.current_right[idx.idx][0]
+                    can0.history.current_right[mouseoveridx.idx][0]
                     
                 )
             }
         }
-        else if (idx.type === "green") {
-            if (idx.idx < 0 || idx.idx >= can0.history.avg_power.length) {
+        else if (mouseoveridx.type === "green") {
+            if (mouseoveridx.idx < 0 || mouseoveridx.idx >= can0.history.avg_power.length) {
                 return null
             }
             else {
                 return (
                     
-                        can0.history.avg_power[idx.idx][0]
+                    can0.history.avg_power[mouseoveridx.idx][0]
                     
                 )
             }
@@ -78,10 +134,13 @@ function PowerStatusDetailPage(){
     }
 
 
+
+
+
     useEffect(() => {
         let timer = null 
     
-        const start_telemetry = async () => {
+        const telemetry = async () => {
             let current_right_arr = []
             let current_left_arr = []
             let avg_power_arr = []
@@ -131,19 +190,18 @@ function PowerStatusDetailPage(){
                             }
                         })
 
-                        setType("arr")
+                        setTypeofinsertGpsPannel("arr")
                         first_telemetry.current = true
 
-                        start_telemetry()
-
+                        telemetry()
                     }
                     else{
-                        timer = setTimeout(start_telemetry, 1000)
+                        timer = setTimeout(telemetry, 1000)
                     }
 
                 } catch (err) {
                     setError(err)
-                    timer = setTimeout(start_telemetry, 1000)
+                    timer = setTimeout(telemetry, 1000)
                 }
             }else{
                 console.log("두번째 로직 시작")
@@ -195,7 +253,7 @@ function PowerStatusDetailPage(){
                         })
                     })
 
-                    setType("latest")
+                    setTypeofinsertGpsPannel("latest")
                 })
 
                 ws_can0.onclose = (event) => {
@@ -218,7 +276,7 @@ function PowerStatusDetailPage(){
 
         }
 
-        start_telemetry()
+        telemetry()
 
         return(() => {
             clearInterval(timer)
@@ -236,8 +294,8 @@ function PowerStatusDetailPage(){
                         color="blue"
                         min={0}
                         max={100}
-                        setIdx={setIdx}
-                        setCan0FirstLast={setCan0FirstLast}
+                        setMouseoveridx={setMouseoveridx}
+                        setMouseovertimestamp={setMouseovertimestamp}
                     />
                 </div>
                 <div className="powerstatus-detail-page-chart-current-r">
@@ -246,8 +304,8 @@ function PowerStatusDetailPage(){
                         color="red"
                         min={0}
                         max={100}
-                        setIdx={setIdx}
-                        setCan0FirstLast={setCan0FirstLast}
+                        setMouseoveridx={setMouseoveridx}
+                        setMouseovertimestamp={setMouseovertimestamp}
                     />
                 </div>
                 <div className="powerstatus-detail-page-chart-avg-power">
@@ -256,15 +314,15 @@ function PowerStatusDetailPage(){
                         color="green"
                         min={0}
                         max={15}
-                        setIdx={setIdx}
-                        setCan0FirstLast={setCan0FirstLast}
+                        setMouseoveridx={setMouseoveridx}
+                        setMouseovertimestamp={setMouseovertimestamp}
                     />
                 </div>
             </div>
 
             <div className="powerstatus-detail-page-gps-and-value">
                 <div className="powerstatus-detail-page-gps">
-                    <GpsPannel gps={gps} type={type} can0FirstLast={can0FirstLast} />
+                    <GpsPannel gps={gps} typeofinsertGpsPannel={typeofinsertGpsPannel} mouseovertimestamp={mouseovertimestamp} />
                 </div>
                 <div className="powerstatus-detail-page-value">
                     {returnValue()}

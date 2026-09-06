@@ -16,16 +16,11 @@ QUEUE_MAX_SIZE = 10
 can0_queue = queue.Queue(maxsize=QUEUE_MAX_SIZE)
 can1_queue = queue.Queue(maxsize=QUEUE_MAX_SIZE)
 gps_queue = queue.Queue(maxsize=QUEUE_MAX_SIZE)
-button_queue = queue.Queue(maxsize=QUEUE_MAX_SIZE)
+button_queue_for_mqtt = queue.Queue(maxsize=QUEUE_MAX_SIZE)
+button_queue_for_display = queue.Queue(maxsize=QUEUE_MAX_SIZE)
 
-face_lock = threading.Lock()
-
-face_status = {
-    "status" : "hold"
-}
-
-
-
+pace_lock = threading.Lock()
+pace_queue = queue.Queue()
 
 def main():
     threads = [
@@ -36,7 +31,7 @@ def main():
                 can0_queue,
                 can1_queue,
                 gps_queue,
-                button_queue
+                button_queue_for_mqtt
             ),
             daemon=True,
         ),
@@ -65,14 +60,7 @@ def main():
         threading.Thread(
             name = "mqtt-subscriber",
             target=mqtt_subscriber,
-            args=(face_status, face_lock),
-            daemon =True
-        ),
-
-        threading.Thread(
-            name = "display",
-            target=display,
-            args=(face_status, face_lock),
+            args=(pace_queue,),
             daemon =True
         )
     ]
@@ -81,11 +69,11 @@ def main():
         print(f"[MAIN] 스레드 시작: {worker.name}")
         worker.start()
 
-    button_init(button_queue)
+
+    button_init(button_queue_for_mqtt, button_queue_for_display)
 
     try:
-        for worker in threads:
-            worker.join()
+        display(button_queue_for_display, pace_queue)
 
     except KeyboardInterrupt:
         print("\n[MAIN] 프로그램을 종료합니다.")

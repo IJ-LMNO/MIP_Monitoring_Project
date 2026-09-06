@@ -6,8 +6,8 @@ function CarStatusPannel({tiredegree, steeringhandle, leftTorque, rightTorque}) 
 
     const curstreeinghandle = steeringhandle?.latest ?? 0;
 
-    const curleftTorque = leftTorque?.latest ?? 0;
-    const currightTorque = rightTorque?.latest ?? 0;
+    const curleftTorque = leftTorque ?? 0;
+    const currightTorque = rightTorque ?? 0;
 
     return (
         <div className="carstatus-pannel">
@@ -96,12 +96,12 @@ function CarStatusPannel({tiredegree, steeringhandle, leftTorque, rightTorque}) 
 
             <div className="torque torque-left">
                 <div style={{fontSize : "16px"}}>Left_Torque</div>
-                {leftTorque}Nm
+                {curleftTorque}Nm
             </div>
 
             <div className="torque torque-right">
                 <div style={{fontSize : "16px"}}>Right_Torque</div>
-                {rightTorque}Nm
+                {currightTorque}Nm
             </div>
         </div>
     );

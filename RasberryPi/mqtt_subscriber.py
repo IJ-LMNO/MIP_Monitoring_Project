@@ -25,8 +25,7 @@ def on_message(client, userdata, message):
     data = message.payload.decode("utf-8")
 
     if message.topic.split("/")[-1] == "face":
-        with userdata["face_lock"]:
-            userdata["face_status"]["status"] = data
+        userdata["pace_queue"].put(data)
 
 
 def on_disconnect(
@@ -39,7 +38,7 @@ def on_disconnect(
     print(f"[MQTT] subscriber 연결 종료: {reason_code}")
 
 
-def main(face_status, face_lock):
+def main(pace_queue):
 
     client = mqtt.Client(
         callback_api_version=mqtt.CallbackAPIVersion.VERSION2
@@ -47,8 +46,7 @@ def main(face_status, face_lock):
 
     # callback에서 사용할 데이터 등록
     client.user_data_set({
-        "face_status": face_status,
-        "face_lock" : face_lock
+        "pace_queue": pace_queue,
     })
 
     # callback 등록

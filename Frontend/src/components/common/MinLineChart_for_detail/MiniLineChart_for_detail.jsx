@@ -19,6 +19,8 @@ function MiniLineChart({
 
     const emptyCount = maxLength - data.length;
     let prevTimestamp = null
+
+    
     verticalLinearr.length = 0
     timestamparr.length = 0
 
@@ -43,7 +45,6 @@ function MiniLineChart({
         })
         .join(" ");
 
-    console.log(verticalLinearr)
 
 
     const handleMouseMove = (event) => {

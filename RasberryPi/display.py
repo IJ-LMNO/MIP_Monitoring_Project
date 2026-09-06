@@ -6,16 +6,25 @@ import threading
 import sys
 import math
 import time
+import queue
 import can
-import button_optimized as button
+import button
 
 
 class MyClock(QtWidgets.QWidget):
 
-    def __init__(self):
+    def __init__(self, button_queue, pace_queue):
         super().__init__()
 
         self.setFixedSize(1280, 400)
+
+        # Data exchanged with the main MQTT threads.
+        self.button_queue = button_queue
+        self.pace_queue = pace_queue
+        self.last_published_rap = 0
+        self.last_face_status = None
+        self.cur_pace = "hold"
+        self.last_displayed_rap = -1
 
         # ==========================================
         # Shared CAN data
@@ -51,7 +60,7 @@ class MyClock(QtWidgets.QWidget):
         self.image_label = QLabel(self)
         self.image_label.setGeometry(0, 0, 1280, 400)
 
-        pixmap = QPixmap("test1.png")
+        pixmap = QPixmap("test6.png")
         self.image_label.setPixmap(pixmap)
 
         # ==========================================
@@ -122,7 +131,30 @@ class MyClock(QtWidgets.QWidget):
         )
         self.inter.setGeometry(550, 250, 300, 100)
         self.inter.setAlignment(QtCore.Qt.AlignCenter)
-        self.inter.setText("0.000")
+        self.inter.setText("0.00")
+
+        # ==========================================
+        # Rap count
+        # ==========================================
+
+        self.rap = QLabel(self)
+        self.rap.setStyleSheet(
+            'color: white; '
+            'font-size: 50px; '
+            'font-weight: bold;'
+        )
+        self.rap.setGeometry(850, 280, 260, 80)
+        self.rap.setAlignment(QtCore.Qt.AlignCenter)
+        self.rap.setText("RAP 0")
+
+        # ==========================================
+        # Face pace indicator
+        # ==========================================
+
+        self.face_indicator = QLabel(self)
+        self.face_indicator.setGeometry(560, 10, 160, 130)
+        self.face_indicator.setAlignment(QtCore.Qt.AlignCenter)
+        self.set_face_indicator("hold")
 
         # ==========================================
         # CAN / GUI timer
@@ -257,6 +289,27 @@ class MyClock(QtWidgets.QWidget):
         self.display_timer.timeout.connect(self.update_display)
         self.display_timer.start(50)
 
+    def set_face_indicator(self, status):
+        """Convert the received face state into a dashboard symbol."""
+        normalized = str(status).strip().lower()
+
+        if normalized in {"up", "face up", "face_up", "face-up"}:
+            symbol = "↑"
+            color = "lime"
+        elif normalized in {"down", "face down", "face_down", "face-down"}:
+            symbol = "↓"
+            color = "red"
+        else:
+            symbol = "—"
+            color = "white"
+
+        self.face_indicator.setText(symbol)
+        self.face_indicator.setStyleSheet(
+            f'color: {color}; '
+            'font-size: 110px; '
+            'font-weight: bold;'
+        )
+
     # ==========================================
     # GUI update
     # ==========================================
@@ -372,14 +425,38 @@ class MyClock(QtWidgets.QWidget):
         # Button interval
         # ==========================================
 
-        interval = button.get_interval()
+        try:
+            data = self.button_queue.get_nowait()
 
-        if interval is not None:
-            interval_text = f"{interval:.3f}"
+            if (
+                data["time_interval"] is not None
+                and data["rap"] > self.last_displayed_rap
+            ):
+                interval_text = f'{data["time_interval"]:.2f}'
 
-            if interval_text != self.last_interval_text:
-                self.inter.setText(interval_text)
-                self.last_interval_text = interval_text
+                if interval_text != self.last_interval_text:
+                    self.inter.setText(interval_text)
+                    self.last_interval_text = interval_text
+
+                self.rap.setText(f'RAP {data["rap"]}')
+
+                self.last_displayed_rap = data["rap"]
+
+        except queue.Empty:
+            pass 
+
+        # ==========================================
+        # face up and down
+        # ==========================================
+
+        try:
+            self.cur_pace = self.pace_queue.get_nowait()
+            print(self.cur_pace)
+            self.set_face_indicator(self.cur_pace)
+
+        except queue.Empty:
+            pass    
+
 
     # ==========================================
     # Close
@@ -400,14 +477,21 @@ class MyClock(QtWidgets.QWidget):
 # ==========================================
 # Main
 # ==========================================
-def main(face_status, face_lock):
+def main(button_queue, pace_queue):
     app = QtWidgets.QApplication(sys.argv)
-    window = MyClock()
-    sys.exit(app.exec_())
+    window = MyClock(button_queue, pace_queue)
+    return app.exec_()
 
 
 
 if __name__ == '__main__':
+    standalone_button_queue = queue.Queue()
+    standalone_face_status = {"status": "hold"}
+    standalone_face_lock = threading.Lock()
     app = QtWidgets.QApplication(sys.argv)
-    window = MyClock()
+    window = MyClock(
+        standalone_button_queue,
+        standalone_face_status,
+        standalone_face_lock,
+    )
     sys.exit(app.exec_())

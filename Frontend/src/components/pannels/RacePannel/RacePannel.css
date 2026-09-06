@@ -1,4 +1,4 @@
-.race-pannel-row{
+.race-pannel-row {
     height: 100%;
 
     display: flex;
@@ -8,13 +8,15 @@
     border: 1px solid #374151;
     border-radius: 6px;
 
-    justify-content: center;
     align-items: center;
 
     color: white;
+    overflow-y: auto;
 }
 
-.race-rap-pannel{
-    width: 10%;
-    
+.race-rap-pannel {
+    width: 90%;
+    height: 40px;
+    flex-shrink: 0;
+    color: white;
 }

@@ -1,18 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 
-import PowerStatusPanel from "../../components/panels/PowerStatusPanel/PowerStatusPannel_for_mqtt";
-import SpeedStatusPanel from "../../components/panels/SpeedStatusPanel/SpeedStatusPannel_for_mqtt";
-import YawRatePanel from "../../components/panels/YawRateRanel/YawRatepannel_for_mqtt";
-import BatteryStatusPaneel from "../../components/panels/BatteryStatusPanel/BatteryStatusPannel_for_mqtt";
-import RollRatePannel from "../../components/panels/RollRateStatusPannel/RollRateStatusPannel_for_mqtt";
-import CarStatusPannel from "../../components/panels/CarStatusPannel/CarStatusPannel_for_mqtt";
-import RaceButton from "../../components/panels/RaceControlButton/Button";
+import PowerStatusPannel from "../../components/pannels/PowerStatusPannel/PowerStatusPannel_for_mqtt";
+import SpeedStatusPannel from "../../components/pannels/SpeedStatusPannel/SpeedStatusPannel_for_mqtt";
+import YawRatePannel from "../../components/pannels/YawRateRannel/YawRatepannel_for_mqtt";
+import BatteryStatusPannel from "../../components/pannels/BatteryStatusPannel/BatteryStatusPannel_for_mqtt";
+import RollRatePannel from "../../components/pannels/RollRateStatusPannel/RollRateStatusPannel_for_mqtt";
+import CarStatusPannel from "../../components/pannels/CarStatusPannel/CarStatusPannel_for_mqtt";
+import RaceButton from "../../components/pannels/RaceControlButton/Button";
 import Timer from "../../components/common/Timer/Timer";
-import RpmPannel from "../../components/panels/RpmStatusPannel/RpmStatusPannel_for_mqtt";
-import GpsMaPPannel from "../../components/panels/GpsMapPannel/GpsMapPannel_for_Mqtt";
-import DropdownMenu from "../../components/panels/DropdownMenu/DropdownMenu";
-import FaceButton from "../../components/panels/FaceButton/FaceButton";
-import RacePannel from "../../components/panels/RacePannel/RacePannel"
+import RpmPannel from "../../components/pannels/RpmStatusPannel/RpmStatusPannel_for_mqtt";
+import GpsMaPPannel from "../../components/pannels/GpsMapPannel/GpsMapPannel_for_Mqtt";
+import DropdownMenu from "../../components/pannels/DropdownMenu/DropdownMenu";
+import FaceButton from "../../components/pannels/FaceButton/FaceButton";
+import RacePannel from "../../components/pannels/RacePannel/RacePannel"
 
 import "./Dashboard.css";
 
@@ -20,11 +20,9 @@ const API_BASE_URL = "ws://localhost:8000";
 
 function Dashboard() {
 
-
-
-
-    //state-------------------------------------------------------------------------------------
-    //----------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------------
+    // can0 
+    //---------------------------------------------------------------------------------------
     const [can0, setCan0] = useState({
         latest: {
             avg_rpm: 0.0,
@@ -55,6 +53,13 @@ function Dashboard() {
         timestamp : null
     });
 
+
+
+
+
+    //--------------------------------------------------------------------------------------
+    // can1 (tps, desired_yawrate, yawrate, steeringhandle, tiredegree)
+    //---------------------------------------------------------------------------------------
     const [tps, setTps] = useState({
         latest: 0.0,
         history: [],
@@ -67,15 +72,6 @@ function Dashboard() {
         timestamp: null
     });
 
-    const [gps, setGps] = useState({
-        latest: {
-            latitude: 0.0,
-            longitude: 0.0,
-        },
-        history: [],
-        timestamp : null
-
-    });
 
     const [yawrate, setYawrate] = useState({
         latest: 0.0,
@@ -101,30 +97,81 @@ function Dashboard() {
         timestamp: null
     });
 
+
+
+
+
+    //--------------------------------------------------------------------------------------
+    // gps
+    //---------------------------------------------------------------------------------------
+    const [gps, setGps] = useState({
+        latest: {
+            latitude: 0.0,
+            longitude: 0.0,
+        },
+        history: [],
+        timestamp: null
+
+    });
+
+
+
+
+
+    //--------------------------------------------------------------------------------------
+    // button 
+    //---------------------------------------------------------------------------------------
+    const [button, setButton] = useState(
+        {
+            latest: {
+                "time_interval": null,
+                "rap": null
+            },
+            history: []
+        }
+    )
+
+
+
+
+
+    //--------------------------------------------------------------------------------------
+    // race start / stop / reset 상태 갱신을 위한 state
+    //---------------------------------------------------------------------------------------
     const [racestart, setRacestart] = useState({
         start: false,
         reset: false,
     });
 
-    const [elapsedMs, setElapsedMs] = useState(0);
-    const [error, setError] = useState(null);
 
+
+
+    //--------------------------------------------------------------------------------------
+    // race start button에 따른 Timer 갱신을 위한 state
+    //---------------------------------------------------------------------------------------
+    const [elapsedMs, setElapsedMs] = useState(0);
+
+
+    
+
+
+    //--------------------------------------------------------------------------------------
+    // pace button에 따른 상태 갱신을 위한 state 
+    //  -> Hold, Up, Down
+    //---------------------------------------------------------------------------------------
     const [face, setFace] = useState({
         state : "Hold" // Hold, Up, Down
     })
 
-    const[record, setRecord] = useState([])
-    const[button, setButton] = useState(
-        {
-            latest : {
-                "time_interval" : null,
-                "rap" : null
-            },
-            history : []
-        }
-    )
-    //----------------------------------------------------------------------------------------
-    //----------------------------------------------------------------------------------------
+
+
+
+
+
+    //--------------------------------------------------------------------------------------
+    // error 갱신을 위한 state
+    //---------------------------------------------------------------------------------------
+    const [error, setError] = useState(null);
 
 
 
@@ -134,32 +181,40 @@ function Dashboard() {
 
 
 
-
-
-
-
-
-// useEffect ---------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------
+// useEffect
 //---------------------------------------------------------------------------------------
     useEffect(() => {
+
+        //--------------------------------------------------------------------------------------
+        // stopped : useEffect close시 함수 정리를 위한 변수
+        // initial_check_front_back_telemetry : 프론트와 백이 연결되었는지 체크하기 위한 변수
+        // intial_check_time : 프론트와 백간의 연결이 성공하지 못했을떄, 다음 시도까지의 시간
+        // timer : ?
+        //---------------------------------------------------------------------------------------       
         let stopped = false;
+        let inital_check_front_back_telemetry = false
         let timer = null;
+        const initial_check_time = 10000;
 
-        let can0 = null;
-        let can1 = null;
+
+        //--------------------------------------------------------------------------------------
+        // websocket을 위한 변수
+        //--------------------------------------------------------------------------------------- 
+        let can0_ws = null;
+        let can1_ws = null;
         let gps_ws = null;
-        let btn = null;
+        let btn_ws = null;
 
-        const initial_check_time = 100;
 
-        const start = async () => {
+        const telemetry = async () => {
 
-            while (!stopped) {
+            while (!inital_check_front_back_telemetry) {
 
                 const first_response = await frontend_start();
 
                 if (first_response === true) {
-                    break;
+                    inital_check_front_back_telemetry = true
                 }
 
                 await new Promise((resolve) => {
@@ -171,11 +226,15 @@ function Dashboard() {
                 return;
             }
 
-            can0 = new WebSocket(
+
+            //--------------------------------------------------------------------------------------
+            // websocket 객체 생성
+            //--------------------------------------------------------------------------------------- 
+            can0_ws = new WebSocket(
                 `${API_BASE_URL}/telemetry/can0/ws`
             );
 
-            can1 = new WebSocket(
+            can1_ws = new WebSocket(
                 `${API_BASE_URL}/telemetry/can1/ws`
             );
 
@@ -183,16 +242,20 @@ function Dashboard() {
                 `${API_BASE_URL}/telemetry/gps/ws`
             );
 
-            btn = new WebSocket(
+            btn_ws = new WebSocket(
                 `${API_BASE_URL}/telemetry/button/ws`
             );
 
-            //can0 websocket
-            can0.onopen = () => {
+            
+
+            //--------------------------------------------------------------------------------------
+            // can0 websocket
+            //--------------------------------------------------------------------------------------- 
+            can0_ws.onopen = () => {
                 console.log("can0 websocket 연결됨");
             };
 
-            can0.onmessage = (event) => {
+            can0_ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
 
                 setCan0((prev) => {
@@ -221,17 +284,23 @@ function Dashboard() {
                 });
             };
 
-            can0.onclose = (event) => {
+            can0_ws.onclose = (event) => {
                 console.log("can0 통신 종료");
             };
 
 
-            //can1 websocket
-            can1.onopen = () => {
+
+
+
+
+            //--------------------------------------------------------------------------------------
+            // can1 websocket
+            //--------------------------------------------------------------------------------------- 
+            can1_ws.onopen = () => {
                 console.log("can1 websocket 연결됨");
             };
 
-            can1.onmessage = (event) => {
+            can1_ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
 
                 setTps((prev) => {
@@ -301,12 +370,19 @@ function Dashboard() {
                 });
             };
 
-            can1.onclose = (event) => {
+            can1_ws.onclose = (event) => {
                 console.log("can1 통신 종료", event.code);
             };
 
 
-            //gps websocket
+            
+
+
+
+
+            //--------------------------------------------------------------------------------------
+            // gps websocket
+            //--------------------------------------------------------------------------------------- 
             gps_ws.onopen = () => {
                 console.log("gps websocket 연결됨 : ");
             };
@@ -334,32 +410,48 @@ function Dashboard() {
             };
 
 
-            //button websocket
-            btn.onopen = () => {
+
+
+
+
+
+            //--------------------------------------------------------------------------------------
+            // button websocket
+            //--------------------------------------------------------------------------------------- 
+            btn_ws.onopen = () => {
                 console.log("button websocket 연결됨 : ");
             };
 
-            btn.onmessage = (event) => {
+            btn_ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
 
-                setGps((prev) => {
+                setButton((prev) => {
                     return {
-                        latest: data["latest"],
+                        latest : data,
 
                         history: [
                             ...prev.history,
-                            data["time_interval"]
+                            data
                         ]
                     };
                 });
             };
 
-            btn.onclose = (event) => {
+            btn_ws.onclose = (event) => {
                 console.log("gps 통신 종료", event.code);
             };
 
         };
-        start();
+
+
+
+
+        //--------------------------------------------------------------------------------------
+        // telemetry 최초 실행
+        //--------------------------------------------------------------------------------------- 
+        telemetry();
+
+
 
         return () => {
             stopped = true;
@@ -377,17 +469,14 @@ function Dashboard() {
             }
 
             if (gps !== null) {
-                gps.close();
+                gps_ws.close();
             }
 
             if (btn !== null) {
                 btn.close();
             }
         };
-
-    }, []);
-    //---------------------------------------------------------------------------
-    //----------------------------------------------------------------------------
+    },[])
 
 
 
@@ -398,8 +487,12 @@ function Dashboard() {
 
 
 
-// common ----------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------
+        
+
+
+//--------------------------------------------------------------------------------------
+//  다운도드를 위한 함수
+//---------------------------------------------------------------------------------------
     // const downloadRaceLog = async () => {
     //     try {
     //         const response = await fetch(
@@ -435,10 +528,19 @@ function Dashboard() {
     //         alert(error.message);
     //     }
     // };
-    
 
 
 
+
+
+
+
+
+
+
+//--------------------------------------------------------------------------------------
+// race start / stop / reset 상태를 백으로 전송하는 함수
+//--------------------------------------------------------------------------------------- 
     async function fetchRaceStartButton() {
         try {
             if (racestart.start === false) {
@@ -506,6 +608,17 @@ function Dashboard() {
         }
     }
 
+
+
+
+
+
+
+
+
+//--------------------------------------------------------------------------------------
+// pace up에 대한 state 변화를 백으로 전송하는 함수
+//--------------------------------------------------------------------------------------- 
     async function FaceUpFetchButton() {
         try{
             if (face["state"] === "Down") {
@@ -552,6 +665,19 @@ function Dashboard() {
 
     }
 
+
+
+
+
+
+
+
+
+
+
+//--------------------------------------------------------------------------------------
+// pace down에 대한 state 변화를 백으로 전송하는 함수
+//--------------------------------------------------------------------------------------- 
     async function FaceDownFetchButton() {
         try {
             if (face["state"] === "Up") {
@@ -598,6 +724,19 @@ function Dashboard() {
     }
 
 
+
+
+
+
+
+
+
+
+
+
+//--------------------------------------------------------------------------------------
+// 프론트가 실행되었음을 백으로 알리는 함수
+//--------------------------------------------------------------------------------------- 
     async function frontend_start(){
         try{
             const response = await fetch(
@@ -617,12 +756,10 @@ function Dashboard() {
 
         }
         catch(err){
-            console.error(error)
+            console.error("서버가 켜져있는지 확인")
         }
 
     }
-    //-------------------------------------------------------------------------------------
-    //-------------------------------------------------------------------------------------
 
 
 
@@ -638,8 +775,10 @@ function Dashboard() {
 
 
 
-//  return ------------------------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------------
+
+//--------------------------------------------------------------------------------------
+// return
+//--------------------------------------------------------------------------------------- 
     return (
         <div className="dashboard-page">
             <div className="dashboard-header">
@@ -671,7 +810,7 @@ function Dashboard() {
                     </div> */}
 
                     <div className="race-pannel">
-                        <RacePannel record={record}/>
+                        <RacePannel button={button}/>
                     </div>
 
                     <div className="gpsmap-pannel">
@@ -697,13 +836,13 @@ function Dashboard() {
                 <div className="dashboard-page-bottom">
                     <div className="speedstatus-battery-pannel">
                         <div className="speedstatus-pannel">
-                            <SpeedStatusPanel
+                            <SpeedStatusPannel
                                 speed={can0.latest.speed}
                             />
                         </div>
 
                         <div className="battery-pannel">
-                            <BatteryStatusPaneel
+                            <BatteryStatusPannel
                                 battery={
                                     can0.latest.avg_voltage
                                 }
