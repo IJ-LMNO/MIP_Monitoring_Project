@@ -105,6 +105,8 @@ body {
 
     min-height: 0;
 
+    gap: 8px;
+
 }
 
 .powerstatus-panel {

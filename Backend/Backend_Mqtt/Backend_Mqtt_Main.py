@@ -4,6 +4,7 @@ import queue
 # 백엔드쪽 mqtt 통신을 위한 publisher, subscirber
 from Backend.Backend_Mqtt.Backend_Mqtt_Subscriber import main as monitoring_server_main
 from Backend.Backend_Mqtt.Backend_Mqtt_Publisher import main as mqtt_publisher
+from Backend.Backend_Mqtt.Backend_Mqtt_shared.shared_state import MQTT_event as MQTT_publisher_event
 
 # 센서별 queue consumer
 from Backend.Backend_Mqtt.Can1_Adapter import main as mqtt_can1_queue
@@ -116,6 +117,7 @@ def queue_start():
 # =========================================================
 
 def main():
+
     # Raspberry Pi → Monitoring Server
     mqtt_subscriber_thread()
 

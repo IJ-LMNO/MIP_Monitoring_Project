@@ -1,3 +1,4 @@
+from Backend.Backend_Mqtt.Backend_Mqtt_shared.shared_state import MQTT_subscriber_event as MQTT_subscriber_event
 import json
 import socket
 import threading
@@ -7,7 +8,7 @@ import paho.mqtt.client as mqtt
 
 #  "100.70.221.71"
 #  "127.0.0.1"
-BROKER_HOST = "100.70.221.71"
+BROKER_HOST = "127.0.0.1"
 BROKER_PORT = 1883
 KEEPALIVE = 60
 QOS = 0
@@ -22,7 +23,6 @@ mqtt_connected = threading.Event()
 
 def on_connect(client, userdata, flags, reason_code):
     if reason_code == 0:
-        print("[MQTT] 브로커 연결 성공")
         mqtt_connected.set()
     else:
         print(f"[MQTT] 브로커 연결 실패: {reason_code}")
@@ -44,13 +44,13 @@ def on_disconnect(client, userdata, reason_code):
 
 def publish_worker(
     client,
-    data_queue,
+    queue,
     topic,
     telemetry_name,
 ):
 
     while True:
-        data = data_queue.get()
+        data = queue.get()
 
         try:
             while True:
@@ -97,7 +97,7 @@ def publish_worker(
                     time.sleep(1)
 
         finally:
-            data_queue.task_done()
+            queue.task_done()
 
 
 
@@ -112,6 +112,11 @@ def main(
 ):
     client_id = f"car-01-publisher-{socket.gethostname()}"
     client = mqtt.Client(client_id=client_id)
+
+    
+    MQTT_subscriber_event.wait()
+    print("backend - rasberrypi mqtt publisher 연결 대기중")
+    print("연결 확인 : backend - rasberrypi mqtt subscriber 연결")
 
     client.on_connect = on_connect
     client._on_disconnect = on_disconnect

@@ -13,6 +13,7 @@ import GpsMaPPannel from "../../components/pannels/GpsMapPannel/GpsMapPannel_for
 import DropdownMenu from "../../components/pannels/DropdownMenu/DropdownMenu";
 import FaceButton from "../../components/pannels/FaceButton/FaceButton";
 import RacePannel from "../../components/pannels/RacePannel/RacePannel"
+import RapButton from "../../components/pannels/RapButton/RapButton"
 
 import "./Dashboard.css";
 
@@ -108,6 +109,7 @@ function Dashboard() {
         latest: {
             latitude: 0.0,
             longitude: 0.0,
+            status : null
         },
         history: [],
         timestamp: null
@@ -165,6 +167,14 @@ function Dashboard() {
 
 
 
+    //--------------------------------------------------------------------------------------
+    // rap button에 따른 rap 갱신을 위한 state
+    //---------------------------------------------------------------------------------------
+    const[rapcount, setRapcount] = useState({
+        "state" : false,
+        "history" : [],
+        
+    })
 
 
 
@@ -190,12 +200,12 @@ function Dashboard() {
         // stopped : useEffect close시 함수 정리를 위한 변수
         // initial_check_front_back_telemetry : 프론트와 백이 연결되었는지 체크하기 위한 변수
         // intial_check_time : 프론트와 백간의 연결이 성공하지 못했을떄, 다음 시도까지의 시간
-        // timer : ?
+        // timer : setinterval을 저장하는 변수
         //---------------------------------------------------------------------------------------       
         let stopped = false;
         let inital_check_front_back_telemetry = false
         let timer = null;
-        const initial_check_time = 10000;
+        const initial_check_time = 10;
 
 
         //--------------------------------------------------------------------------------------
@@ -460,20 +470,20 @@ function Dashboard() {
                 clearTimeout(timer);
             }
 
-            if (can0 !== null) {
-                can0.close();
+            if (can0_ws !== null) {
+                can0_ws.close();
             }
 
-            if (can1 !== null) {
-                can1.close();
+            if (can1_ws !== null) {
+                can1_ws.close();
             }
 
-            if (gps !== null) {
+            if (gps_ws !== null) {
                 gps_ws.close();
             }
 
-            if (btn !== null) {
-                btn.close();
+            if (btn_ws !== null) {
+                btn_ws.close();
             }
         };
     },[])
@@ -810,7 +820,7 @@ function Dashboard() {
                     </div> */}
 
                     <div className="race-pannel">
-                        <RacePannel button={button}/>
+                        <RacePannel rapcount={rapcount}/>
                     </div>
 
                     <div className="gpsmap-pannel">
@@ -880,13 +890,22 @@ function Dashboard() {
                     onClick={fetchRaceStartButton}
                     text={
                         racestart.start
-                            ? "주행 종료"
+                            ? "타이머 종료"
                             : racestart.reset
                                 ? "초기화"
-                                : "주행 시작"
+                                : "타이머 시작"
                     }
                     state={racestart}
                 />
+
+                <RapButton
+                    text ={
+                        rapcount.state ? "기록" : "랩 카운트 시작"
+                    }
+                    rapcount={rapcount}
+                    setRapcount ={setRapcount}
+                />
+
                 <FaceButton 
                     text="FaceUp"
                     onClick={FaceUpFetchButton}

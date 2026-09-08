@@ -26,12 +26,13 @@ class gps_data_structure():
 # =========================================================
 
 def main(queue):
-    gps_data_structure = gps_data_structure()
+    gps = gps_data_structure()
+
     while(True):
         try:
             latest = queue.get()
 
-            gps_data_structure.gps.update(latest)
-            get_gps_data(copy.deepcopy(gps_data_structure.gps))
+            gps.gps.update(latest)
+            get_gps_data(copy.deepcopy(gps.gps))
         finally:
             queue.task_done()

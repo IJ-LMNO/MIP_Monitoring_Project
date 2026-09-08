@@ -1,7 +1,7 @@
-from Backend.Backend_Main import main as Monitoring_server_main
+from Backend.Backend_Main import main as Backend_main
 
 def main():
-    Monitoring_server_main()
+    Backend_main()
 
 if __name__ == "__main__":
     main()

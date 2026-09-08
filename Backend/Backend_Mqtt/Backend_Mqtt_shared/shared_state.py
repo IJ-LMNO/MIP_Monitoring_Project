@@ -7,3 +7,4 @@ import threading as thread
 # =========================================================
 
 MQTT_event = thread.Event()
+MQTT_subscriber_event  = thread.Event()

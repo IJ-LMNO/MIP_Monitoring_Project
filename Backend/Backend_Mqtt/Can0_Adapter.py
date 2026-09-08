@@ -38,15 +38,15 @@ class can0_data_sturcture():
 # =========================================================
 
 def main(queue):
-    can0_data_sturcture = can0_data_sturcture()
+    can0 = can0_data_sturcture()
     while(True):
         try:
             latest = queue.get()
 
-            can0_data_sturcture.can0["latest"].update(latest["latest"])
-            can0_data_sturcture.can0["timestamp"] = latest["timestamp"]
+            can0.can0["latest"].update(latest["latest"])
+            can0.can0["timestamp"] = latest["timestamp"]
 
-            get_can0_data(copy.deepcopy(can0_data_sturcture.can0))
+            get_can0_data(copy.deepcopy(can0.can0))
 
         finally:
             queue.task_done()

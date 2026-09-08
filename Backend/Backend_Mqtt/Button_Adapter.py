@@ -19,13 +19,13 @@ class button_data_structure():
 # =========================================================
 
 def main(queue):
-    button_data_structure = button_data_structure()
+    button = button_data_structure()
 
     while(True):
         try:
             latest = queue.get()
 
-            button_data_structure.button.update(latest)
-            get_button_data(copy.deepcopy(button_data_structure.button))
+            button.button.update(latest)
+            get_button_data(copy.deepcopy(button.button))
         finally:
             queue.task_done()

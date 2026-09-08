@@ -31,12 +31,6 @@ function BatteryStatusPaneel({ battery }) {
                     </div>
                 </div>
 
-                {/* <div className="soc-value">
-                    <div className="soc-value-battery">
-                        {battery}%
-                    </div>
-                </div> */}
-
             </div>
         </div>
     )

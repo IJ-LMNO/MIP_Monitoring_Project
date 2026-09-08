@@ -46,7 +46,7 @@ gps_detail_dequeue = deque(maxlen = 120)
 # pace up / down mqtt 통신을 위해 프론트에서 들어오는 데이터를 저장하는 queue
 # =========================================================
 
-face_queue = deque(maxlen=dequeue_size)
+face_queue = queue.Queue(maxsize=dequeue_size)
 
 
 

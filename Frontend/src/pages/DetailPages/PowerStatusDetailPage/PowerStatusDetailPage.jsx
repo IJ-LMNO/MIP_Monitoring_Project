@@ -23,13 +23,8 @@ function PowerStatusDetailPage(){
     // gps
     //--------------------------------------------------------------------------------------- 
     const [gps, setGps] = useState({
-        "latest": {
-            "latitude": 0.0,
-            "longitude": 0.0
-        },
-    
-        "history" : [],
-        "timestamp" : null
+        "gps" : [],
+        "timstamp" : null
     });
 
     
@@ -52,7 +47,6 @@ function PowerStatusDetailPage(){
     // 특정 차트위에 마우스를 올리면 해당 마우스 좌표에 해당하는 인덱스가 어떤 시간 사이에 존재하는지를 저장하는 state
     // 차트위에 마우스를 올림 -> 인덱스 반환 -> 인덱스에 해당하는 데이터가 사이에 존재하는 두 timestamp 반환(해당 데이터 저장)
     // -> gps pannel와 state 공유 -> gps 패널에서 두 timestamp 사이에 있는 데이터를 선으로 이음
-    //
     //  -> first_timestamp : 특정 데이터가 사이에 존재하는 두 시간 축 중 앞선 timestamp
     //  -> last_timestamp : 특정 데이터가 사이에 존재하는 두 시간 축 중 뒤에 있는 timestamp
     //--------------------------------------------------------------------------------------- 
@@ -76,7 +70,7 @@ function PowerStatusDetailPage(){
     //--------------------------------------------------------------------------------------
     // detail페이지는 최초에는 http 이후에는 ws로 백과 통신하기 때문에 어떤 연결을 유지해야하는지 저장하는 Ref
     //  -> false : http연결(최초 연결)
-    //  -> true : ws연결(최최 연결 성공 후 데이터 하나씩 받기위한 연결)
+    //  -> true : ws연결(최초 연결 성공 후 데이터 하나씩 받기위한 연결)
     //--------------------------------------------------------------------------------------- 
     const first_telemetry = useRef(false)
     
@@ -138,151 +132,190 @@ function PowerStatusDetailPage(){
 
 
     useEffect(() => {
-        let timer = null 
-    
+        let timer = null;
+        let ws_can0 = null;
+        let ws_gps = null;
+
         const telemetry = async () => {
-            let current_right_arr = []
-            let current_left_arr = []
-            let avg_power_arr = []
-            let gps_arr = []
+            let current_right_arr = [];
+            let current_left_arr = [];
+            let avg_power_arr = [];
+            let gps_arr = [];
 
             if (!first_telemetry.current) {
-                console.log("첫번째 로직 시작")
+                console.log("첫번째 로직 시작");
+
                 try {
                     const response_can0 = await fetch(
                         "http://localhost:8000/first/detail/can0"
-                    )
+                    );
 
                     const response_gps = await fetch(
                         "http://localhost:8000/first/detail/gps"
-                    )
+                    );
 
-                    const can0 = await response_can0.json()
-                    const gps = await response_gps.json()
+                    const can0 = await response_can0.json();
+                    const gps = await response_gps.json();
 
+                    for (let i = 0; i < can0.length; i++) {
+                        current_right_arr.push([
+                            can0[i]["latest"]["current_right"],
+                            can0[i]["timestamp"]
+                        ]);
 
-                    for(let i = 0; i < can0.length; i++){
-                        current_right_arr.push([can0[i]["latest"]["current_right"], can0[i]["timestamp"]])
-                        current_left_arr.push([can0[i]["latest"]["current_left"], can0[i]["timestamp"]])
-                        avg_power_arr.push([Math.round((can0[i]["latest"]["avg_power"] / 1000) * 10) / 10, can0[i]["timestamp"]])
+                        current_left_arr.push([
+                            can0[i]["latest"]["current_left"],
+                            can0[i]["timestamp"]
+                        ]);
+
+                        avg_power_arr.push([
+                            Math.round(
+                                (can0[i]["latest"]["avg_power"] / 1000) * 10
+                            ) / 10,
+                            can0[i]["timestamp"]
+                        ]);
                     }
 
-                    for(let i =0; i < gps.length; i++){
-                        gps_arr.push(gps[i])
+                    for (let i = 0; i < gps.length; i++) {
+                        gps_arr.push(gps[i]);
                     }
 
-                    if(response_can0.ok && response_gps.ok){
+                    if (response_can0.ok && response_gps.ok) {
                         setCan0(() => {
                             return {
-                                history : {
-                                    current_left : current_left_arr,
-                                    current_right : current_right_arr,
-                                    avg_power : avg_power_arr
-                                    
+                                history: {
+                                    current_left: current_left_arr,
+                                    current_right: current_right_arr,
+                                    avg_power: avg_power_arr
                                 }
-                            }
-                        })
+                            };
+                        });
 
-                        setGps((prev)=>{
-                            return{
-                                ...prev,
-                                history : gps_arr
-                            }
-                        })
+                        setGps(() => {
+                            return {
+                                gps: gps_arr
+                            };
+                        });
 
-                        setTypeofinsertGpsPannel("arr")
-                        first_telemetry.current = true
+                        first_telemetry.current = true;
 
-                        telemetry()
+                        telemetry();
+                    } else {
+                        timer = setTimeout(telemetry, 1000);
                     }
-                    else{
-                        timer = setTimeout(telemetry, 1000)
-                    }
-
                 } catch (err) {
-                    setError(err)
-                    timer = setTimeout(telemetry, 1000)
+                    setError(err);
+                    timer = setTimeout(telemetry, 1000);
                 }
-            }else{
-                console.log("두번째 로직 시작")
-                const ws_can0 = new WebSocket("ws://localhost:8000/detail/can0")
-                const ws_gps = new WebSocket("ws://localhost:8000/detail/gps")
+            } else {
+                console.log("두번째 로직 시작");
 
-                ws_can0.onopen = () =>{
-                    console.log("can0 detail websocket 연결됨")
-                }
+                ws_can0 = new WebSocket(
+                    "ws://localhost:8000/detail/can0"
+                );
+
+                ws_gps = new WebSocket(
+                    "ws://localhost:8000/detail/gps"
+                );
+
+                ws_can0.onopen = () => {
+                    console.log("can0 detail websocket 연결됨");
+                };
+
                 ws_gps.onopen = () => {
-                    console.log("gps detail websocket 연결됨")
-                }
+                    console.log("gps detail websocket 연결됨");
+                };
 
-
-
-                ws_can0.onmessage = ((event) => {
-                    const data = JSON.parse(event.data)
+                ws_can0.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
 
                     setCan0((prev) => {
-                        return{
+                        return {
                             history: {
                                 current_right: [
                                     ...prev.history.current_right,
-                                    [data["latest"]["current_right"], data["timestamp"]]
+                                    [
+                                        data["latest"]["current_right"],
+                                        data["timestamp"]
+                                    ]
                                 ].slice(-6000),
 
                                 current_left: [
                                     ...prev.history.current_left,
-                                    [data["latest"]["current_left"], data["timestamp"]]
+                                    [
+                                        data["latest"]["current_left"],
+                                        data["timestamp"]
+                                    ]
                                 ].slice(-6000),
 
                                 avg_power: [
                                     ...prev.history.avg_power,
-                                    [Math.round((data["latest"]["avg_power"] / 1000) * 10) / 10, data["timestamp"]]
-                                ].slice(-6000),
-                            },
+                                    [
+                                        Math.round(
+                                            (
+                                                data["latest"]["avg_power"] /
+                                                1000
+                                            ) * 10
+                                        ) / 10,
+                                        data["timestamp"]
+                                    ]
+                                ].slice(-6000)
+                            }
+                        };
+                    });
+                };
 
-                        }
-                    })
-                })
+                ws_gps.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
 
-                ws_gps.onmessage = ((event) => {
-                    const data = JSON.parse(event.data)
                     setGps((prev) => {
-                        return({
-                            ...prev,
-                            latest : data["latest"],
-                            timestamp : data["timestamp"]
-                        })
-                    })
-
-                    setTypeofinsertGpsPannel("latest")
-                })
+                        return {
+                            gps: [
+                                ...prev.gps,
+                                data
+                            ].slice(-6000)
+                        };
+                    });
+                };
 
                 ws_can0.onclose = (event) => {
-                        console.log(
-                            "websocket 종료",
-                            event.code,
-                            event.reason,
-                            event.wasClean
-                        )
-                }
-                ws_gps.onclose = (event) => {
                     console.log(
-                        "websocket 종료",
+                        "can0 websocket 종료",
                         event.code,
                         event.reason,
                         event.wasClean
-                    )
-                }
+                    );
+                };
+
+                ws_gps.onclose = (event) => {
+                    console.log(
+                        "gps websocket 종료",
+                        event.code,
+                        event.reason,
+                        event.wasClean
+                    );
+                };
+            }
+        };
+
+        telemetry();
+
+        return () => {
+            if (timer !== null) {
+                clearTimeout(timer);
             }
 
-        }
+            if (ws_can0 !== null) {
+                ws_can0.close();
+            }
 
-        telemetry()
+            if (ws_gps !== null) {
+                ws_gps.close();
+            }
 
-        return(() => {
-            clearInterval(timer)
-        })
-
-    },[])
+            console.log("PowerStatusDetailPage cleanup");
+        };
+    }, []);
 
 
     return(
@@ -322,7 +355,10 @@ function PowerStatusDetailPage(){
 
             <div className="powerstatus-detail-page-gps-and-value">
                 <div className="powerstatus-detail-page-gps">
-                    <GpsPannel gps={gps} typeofinsertGpsPannel={typeofinsertGpsPannel} mouseovertimestamp={mouseovertimestamp} />
+                    <GpsPannel 
+                        gps={gps.gps}
+                        typeofinsertGpsPannel={typeofinsertGpsPannel} 
+                        mouseovertimestamp={mouseovertimestamp} />
                 </div>
                 <div className="powerstatus-detail-page-value">
                     {returnValue()}

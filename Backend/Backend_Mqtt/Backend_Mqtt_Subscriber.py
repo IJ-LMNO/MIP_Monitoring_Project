@@ -1,4 +1,5 @@
-from Backend.Backend_Mqtt.Backend_Mqtt_shared.shared_state import MQTT_event
+from Backend.Backend_Mqtt.Backend_Mqtt_shared.shared_state import MQTT_event as MQTT_publisher_event
+from Backend.Backend_Mqtt.Backend_Mqtt_shared.shared_state import MQTT_subscriber_event as MQTT_subscriber_event
 import paho.mqtt.client as mqtt
 import json
 
@@ -28,7 +29,6 @@ TOPIC_BUTTON = "vehicle/car_01/button"
 
 def on_connect(client, userdata, flags, reason_code):
     if reason_code == 0:
-        print("Monitoring_Server MQTT 연결 성공")
 
         client.subscribe(TOPIC_CAN0, qos=0)
         client.subscribe(TOPIC_CAN1, qos=0)
@@ -81,9 +81,10 @@ def main(can0_queue, can1_queue, gps_queue, button_queue):
     })
 
     print("프론트 실행 대기 중")
-    MQTT_event.wait()
+    MQTT_publisher_event.wait()
+    print("프론트 실행 확인 : backend - rasberrypi mqtt publisher 연결")
+    MQTT_subscriber_event.set()
 
-    print("프론트 실행 확인 -> mqtt 연결")
 
     monitoring_client.on_connect = on_connect
     monitoring_client.on_message = on_message

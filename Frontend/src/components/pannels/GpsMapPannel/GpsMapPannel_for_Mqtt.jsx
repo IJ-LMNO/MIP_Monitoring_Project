@@ -33,56 +33,54 @@ const INITIAL_POSITION = [
 ];
 
 
-function OpenFreeMapLayer() {
-    const map = useMap();
+// function OpenFreeMapLayer() {
+//     const map = useMap();
 
-    useEffect(() => {
-        const layer = L.maplibreGL({
-            style:
-                "https://tiles.openfreemap.org/styles/dark",
-            interactive: false
-        });
+//     useEffect(() => {
+//         const layer = L.maplibreGL({
+//             style:
+//                 "https://tiles.openfreemap.org/styles/dark",
+//             interactive: false
+//         });
 
-        layer.addTo(map);
-
-
-        requestAnimationFrame(() => {
-            map.invalidateSize();
-        });
+//         layer.addTo(map);
 
 
-        return () => {
-            map.removeLayer(layer);
-        };
-
-    }, [map]);
+//         requestAnimationFrame(() => {
+//             map.invalidateSize();
+//         });
 
 
-    return null;
-}
+//         return () => {
+//             map.removeLayer(layer);
+//         };
+
+//     }, [map]);
 
 
-function MoveMapCenter({ position }) {
-    const map = useMap();
-
-    useEffect(() => {
-        if (!position) {
-            return;
-        }
-
-        map.panTo(position);
-
-    }, [map, position]);
+//     return null;
+// }
 
 
-    return null;
-}
+// function MoveMapCenter({ position }) {
+//     const map = useMap();
+
+//     useEffect(() => {
+//         if (!position) {
+//             return;
+//         }
+
+//         map.panTo(position);
+
+//     }, [map, position]);
+
+
+//     return null;
+// }
 
 
 function GpsMapPannel({ gps }) {
     const [route, setRoute] = useState([]);
-
-    const gpsVersionRef = useRef(0);
 
 
     useEffect(() => {
@@ -168,7 +166,7 @@ function GpsMapPannel({ gps }) {
                 }}
             >
 
-                <OpenFreeMapLayer />
+                {/* <OpenFreeMapLayer /> */}
 
 
                 {route.length > 1 && (
@@ -187,14 +185,14 @@ function GpsMapPannel({ gps }) {
                     />
                 )}
 
-
+{/* 
                 {route.length > 0 && (
                     <MoveMapCenter
                         position={
                             currentPosition
                         }
                     />
-                )}
+                )} */}
 
             </MapContainer>
 

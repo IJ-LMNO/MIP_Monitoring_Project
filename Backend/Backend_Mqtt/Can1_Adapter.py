@@ -25,14 +25,14 @@ class can1_data_structure():
 # =========================================================
 
 def main(queue):
-    can1_data_structure = can1_data_structure()
+    can1 = can1_data_structure()
     while(True):
         try:
 
             latest = queue.get()
 
-            can1_data_structure.can1.update(latest)
-            get_can1_data(copy.deepcopy(can1_data_structure.can1))
+            can1.can1.update(latest)
+            get_can1_data(copy.deepcopy(can1.can1))
 
         finally:
             queue.task_done()

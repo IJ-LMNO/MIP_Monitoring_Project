@@ -1,24 +1,30 @@
-import { useEffect, useState } from "react";
-import"./Timer.css"
+import { useEffect } from "react";
+import "./Timer.css";
 
 function Timer({ state, elapsedMs, setElapsedMs }) {
 
     useEffect(() => {
-        if(state.start == true){
-            if(state.reset == false){
-                const timer = setInterval(() => {
-                    setElapsedMs((prev) => prev + 10);
-                }, 10);
+        if (state.start === true && state.reset === false) {
+            const timer = setInterval(() => {
+                setElapsedMs((prev) => prev + 10);
+            }, 10);
 
-                return () => clearInterval(timer);
-            }
+            return () => {
+                clearInterval(timer);
+            };
         }
-        else{
-            if(state.reset == false){
-                setElapsedMs(0)
-            }
+
+        if (state.start === false && state.reset === false) {
+            setElapsedMs((prev) => {
+                if (prev === 0) {
+                    return prev;
+                }
+
+                return 0;
+            });
         }
-    }, [state]);
+
+    }, [state.start, state.reset, setElapsedMs]);
 
     const min = Math.floor(elapsedMs / 60000);
     const sec = Math.floor(elapsedMs / 1000) % 60;
