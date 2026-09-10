@@ -56,15 +56,6 @@ function PowerStatusDetailPage(){
     })
 
 
-    //--------------------------------------------------------------------------------------
-    // gps components로 현재 들어가는 데이터의 종류를 저장해 components 내부에서 로직 분기에 사용하는 state
-    //  None : 최초에 아무 데이터도 받지 않은 상황
-    //  arr : 백과의 최초 연결 후 배열을 받은 상황 
-    //  latest : 최초 연결 이후 ws연결로 데이터가 하나씩 들어오는 상황
-    //--------------------------------------------------------------------------------------- 
-    const [typeofinsertGpsPannel, setTypeofinsertGpsPannel] = useState("None")
-
-
 
 
     //--------------------------------------------------------------------------------------
@@ -95,9 +86,14 @@ function PowerStatusDetailPage(){
             }
             else{
                 return(
-                    
-                    can0.history.current_left[mouseoveridx.idx][0]
-                    
+                    <>
+                        <div className="powerstatus-detail-page-value-type" style={{ color: mouseoveridx.type }}>
+                            CurrentL
+                        </div>
+                        <div className="powerstatus-detail-page-value-value">
+                            {can0.history.current_left[mouseoveridx.idx][0]}
+                        </div>
+                    </>   
                 )
             }
         }
@@ -107,8 +103,14 @@ function PowerStatusDetailPage(){
             }
             else {
                 return (
-                    
-                    can0.history.current_right[mouseoveridx.idx][0]
+                    <>
+                        <div className="powerstatus-detail-page-value-type" style={{ color: mouseoveridx.type }}>
+                            CurrentR
+                        </div>
+                        <div className="powerstatus-detail-page-value-value">
+                            {can0.history.current_right[mouseoveridx.idx][0]}
+                        </div>
+                    </>  
                     
                 )
             }
@@ -120,7 +122,14 @@ function PowerStatusDetailPage(){
             else {
                 return (
                     
-                    can0.history.avg_power[mouseoveridx.idx][0]
+                    <>
+                        <div className="powerstatus-detail-page-value-type" style={{ color: mouseoveridx.type }}>
+                            Avg_power
+                        </div>
+                        <div className="powerstatus-detail-page-value-value">
+                            {can0.history.avg_power[mouseoveridx.idx][0]}
+                        </div>
+                    </>   
                     
                 )
             }
@@ -151,7 +160,7 @@ function PowerStatusDetailPage(){
                     );
 
                     const response_gps = await fetch(
-                        "http://localhost:8000/first/detail/gps"
+                        "http://localhost:8000/first/detail/gps/powerstatus"
                     );
 
                     const can0 = await response_can0.json();
@@ -180,6 +189,24 @@ function PowerStatusDetailPage(){
                         gps_arr.push(gps[i]);
                     }
 
+
+
+                    if(current_left_arr.length > 6000){
+                        current_left_arr = current_left_arr.slice(-6000)
+                    }
+                    if (current_right_arr.length > 6000) {
+                        current_right_arr = current_right_arr.slice(-6000)
+                    }
+                    if (avg_power_arr.length > 6000) {
+                        avg_power_arr = avg_power_arr.slice(-6000)
+                    }
+                    if(gps_arr.length > 120){
+                        gps_arr = gps_arr.slice(-120)
+                    }
+
+
+
+
                     if (response_can0.ok && response_gps.ok) {
                         setCan0(() => {
                             return {
@@ -201,11 +228,11 @@ function PowerStatusDetailPage(){
 
                         telemetry();
                     } else {
-                        timer = setTimeout(telemetry, 1000);
+                        timer = setTimeout(telemetry, 100);
                     }
                 } catch (err) {
                     setError(err);
-                    timer = setTimeout(telemetry, 1000);
+                    timer = setTimeout(telemetry, 100);
                 }
             } else {
                 console.log("두번째 로직 시작");
@@ -215,7 +242,7 @@ function PowerStatusDetailPage(){
                 );
 
                 ws_gps = new WebSocket(
-                    "ws://localhost:8000/detail/gps"
+                    "ws://localhost:8000/detail/gps/powerstatus"
                 );
 
                 ws_can0.onopen = () => {
@@ -356,10 +383,11 @@ function PowerStatusDetailPage(){
             <div className="powerstatus-detail-page-gps-and-value">
                 <div className="powerstatus-detail-page-gps">
                     <GpsPannel 
-                        gps={gps.gps}
-                        typeofinsertGpsPannel={typeofinsertGpsPannel} 
+                        gps={gps.gps} 
                         mouseovertimestamp={mouseovertimestamp} />
-                </div>
+                        slicevalue = {6000}
+                </div>          
+
                 <div className="powerstatus-detail-page-value">
                     {returnValue()}
                 </div>

@@ -1,4 +1,3 @@
-from Backend.Backend_Mqtt.Backend_Mqtt_shared.shared_state import MQTT_subscriber_event as MQTT_subscriber_event
 import json
 import socket
 import threading
@@ -6,23 +5,19 @@ import time
 
 import paho.mqtt.client as mqtt
 
-#  "100.70.221.71"
-#  "127.0.0.1"
+
 BROKER_HOST = "127.0.0.1"
 BROKER_PORT = 1883
 KEEPALIVE = 60
 QOS = 0
+
+
 mqtt_connected = threading.Event()
 
 
-
-
-# =========================================================
-# mqtt on_connect, on_disconnect 오버라이딩
-# =========================================================
-
 def on_connect(client, userdata, flags, reason_code):
     if reason_code == 0:
+        print("[MQTT] 브로커 연결 성공")
         mqtt_connected.set()
     else:
         print(f"[MQTT] 브로커 연결 실패: {reason_code}")
@@ -34,25 +29,32 @@ def on_disconnect(client, userdata, reason_code):
     print(f"[MQTT] 연결 해제: {reason_code}")
 
 
-
-
-
-
-# =========================================================
-# data_queue에서 데이터를 get해서 publish하는 함수 : 발생할 수 있는 예외처리 포함
-# =========================================================
-
 def publish_worker(
     client,
     queue,
     topic,
     telemetry_name,
 ):
+    publish_count = 0
 
     while True:
         data = queue.get()
 
         try:
+            try:
+                payload = json.dumps(
+                    data,
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                )
+
+            except (TypeError, ValueError) as error:
+                print(
+                    f"[MQTT][{telemetry_name}] "
+                    f"JSON 변환 실패: {error}"
+                )
+                continue
+
             while True:
                 if not mqtt_connected.wait(timeout=1):
                     continue
@@ -60,7 +62,7 @@ def publish_worker(
                 try:
                     publish_info = client.publish(
                         topic,
-                        data,
+                        payload,
                         qos=QOS,
                     )
 
@@ -86,6 +88,16 @@ def publish_worker(
                         time.sleep(1)
                         continue
 
+                    publish_count += 1
+
+        
+                    if publish_count == 1 or publish_count % 100 == 0:
+                        print(
+                            f"[MQTT][{telemetry_name}] "
+                            f"publish 성공 #{publish_count} "
+                            f"topic={topic}"
+                        )
+
                     break
 
                 except (RuntimeError, OSError, ValueError) as error:
@@ -100,26 +112,18 @@ def publish_worker(
             queue.task_done()
 
 
-
-
-
-# =========================================================
-# backend mqtt publisher main
-# =========================================================
-
 def main(
-    faceup_queue
+    can0_queue,
+    can1_queue,
+    gps_queue,
+    button_queue
 ):
-    client_id = f"car-01-backend-publisher-{socket.gethostname()}"
+    client_id = f"car-01-publisher-{socket.gethostname()}"
+
     client = mqtt.Client(client_id=client_id)
 
-    
-    MQTT_subscriber_event.wait()
-    print("backend - rasberrypi mqtt publisher 연결 대기중")
-    print("연결 확인 : backend - rasberrypi mqtt subscriber 연결")
-
     client.on_connect = on_connect
-    client._on_disconnect = on_disconnect
+    client.on_disconnect = on_disconnect
 
     client.reconnect_delay_set(
         min_delay=1,
@@ -129,33 +133,56 @@ def main(
     client.connect_async(
         BROKER_HOST,
         BROKER_PORT,
-        keepalive=KEEPALIVE
+        keepalive=KEEPALIVE,
     )
 
     client.loop_start()
 
     publisher_configs = [
         (
-            faceup_queue,
-            "vehicle/car_01/face",
-            "face"
-        )
+            can0_queue,
+            "vehicle/car_01/can0",
+            "can0",
+        ),
+        (
+            can1_queue,
+            "vehicle/car_01/can1",
+            "tps",
+        ),
+        (
+            gps_queue,
+            "vehicle/car_01/gps",
+            "gps",
+        ),
+        (
+            button_queue,
+            "vehicle/car_01/button",
+            "button",
+        ),
     ]
 
-    thread = []
-    for data_queue, topic, name in publisher_configs:
-        woker = threading.Thread(
-            name = f"mqtt-{name}",
-            target = publish_worker,
-            args = (client, data_queue, topic, name)
+    publisher_threads = []
+
+    for data_queue, topic, telemetry_name in publisher_configs:
+        worker = threading.Thread(
+            name=f"mqtt-{telemetry_name}",
+            target=publish_worker,
+            args=(
+                client,
+                data_queue,
+                topic,
+                telemetry_name,
+            ),
+            daemon=True,
         )
 
-        woker.start()
-        thread.append(woker)
+        worker.start()
+        publisher_threads.append(worker)
 
     try:
-        for worker in thread:
+        for worker in publisher_threads:
             worker.join()
+
     finally:
         mqtt_connected.clear()
         client.loop_stop()

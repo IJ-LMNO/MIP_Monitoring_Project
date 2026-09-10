@@ -39,30 +39,11 @@ const INITIAL_POSITION = [
 ];
 
 
-
-
-//--------------------------------------------------------------------------------------
-// Gps 데이터가 들어온 timestamp를 보관
-//--------------------------------------------------------------------------------------- 
-let timestampindex = []; 
-
-
-
-
 //--------------------------------------------------------------------------------------
 // Gps가 들어온 이전 시간을 저장
 // Gps 데이터는 1초마다 한 번씩 들어오기 때문에 이전 timestamp를 기록해, timestamp가 변화했는지 파악
 //--------------------------------------------------------------------------------------- 
 let prevTimestamp = null
-
-
-//--------------------------------------------------------------------------------------
-// typeofinsertGpsPannel이 arr인 최초 배열 저장 이후 데이터 저장을 위해 들어온 배열의 길이를 저장
-//  -> 이후 typeofinsertGpsPannel이 latest로 바뀌면 lastindexGpsHistory +1번 인덱스부터 저장
-//--------------------------------------------------------------------------------------- 
-let lastIndexGpsHistory = null
-
-
 
 
 //--------------------------------------------------------------------------------------
@@ -115,18 +96,14 @@ function MoveMapCenter({ position }) {
 
 
 
-
-
-
-
 //--------------------------------------------------------------------------------------
 // Gps Paneel : export default GpsMapPannel
 //--------------------------------------------------------------------------------------- 
 function GpsMapPannel({ 
         gps, // gps {"latest" : latitude, longtitude, hitory : []}
-        mouseovertimestamp // {first_timestamp, last_timestamp}
+        mouseovertimestamp, // {first_timestamp, last_timestamp}
+        slicevalue
     }) {
-
 
     //--------------------------------------------------------------------------------------
     // Gps 데이터가 들어온 timestamp를 임시보관
@@ -146,8 +123,16 @@ function GpsMapPannel({
     //--------------------------------------------------------------------------------------- 
     const [selectedRoute, setSelectedRoute] = useState([]);
 
+
+    //--------------------------------------------------------------------------------------
+    // Gps 데이터가 들어온 timestamp를 보관
+    //--------------------------------------------------------------------------------------- 
+    let timestampindex = useRef([]); 
+
+
     
     useEffect(() => {
+
         let history_arr = [];
 
         for (let index = 0; index < gps.length; index++) {
@@ -162,15 +147,15 @@ function GpsMapPannel({
                     .split("T")[1]
                     .split(".")[0]
             ) {
-                tmptimestamp.push([
+                timestampindex.current.push([
                     index,
                     gps[index]["timestamp"]
                         .split("T")[1]
                         .split(".")[0]
                 ]);
 
-                if (timestampindex.length > 1200) {
-                    timestampindex = timestampindex.slice(-6000);
+                if (timestampindex.current.length > slicevalue) {
+                    timestampindex.current = timestampindex.current.slice(-slicevalue);
                 }
 
                 prevTimestamp =
@@ -182,11 +167,7 @@ function GpsMapPannel({
 
         setRoute(history_arr);
 
-        timestampindex = [...tmptimestamp].slice(-6000);
-        tmptimestamp.length = 0;
-        lastIndexGpsHistory = gps.length;
-
-    }, []);
+    }, [gps]);
 
 
     ///--------------------------------------------------------------------------------------
@@ -195,7 +176,6 @@ function GpsMapPannel({
     //  -> mouseovertimestamp = {first_timestamp, last_timestamp}
     //--------------------------------------------------------------------------------------- 
     useEffect(() => {
-
         if (
             mouseovertimestamp == null ||
             mouseovertimestamp.first_timestamp == null ||
@@ -241,14 +221,14 @@ function GpsMapPannel({
 
         for (
             let i = 0;
-            i < timestampindex.length;
+            i < timestampindex.current.length;
             i++
         ) {
             if (
-                timestampindex[i][1] >= firstTimestamp
+                timestampindex.current[i][1] >= firstTimestamp
             ) {
                 firstIndex =
-                    timestampindex[i][0];
+                    timestampindex.currnet[i][0];
 
                 break;
             }
@@ -256,19 +236,20 @@ function GpsMapPannel({
         }
 
         for (
-            let i = timestampindex.length - 1;
+            let i = timestampindex.current.length - 1;
             i >= 0;
             i--
         ) {
             if (
-                timestampindex[i][1] <= lastTimestamp
+                timestampindex.current[i][1] <= lastTimestamp
             ) {
                 lastIndex =
-                    timestampindex[i][0];
+                    timestampindex.current[i][0];
 
                 break;
             }
         }
+
 
 
         if (
@@ -287,6 +268,7 @@ function GpsMapPannel({
                 value["latest"]["latitude"],
                 value["latest"]["longitude"]
             ]);
+        
 
         setSelectedRoute(selectedCoordinates);
 
@@ -344,13 +326,13 @@ function GpsMapPannel({
                 )}
 
 
-                {route.length > 0 && (
+                {
                     <MoveMapCenter
                         position={
                             currentPosition
                         }
                     />
-                )}
+                }
 
 
             </MapContainer>

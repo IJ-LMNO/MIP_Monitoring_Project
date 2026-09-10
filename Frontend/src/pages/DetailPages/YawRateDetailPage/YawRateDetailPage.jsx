@@ -1,117 +1,180 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import TwoMiniLineChart_for_detail from "../../../components/common/TwoMiniLineChart_for_detail/TwoMiniLineChart_for_detail"
+import GpsPannel from "../../../components/pannels/GpsMapPannel/GpsMapPannel_for_detail"
 
 import "./YawRateDetailPage.css"
 
 function YawRateDetailPage(){
 
-    const [desiredYawrate, setDesiredYawrate] = useState({
-        latest: 0.0,
-        history: [],
-    });
 
-
+    //--------------------------------------------------------------------------------------
+    // yawrate
+    //--------------------------------------------------------------------------------------- 
     const [yawrate, setYawrate] = useState({
-        latest: 0.0,
         history: [],
     });
 
-    const [error, setError] = useState(null);
 
+
+    //--------------------------------------------------------------------------------------
+    // desired_yawrate
+    //--------------------------------------------------------------------------------------- 
+    const [desiredYawrate, setDesiredYawrate] = useState({
+        history: [],
+    });
+
+
+    //--------------------------------------------------------------------------------------
+    // gps
+    //--------------------------------------------------------------------------------------- 
+    const [gps, setGps] = useState({
+        "gps": [],
+        "timstamp": null
+    });
+
+
+
+
+    //--------------------------------------------------------------------------------------
+    // 차트위에 마우스를 올리면 해당 좌표에 해당하는 상태를 저장하는 state
+    //  -> type : red , blue, green (차트의 색으로 차트를 구분)
+    //  -> idx : 특정 차트의 마우스 좌표에 매핑되는 인덱스
+    //--------------------------------------------------------------------------------------- 
+    const [mouseoveridx, setMouseoveridx] = useState({
+        "idx": null
+    })
+
+
+
+
+    //--------------------------------------------------------------------------------------
+    // 특정 차트위에 마우스를 올리면 해당 마우스 좌표에 해당하는 인덱스가 어떤 시간 사이에 존재하는지를 저장하는 state
+    // 차트위에 마우스를 올림 -> 인덱스 반환 -> 인덱스에 해당하는 데이터가 사이에 존재하는 두 timestamp 반환(해당 데이터 저장)
+    // -> gps pannel와 state 공유 -> gps 패널에서 두 timestamp 사이에 있는 데이터를 선으로 이음
+    //  -> first_timestamp : 특정 데이터가 사이에 존재하는 두 시간 축 중 앞선 timestamp
+    //  -> last_timestamp : 특정 데이터가 사이에 존재하는 두 시간 축 중 뒤에 있는 timestamp
+    //--------------------------------------------------------------------------------------- 
+    const [mouseovertimestamp, setMouseovertimestamp] = useState({
+        "first_timestamp": null,
+        "last_timestamp": null
+    })
+
+    //--------------------------------------------------------------------------------------
+    // detail페이지는 최초에는 http 이후에는 ws로 백과 통신하기 때문에 어떤 연결을 유지해야하는지 저장하는 Ref
+    //  -> false : http연결(최초 연결)
+    //  -> true : ws연결(최초 연결 성공 후 데이터 하나씩 받기위한 연결)
+    //--------------------------------------------------------------------------------------- 
     const first_telemetry = useRef(false)
 
-    function caculate(){
-        let min_yawrate = 0
-        let max_yawrate = 0
-        let min_desired_yawrate = 0
-        let max_desried_yawrate = 0
-        let yawrate_avg = 0
-        let yawrate_sum = 0
-        let desried_yawrate_avg = 0
-        let desired_yawrate_sum = 0
-        let avg_err = 0
 
-        if(yawrate["history"].length == 0 || desiredYawrate["history"].length == 0 ){
-
-            return {
-                min_yawrate,
-                max_yawrate,
-                min_desired_yawrate,
-                max_desried_yawrate,
-                yawrate_avg,
-                desried_yawrate_avg,
-                avg_err
-            }
+    //--------------------------------------------------------------------------------------
+    // error
+    //--------------------------------------------------------------------------------------- 
+    const [err, setError] = useState(null)
 
 
-            
+    //--------------------------------------------------------------------------------------
+    // yawrate, desired_yawrate state slice 개수
+    //--------------------------------------------------------------------------------------- 
+    const yawrateSliceValue = 2400
+
+
+    //--------------------------------------------------------------------------------------
+    // const[idx, setIdx] = useState에 따른 데이터를 화면에 표시하기 위한 함수
+    //--------------------------------------------------------------------------------------- 
+    function returnValue() {
+        const len = Math.min(yawrate["history"].length, desiredYawrate["history"].length)
+
+        if(mouseoveridx.idx == null)
+            return null
+
+        if (mouseoveridx.idx < 0 || mouseoveridx.idx >= len) {
+            return null
         }
-        min_yawrate = Math.min(...yawrate["history"])
-        max_yawrate = Math.max(...yawrate["history"])
-
-        min_desired_yawrate = Math.min(...desiredYawrate["history"])
-        max_desried_yawrate = Math.max(...desiredYawrate["history"])
-
-        yawrate_sum = yawrate["history"].reduce((acc, cur) => acc + cur, 0)
-        yawrate_avg = yawrate_sum / yawrate["history"].length
-
-        desired_yawrate_sum = desiredYawrate["history"].reduce((acc, cur) => acc + cur, 0)
-        desried_yawrate_avg = desired_yawrate_sum / desiredYawrate["history"].length
-
-        return{
-            min_yawrate,
-            max_yawrate,
-            min_desired_yawrate,
-            max_desried_yawrate,
-            yawrate_avg,
-            desried_yawrate_avg,
-            avg_err
+        else {
+            return (
+                <>
+                    <div className="powerstatus-detail-page-value-type" style={{ color: mouseoveridx.type }}>
+                        yawrate / Desired-yawrate
+                    </div>
+                    <div className="powerstatus-detail-page-value-value">
+                        {yawrate["history"][mouseoveridx.idx][0]}
+                        {desiredYawrate["history"][mouseoveridx.idx][0]}
+                    </div>
+                </>
+            )
         }
     }
 
-    const calculate_data = useMemo(() =>{
-        return caculate();
-    },[yawrate["history"], desiredYawrate["history"]])
-
     useEffect(() => {
         let timer = null 
+        let ws = null
+        let ws_gps = null
     
         const start_telemetry = async () => {
             let yawrate_arr = []
             let desired_yawrate_arr = []
+            let gps_arr = []
+            let len = null
 
             if (!first_telemetry.current) {
                 console.log("첫번째 로직 시작")
                 try {
-                    const response_can1 = await fetch(
+                    const response_yawrate = await fetch(
                         "http://localhost:8000/first/detail/yawrate"
                     )
 
-                    const data = await response_can1.json()
-                    console.log(data)
+                    const response_gps = await fetch(
+                        "http://localhost:8000/first/detail/gps/yawrate"
+                    );
 
-                    for (let i = 0; i < data["yawrate"].length; i++){
-                        yawrate_arr.push(data["yawrate"][i]["latest"])
-                        desired_yawrate_arr.push(data["desired_yawrate"][i]["latest"])
+                    const data = await response_yawrate.json()
+                    const gps = await response_gps.json()
+
+
+       
+                    len = Math.min(data["yawrate"].length, data["desired_yawrate"].length)
+                    for (let i = 0; i < len; i++) {
+                        yawrate_arr.push([data["yawrate"][i]["yawrate"], data["yawrate"][i]["timestamp"]])
+                        desired_yawrate_arr.push([data["desired_yawrate"][i]["desired_yawrate"], data["desired_yawrate"][i]["timestamp"]])
                     }
 
-                    if(response_can1.ok){
-                        setYawrate((prev) => {
+                    for (let i = 0; i < gps.length; i++) {
+                        gps_arr.push(gps[i]);
+                    }
+                   
+       
+                    if (yawrate_arr.length > yawrateSliceValue) {
+                        yawrate_arr = yawrate_arr.slice(-yawrateSliceValue)
+                    }
+                    if (desired_yawrate_arr.length > yawrateSliceValue) {
+                        desired_yawrate_arr = desired_yawrate_arr.slice(-yawrateSliceValue)
+                    }
+                    if (gps_arr.length > 120) {
+                        gps_arr = gps_arr.slice(-120)
+                    }
+
+
+                    if (response_yawrate.ok){
+                        setYawrate(() => {
                             return {
-                                ...prev,
                                 history: yawrate_arr
                             }
                         })
 
-                        setDesiredYawrate((prev) => {
+                        setDesiredYawrate(() => {
                             return {
-                                ...prev,
                                 history: desired_yawrate_arr
                             }
                         })
 
-                        first_telemetry.current = true
+                        setGps(() => {
+                            return {
+                                gps: gps_arr
+                            };
+                        });
 
+                        first_telemetry.current = true
                         start_telemetry()
 
                     }
@@ -125,34 +188,51 @@ function YawRateDetailPage(){
                 }
             }else{
                 console.log("두번째 로직 시작")
-                let ws = new WebSocket("ws://localhost:8000/detail/yawrate")
+                const ws = new WebSocket("ws://localhost:8000/detail/yawrate")
+                const ws_gps = new WebSocket("ws://localhost:8000/detail/gps/yawrate");
 
                 ws.onopen = () =>{
                     console.log("yawrate detail websocket 연결됨")
                 }
 
+                ws_gps.onopen = () => {
+                    console.log("gps detail websocket 연결됨");
+                };
+
+
                 ws.onmessage = ((event) => {
                     const data = JSON.parse(event.data)
                     setYawrate((prev) => {
                         return{
-                            latest : data["yawrate"],
                             history : [
                                 ...prev.history,
-                                data["yawrate"]
-                            ].slice(-9000)
+                                [data["yawrate"]["yawrate"], data["yawrate"]["timestamp"]]
+                            ].slice(-yawrateSliceValue)
                         }
                     })
 
                     setDesiredYawrate((prev) => {
                         return{
-                            latest: data["desired_yawrate"],
                             history : [
                                 ...prev.history,
-                                data["desired_yawrate"]
-                            ].slice(-9000)
+                                [data["desired_yawrate"]["desired_yawrate"], data["desired_yawrate"]["timestamp"]]
+                            ].slice(-yawrateSliceValue)
                         }
                     })
                 })
+
+                ws_gps.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+
+                    setGps((prev) => {
+                        return {
+                            gps: [
+                                ...prev.gps,
+                                data
+                            ].slice(-6000)
+                        };
+                    });
+                };
 
 
                 ws.onclose = (event) => {
@@ -163,6 +243,16 @@ function YawRateDetailPage(){
                             event.wasClean
                         )
                 }
+
+
+                ws_gps.onclose = (event) => {
+                    console.log(
+                        "gps websocket 종료",
+                        event.code,
+                        event.reason,
+                        event.wasClean
+                    );
+                };
             }
 
         }
@@ -170,7 +260,17 @@ function YawRateDetailPage(){
         start_telemetry()
 
         return(() => {
-            clearInterval(timer)
+            if (timer !== null) {
+                clearTimeout(timer);
+            }
+
+            if (ws !== null) {
+                ws_can0.close();
+            }
+
+            if (ws_gps !== null) {
+                ws_gps.close();
+            }
         })
 
     },[])
@@ -182,51 +282,25 @@ function YawRateDetailPage(){
                 <TwoMiniLineChart_for_detail
                     yawrate={yawrate["history"]}
                     desiredyawrate={desiredYawrate["history"]}
+                    setMouseoveridx={setMouseoveridx}
+                    setMouseovertimestamp={setMouseovertimestamp}
                 />
             </div>
-            <div className="yawrate-detail-page-pannel">
-                <div className="yawrate-detail-page-text min-and-max">
 
-                        <div className="yawrate-detail-page-text-min">
-
-                            <div className="yawrate-detail-page-text-min-text">
-                                최솟값
-                            </div>
-                            <div className="yawrate-detail-page-text-min-data">
-                                    {calculate_data.min_yawrate} / {calculate_data.min_desired_yawrate}
-                            </div>
-        
-                        </div>
-                        <div className="yawrate-detail-page-text-max">
-                            
-                            <div className="yawrate-detail-page-text-max-text">
-                                최대값
-                            </div>
-                            <div className="yawrate-detail-page-text-max-data">
-                                {calculate_data.max_yawrate} / {calculate_data.max_desried_yawrate}
-                            </div>
-
-                        </div>
+            <div className="yawrate-detail-page-gps-and-value">
+                <div className="yawrate-detail-page-gps">
+                    <GpsPannel
+                        gps={gps.gps}
+                        mouseovertimestamp={mouseovertimestamp}
+                        slicevalue = {6000} />
                 </div>
-                <div className="yawrate-detail-page-text average-average-error">
-                    <div className="yawrate-detail-page-text-average">
-                        <div className="yawrate-detail-page-text-average-text">
-                            평균
-                        </div>
-                        <div className="yawrate-detail-page-text-average-data">
-                            {calculate_data.yawrate_avg}  / {calculate_data.desried_yawrate_avg}
-                        </div>
-                    </div>
-                    <div className="yawrate-detail-page-text-average-error">
-                        <div className="yawrate-detail-page-text-average-error-text">
-                            평균 오차
-                        </div>
-                        <div className="yawrate-detail-page-text-average-error-data">
-                            {calculate_data.avg_err}
-                        </div>
-                    </div>
+
+                <div className="yawrate-detail-page-value">
+                    {returnValue()}
                 </div>
+
             </div>
+            
         </div>
 
     )

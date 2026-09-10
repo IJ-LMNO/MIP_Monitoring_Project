@@ -34,10 +34,13 @@ button_dequeue = deque(maxlen=dequeue_size)
 # =========================================================
 
 can0_detail_dequeue = deque(maxlen = 6000)
-yawrate_detail_dequeue = deque(maxlen= 6000)
-desired_yawrate_detail_dequeue = deque(maxlen = 6000)
-rollrate_detail_dequeue = deque(maxlen = 6000)
-gps_detail_dequeue = deque(maxlen = 120)
+yawrate_detail_dequeue = deque(maxlen= 2400)
+desired_yawrate_detail_dequeue = deque(maxlen = 2400)
+rollrate_detail_dequeue = deque(maxlen = 2400)
+
+gps_detail_dequeue_for_powerstatus = deque(maxlen = 120)
+gps_detail_dequeue_for_yawrate = deque(maxlen = 120)
+gps_detail_dequeue_for_rollrate = deque(maxlen = 120)
 
 
 
@@ -57,8 +60,12 @@ face_queue = queue.Queue(maxsize=dequeue_size)
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+
+    "http://localhost:4173",
+    "http://127.0.0.1:4173",
+
     "https://100.84.183.9",
-    "https://100.70.221.71"
+    "https://100.70.221.71",
 ]
 
 app.add_middleware(
@@ -276,6 +283,7 @@ async def can0_detial_page(websocket : WebSocket):
 # =========================================================
 # gps / gps detail 처리 
 # =========================================================
+
 gps_asyncio_event = asyncio.Event()
 gps_event_loop = None
 @app.websocket("/telemetry/gps/ws")
@@ -305,41 +313,44 @@ async def gps_ws_endpoint(websocket: WebSocket):
             if len(gps_dequeue) == 0:
                 gps_asyncio_event.clear()
 
-gps_lock = thread.Lock()
-@app.get("/first/detail/gps")
+
+
+
+gps_lock_powerstatus = thread.Lock()
+@app.get("/first/detail/gps/powerstatus")
 def gps_detail_page_first_telemetry():
-    if(len(gps_detail_dequeue) == 0):
+    if(len(gps_detail_dequeue_for_powerstatus) == 0):
         print("gps detail no data")
         raise HTTPException(
             status_code = 404,
             detail = "no data in gps detail dequeue"
         )
     else:
-        with gps_lock:
-            return_deque = copy.deepcopy(gps_detail_dequeue)
+        with gps_lock_powerstatus:
+            return_deque = copy.deepcopy(gps_detail_dequeue_for_powerstatus)
 
         return(
             return_deque
         )
 
-gps_detail_asyncio_event = asyncio.Event()
-gps_detail_event_loop = None
-@app.websocket("/detail/gps")
+gps_detail_asyncio_event_powerstatus = asyncio.Event()
+gps_detail_event_loop_powerstatus = None
+@app.websocket("/detail/gps/powerstatus")
 async def gps_detial_page(websocket : WebSocket):
-    global gps_detail_event_loop
+    global gps_detail_event_loop_powerstatus
     await websocket.accept()
 
-    gps_detail_event_loop = asyncio.get_running_loop()
+    gps_detail_event_loop_powerstatus = asyncio.get_running_loop()
 
     while True:
-        if len(gps_detail_dequeue) == 0:
-            await gps_detail_asyncio_event.wait()
+        if len(gps_detail_dequeue_for_powerstatus) == 0:
+            await gps_detail_asyncio_event_powerstatus.wait()
 
         else:
-            gps_detail_dequeue_len = len(gps_detail_dequeue)
+            gps_detail_dequeue_len = len(gps_detail_dequeue_for_powerstatus)
 
             while gps_detail_dequeue_len > 0:
-                gps = gps_detail_dequeue.popleft()
+                gps = gps_detail_dequeue_for_powerstatus.popleft()
 
                 await websocket.send_json(
                     gps
@@ -347,8 +358,56 @@ async def gps_detial_page(websocket : WebSocket):
 
                 gps_detail_dequeue_len-= 1
 
-            if len(gps_detail_dequeue) == 0:
-                gps_detail_asyncio_event.clear()
+            if len(gps_detail_dequeue_for_powerstatus) == 0:
+                gps_detail_asyncio_event_powerstatus.clear()
+
+
+
+
+gps_lock_yawrate = thread.Lock()
+@app.get("/first/detail/gps/yawrate")
+def gps_detail_page_first_telemetry():
+    if(len(gps_detail_dequeue_for_yawrate) == 0):
+        print("gps detail no data")
+        raise HTTPException(
+            status_code = 404,
+            detail = "no data in gps detail dequeue"
+        )
+    else:
+        with gps_lock_yawrate:
+            return_deque = copy.deepcopy(gps_detail_dequeue_for_yawrate)
+
+        return(
+            return_deque
+        )
+
+gps_detail_asyncio_event_yawrate = asyncio.Event()
+gps_detail_event_loop_yawrate = None
+@app.websocket("/detail/gps/yawrate")
+async def gps_detial_page(websocket : WebSocket):
+    global gps_detail_event_loop_yawrate
+    await websocket.accept()
+
+    gps_detail_event_loop_yawrate = asyncio.get_running_loop()
+
+    while True:
+        if len(gps_detail_dequeue_for_yawrate) == 0:
+            await gps_detail_asyncio_event_yawrate.wait()
+
+        else:
+            gps_detail_dequeue_len = len(gps_detail_dequeue_for_yawrate)
+
+            while gps_detail_dequeue_len > 0:
+                gps = gps_detail_dequeue_for_yawrate.popleft()
+
+                await websocket.send_json(
+                    gps
+                )
+
+                gps_detail_dequeue_len-= 1
+
+            if len(gps_detail_dequeue_for_yawrate) == 0:
+                gps_detail_asyncio_event_yawrate.clear()
 
 
 
@@ -451,8 +510,8 @@ async def yawrate_detial_page(websocket : WebSocket):
                 desired_yawrate = desired_yawrate_detail_dequeue.popleft()
 
                 await websocket.send_json({
-                    "yawrate" : yawrate["latest"],
-                    "desired_yawrate" : desired_yawrate["latest"]
+                    "yawrate" : yawrate,
+                    "desired_yawrate" : desired_yawrate
                 })
             
                 yawrate_detail_dequeue_len -= 1
@@ -596,17 +655,27 @@ def get_can0_data(data):
 def get_gps_data(data):
     gps_dequeue.append(data)
 
-    with gps_lock:
-        gps_detail_dequeue.append(data)
+    with gps_lock_powerstatus:
+        gps_detail_dequeue_for_powerstatus.append(data)
+
+    with gps_lock_yawrate:
+        gps_detail_dequeue_for_yawrate.append(data)
+
+
 
     if gps_event_loop is not None:
         gps_event_loop.call_soon_threadsafe(
             gps_asyncio_event.set
         )
 
-    if gps_detail_event_loop is not None:
-        gps_detail_event_loop.call_soon_threadsafe(
-            gps_detail_asyncio_event.set
+    if gps_detail_event_loop_powerstatus is not None:
+        gps_detail_event_loop_powerstatus.call_soon_threadsafe(
+            gps_detail_asyncio_event_powerstatus.set
+        )
+
+    if gps_detail_event_loop_yawrate is not None:
+        gps_detail_event_loop_yawrate.call_soon_threadsafe(
+            gps_detail_asyncio_event_yawrate.set
         )
 
 
@@ -619,10 +688,19 @@ def get_can1_data(data):
     can1_dequeue.append(data)
 
     with yawrate_lock:
-        yawrate_detail_dequeue.append(data["yawrate"])
-        desired_yawrate_detail_dequeue.append(data["desired_yawrate"])
+        yawrate_detail_dequeue.append({
+            "yawrate" : data["yawrate"],
+            "timestamp" : data["timestamp"]
+        })
+        desired_yawrate_detail_dequeue.append({
+            "desired_yawrate" : data["desired_yawrate"],
+            "timestamp" : data["timestamp"]
+        })
     with rollrate_lock:
-        rollrate_detail_dequeue.append(data["rollrate"])
+        rollrate_detail_dequeue.append({
+            "rollrate" : data["rollrate"],
+            "timestamp" : data["timestamp"]
+        })
 
     if can1_event_loop is not None:
         can1_event_loop.call_soon_threadsafe(

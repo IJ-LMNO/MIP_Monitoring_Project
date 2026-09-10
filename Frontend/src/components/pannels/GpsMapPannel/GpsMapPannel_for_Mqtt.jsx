@@ -33,50 +33,56 @@ const INITIAL_POSITION = [
 ];
 
 
-// function OpenFreeMapLayer() {
-//     const map = useMap();
-
-//     useEffect(() => {
-//         const layer = L.maplibreGL({
-//             style:
-//                 "https://tiles.openfreemap.org/styles/dark",
-//             interactive: false
-//         });
-
-//         layer.addTo(map);
+//--------------------------------------------------------------------------------------
+// route의 크기 지정
+//--------------------------------------------------------------------------------------- 
+const gpsSliceValue = 120
 
 
-//         requestAnimationFrame(() => {
-//             map.invalidateSize();
-//         });
+function OpenFreeMapLayer() {
+    const map = useMap();
+
+    useEffect(() => {
+        const layer = L.maplibreGL({
+            style:
+                "https://tiles.openfreemap.org/styles/dark",
+            interactive: false
+        });
+
+        layer.addTo(map);
 
 
-//         return () => {
-//             map.removeLayer(layer);
-//         };
-
-//     }, [map]);
+        requestAnimationFrame(() => {
+            map.invalidateSize();
+        });
 
 
-//     return null;
-// }
+        return () => {
+            map.removeLayer(layer);
+        };
+
+    }, [map]);
 
 
-// function MoveMapCenter({ position }) {
-//     const map = useMap();
-
-//     useEffect(() => {
-//         if (!position) {
-//             return;
-//         }
-
-//         map.panTo(position);
-
-//     }, [map, position]);
+    return null;
+}
 
 
-//     return null;
-// }
+function MoveMapCenter({ position }) {
+    const map = useMap();
+
+    useEffect(() => {
+        if (!position) {
+            return;
+        }
+
+        map.panTo(position);
+
+    }, [map, position]);
+
+
+    return null;
+}
 
 
 function GpsMapPannel({ gps }) {
@@ -141,14 +147,14 @@ function GpsMapPannel({ gps }) {
             return [
                 ...prev,
                 nextPosition
-            ];
+            ].slice(-gpsSliceValue);
         });
 
     }, [gps]);
 
 
     const currentPosition =
-        route.length > 0
+        route.length >0
             ? route[route.length - 1]
             : INITIAL_POSITION;
 
@@ -166,7 +172,7 @@ function GpsMapPannel({ gps }) {
                 }}
             >
 
-                {/* <OpenFreeMapLayer /> */}
+                <OpenFreeMapLayer />
 
 
                 {route.length > 1 && (
@@ -185,14 +191,14 @@ function GpsMapPannel({ gps }) {
                     />
                 )}
 
-{/* 
-                {route.length > 0 && (
+
+                {route.length < 5  && (
                     <MoveMapCenter
                         position={
                             currentPosition
                         }
                     />
-                )} */}
+                )}
 
             </MapContainer>
 

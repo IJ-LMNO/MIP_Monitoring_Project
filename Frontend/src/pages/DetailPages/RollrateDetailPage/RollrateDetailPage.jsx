@@ -107,49 +107,6 @@ function RollrateDetailPage(){
                     max={10}
                 />
             </div>
-            {/* <div className="yawrate-detail-page-pannel">
-                <div className="yawrate-detail-page-text min-and-max">
-
-                        <div className="yawrate-detail-page-text-min">
-
-                            <div className="yawrate-detail-page-text-min-text">
-                                최솟값
-                            </div>
-                            <div className="yawrate-detail-page-text-min-data">
-                                    {calculate_data.min_yawrate} / {calculate_data.min_desired_yawrate}
-                            </div>
-        
-                        </div>
-                        <div className="yawrate-detail-page-text-max">
-                            
-                            <div className="yawrate-detail-page-text-max-text">
-                                최대값
-                            </div>
-                            <div className="yawrate-detail-page-text-max-data">
-                                {calculate_data.max_yawrate} / {calculate_data.max_desried_yawrate}
-                            </div>
-
-                        </div>
-                </div>
-                <div className="yawrate-detail-page-text average-average-error">
-                    <div className="yawrate-detail-page-text-average">
-                        <div className="yawrate-detail-page-text-average-text">
-                            평균
-                        </div>
-                        <div className="yawrate-detail-page-text-average-data">
-                            {calculate_data.yawrate_avg}  / {calculate_data.desried_yawrate_avg}
-                        </div>
-                    </div>
-                    <div className="yawrate-detail-page-text-average-error">
-                        <div className="yawrate-detail-page-text-average-error-text">
-                            평균 오차
-                        </div>
-                        <div className="yawrate-detail-page-text-average-error-data">
-                            {calculate_data.avg_err}
-                        </div>
-                    </div>
-                </div>
-            </div> */}
         </div>
 
     )
