@@ -5,7 +5,7 @@ import time
 from datetime import datetime, timezone
 
 
-PUBLISH_HZ = 1
+PUBLISH_HZ = 20
 PUBLISH_INTERVAL = 1 / PUBLISH_HZ
 
 

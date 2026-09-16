@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import TwoMiniLineChart_for_detail from "../../../components/common/TwoMiniLineChart_for_detail/TwoMiniLineChart_for_detail"
 import GpsPannel from "../../../components/pannels/GpsMapPannel/GpsMapPannel_for_detail"
+import StopButton from "../../DetailPageStopButon/DetailPageStopButton"
 
 import "./YawRateDetailPage.css"
 
@@ -56,7 +57,8 @@ function YawRateDetailPage(){
     //--------------------------------------------------------------------------------------- 
     const [mouseovertimestamp, setMouseovertimestamp] = useState({
         "first_timestamp": null,
-        "last_timestamp": null
+        "last_timestamp": null,
+        "cutoff_timestamp" : null
     })
 
     //--------------------------------------------------------------------------------------
@@ -74,9 +76,24 @@ function YawRateDetailPage(){
 
 
     //--------------------------------------------------------------------------------------
-    // yawrate, desired_yawrate state slice 개수
+    // slice 개수
     //--------------------------------------------------------------------------------------- 
     const yawrateSliceValue = 2400
+    const gpsSliceValue = 120
+
+    
+    //--------------------------------------------------------------------------------------
+    // DetailPageStop state
+    //--------------------------------------------------------------------------------------- 
+    const [stopsiginal, setStopsignal] = useState({
+        "state": false, // false : 진행, true : 멈춤
+        "color": "red",
+        "text": "Stop!",
+        "yawrate" : null,
+        "desired_yawrate" : null
+    })
+
+
 
 
     //--------------------------------------------------------------------------------------
@@ -94,12 +111,27 @@ function YawRateDetailPage(){
         else {
             return (
                 <>
-                    <div className="powerstatus-detail-page-value-type" style={{ color: mouseoveridx.type }}>
-                        yawrate / Desired-yawrate
+                    <div className="yawrate-detail-page-value-type">
+                        <div style={{color : "blue"}}>
+                            yawrate
+                        </div>
+                        <div>
+                             ,
+                        </div>
+                        <div style={{ color: "red" }}>
+                            Desired_yawrate
+                        </div>
                     </div>
-                    <div className="powerstatus-detail-page-value-value">
-                        {yawrate["history"][mouseoveridx.idx][0]}
-                        {desiredYawrate["history"][mouseoveridx.idx][0]}
+                    <div className="yawrate-detail-page-value-value">
+                        <div style={{ color: "blue" }}>
+                            {stopsiginal.state ? stopsiginal.yawrate[mouseoveridx.idx][0] : yawrate["history"][mouseoveridx.idx][0]} 
+                        </div>
+                        <div>
+                            ,
+                        </div>
+                        <div style={{ color: "red" }}>
+                            {stopsiginal.state ? stopsiginal.desired_yawrate[mouseoveridx.idx][0] : desiredYawrate["history"][mouseoveridx.idx][0]}
+                        </div>
                     </div>
                 </>
             )
@@ -150,8 +182,8 @@ function YawRateDetailPage(){
                     if (desired_yawrate_arr.length > yawrateSliceValue) {
                         desired_yawrate_arr = desired_yawrate_arr.slice(-yawrateSliceValue)
                     }
-                    if (gps_arr.length > 120) {
-                        gps_arr = gps_arr.slice(-120)
+                    if (gps_arr.length > gpsSliceValue) {
+                        gps_arr = gps_arr.slice(-gpsSliceValue)
                     }
 
 
@@ -229,7 +261,7 @@ function YawRateDetailPage(){
                             gps: [
                                 ...prev.gps,
                                 data
-                            ].slice(-6000)
+                            ].slice(-gpsSliceValue)
                         };
                     });
                 };
@@ -284,15 +316,26 @@ function YawRateDetailPage(){
                     desiredyawrate={desiredYawrate["history"]}
                     setMouseoveridx={setMouseoveridx}
                     setMouseovertimestamp={setMouseovertimestamp}
+                    strokeWidth = {0.5}
+                    stopsiginal ={stopsiginal}
+                    setStopsignal={setStopsignal}
                 />
             </div>
 
             <div className="yawrate-detail-page-gps-and-value">
-                <div className="yawrate-detail-page-gps">
+                <div className="yawrate-detail-page-gps-pannel">
                     <GpsPannel
+                        className = "yawrate-detail-page-gps"
                         gps={gps.gps}
-                        mouseovertimestamp={mouseovertimestamp}
-                        slicevalue = {6000} />
+                        mouseovertimestamp={mouseovertimestamp} 
+                        stopsiginal={stopsiginal}
+                    />
+
+                    <div className="yawrate-detail-page-button">
+                        <StopButton
+                            stopsiginal={stopsiginal}
+                            setStopsiginal={setStopsignal} />
+                    </div> 
                 </div>
 
                 <div className="yawrate-detail-page-value">

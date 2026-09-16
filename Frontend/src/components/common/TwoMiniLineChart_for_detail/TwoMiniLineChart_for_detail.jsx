@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import "./TwoMiniLineChart_for_detail.css";
 
 function TwoMiniLineChart_for_detail({
@@ -9,7 +9,10 @@ function TwoMiniLineChart_for_detail({
     min = -100,
     max = 100,
     setMouseoveridx,
-    setMouseovertimestamp
+    setMouseovertimestamp,
+    strokewidth,
+    stopsiginal,
+    setStopsignal
 }) {
 
     //--------------------------------------------------------------------------------------
@@ -17,14 +20,15 @@ function TwoMiniLineChart_for_detail({
     //--------------------------------------------------------------------------------------
     const ORIGINAL_WIDTH = 300;
     const ORIGINAL_HEIGHT = 75;
-    const maxLength = 2400; // 20Hz * 120초
+    const maxLength = 2400;
 
-    const visibleYawrate = yawrate.slice(-maxLength);
-    const visibleDesiredYawrate = desiredyawrate.slice(-maxLength);
+    const visibleYawrate = yawrate;
+    const visibleDesiredYawrate = desiredyawrate;
 
-    // yawrate / desiredyawrate는 같은 CAN1 시간축
-    const emptyCount = maxLength - visibleYawrate.length;
 
+    //--------------------------------------------------------------------------------------
+    // 현재 카메라(viewBox)
+    //--------------------------------------------------------------------------------------
     const [viewBox, setViewBox] = useState({
         x: 0,
         y: 0,
@@ -34,14 +38,58 @@ function TwoMiniLineChart_for_detail({
 
 
     //--------------------------------------------------------------------------------------
+    // 드래그 상태
+    //--------------------------------------------------------------------------------------
+    const dragRef = useRef({
+        isDragging: false,
+        startClientX: 0,
+        startClientY: 0,
+        startX: 0,
+        startY: 0,
+        startWidth: ORIGINAL_WIDTH,
+        startHeight: ORIGINAL_HEIGHT
+    });
+
+
+    //--------------------------------------------------------------------------------------
+    // 정지 시 사용할 이전 데이터 저장
+    //--------------------------------------------------------------------------------------
+    const preYawrateData = useRef([]);
+    const preDesiredYawrateData = useRef([]);
+
+
+    //--------------------------------------------------------------------------------------
+    // 현재 렌더에서 실제 사용할 데이터 결정
+    //
+    // 실행 중 -> 최신 데이터 사용 + ref 갱신
+    // 정지 중 -> ref에 저장된 마지막 snapshot 사용
+    //--------------------------------------------------------------------------------------
+    let targetYawrateData = visibleYawrate;
+    let targetDesiredYawrateData = visibleDesiredYawrate;
+
+    if (stopsiginal.state === true) {
+        targetYawrateData = preYawrateData.current;
+        targetDesiredYawrateData = preDesiredYawrateData.current;
+    }
+    else {
+        preYawrateData.current = visibleYawrate;
+        preDesiredYawrateData.current = visibleDesiredYawrate;
+    }
+
+
+    //--------------------------------------------------------------------------------------
+    // 반드시 현재 화면에 실제 표시되는 데이터 기준으로 emptyCount 계산
+    //--------------------------------------------------------------------------------------
+    const emptyCount = maxLength - targetYawrateData.length;
+
+
+    //--------------------------------------------------------------------------------------
     // timestamp + yawrate 좌표 생성
     //--------------------------------------------------------------------------------------
     const timestamparr = [];
     let prevTimestamp = null;
 
-    const yawratePoints = visibleYawrate.map((value, index) => {
-        if (!value || !Array.isArray(value)) return "";
-
+    const yawratePoints = targetYawrateData.map((value, index) => {
         const slotIndex = emptyCount + index;
         const pointX = (slotIndex / (maxLength - 1)) * ORIGINAL_WIDTH;
         const pointY = ORIGINAL_HEIGHT - ((value[0] - min) / (max - min)) * ORIGINAL_HEIGHT;
@@ -62,9 +110,7 @@ function TwoMiniLineChart_for_detail({
     //--------------------------------------------------------------------------------------
     // desired yawrate 좌표 생성
     //--------------------------------------------------------------------------------------
-    const desiredYawratePoints = visibleDesiredYawrate.map((value, index) => {
-        if (!value || !Array.isArray(value)) return "";
-
+    const desiredYawratePoints = targetDesiredYawrateData.map((value, index) => {
         const slotIndex = emptyCount + index;
         const pointX = (slotIndex / (maxLength - 1)) * ORIGINAL_WIDTH;
         const pointY = ORIGINAL_HEIGHT - ((value[0] - min) / (max - min)) * ORIGINAL_HEIGHT;
@@ -74,116 +120,66 @@ function TwoMiniLineChart_for_detail({
 
 
     //--------------------------------------------------------------------------------------
-    // 확대 / 축소
+    // 드래그 시작
     //--------------------------------------------------------------------------------------
-    const handleMouseWheel = (event) => {
-        event.preventDefault();
+    const handleMouseDown = (event) => {
+        if (event.button !== 0) return;
+        if (viewBox.width >= ORIGINAL_WIDTH && viewBox.height >= ORIGINAL_HEIGHT) return;
 
-        if (visibleYawrate.length === 0 && visibleDesiredYawrate.length === 0) return;
-
-        const scale = Math.exp(event.deltaY * 0.001);
-
-        let minPointX = Infinity;
-        let maxPointX = -Infinity;
-        let minPointY = Infinity;
-        let maxPointY = -Infinity;
-
-
-        // yawrate 영역
-        visibleYawrate.forEach((value, index) => {
-            if (!value || !Array.isArray(value)) return;
-
-            const slotIndex = emptyCount + index;
-            const pointX = (slotIndex / (maxLength - 1)) * ORIGINAL_WIDTH;
-            const pointY = ORIGINAL_HEIGHT - ((value[0] - min) / (max - min)) * ORIGINAL_HEIGHT;
-
-            minPointX = Math.min(minPointX, pointX);
-            maxPointX = Math.max(maxPointX, pointX);
-            minPointY = Math.min(minPointY, pointY);
-            maxPointY = Math.max(maxPointY, pointY);
-        });
-
-
-        // desired yawrate 영역
-        visibleDesiredYawrate.forEach((value, index) => {
-            if (!value || !Array.isArray(value)) return;
-
-            const slotIndex = emptyCount + index;
-            const pointX = (slotIndex / (maxLength - 1)) * ORIGINAL_WIDTH;
-            const pointY = ORIGINAL_HEIGHT - ((value[0] - min) / (max - min)) * ORIGINAL_HEIGHT;
-
-            minPointX = Math.min(minPointX, pointX);
-            maxPointX = Math.max(maxPointX, pointX);
-            minPointY = Math.min(minPointY, pointY);
-            maxPointY = Math.max(maxPointY, pointY);
-        });
-
-
-        if (!Number.isFinite(minPointX) || !Number.isFinite(minPointY)) return;
-
-        const dataCenterX = (minPointX + maxPointX) / 2;
-        const dataCenterY = (minPointY + maxPointY) / 2;
-
-        const originalCenterX = ORIGINAL_WIDTH / 2;
-        const originalCenterY = ORIGINAL_HEIGHT / 2;
-
-
-        setViewBox((prev) => {
-            let newWidth = prev.width * scale;
-            let newHeight = prev.height * scale;
-
-            const currentCenterX = prev.x + prev.width / 2;
-            const currentCenterY = prev.y + prev.height / 2;
-
-
-            // 확대
-            if (scale < 1) {
-                const moveRatio = 1 - scale;
-
-                const newCenterX = currentCenterX + (dataCenterX - currentCenterX) * moveRatio;
-                const newCenterY = currentCenterY + (dataCenterY - currentCenterY) * moveRatio;
-
-                return {
-                    x: newCenterX - newWidth / 2,
-                    y: newCenterY - newHeight / 2,
-                    width: newWidth,
-                    height: newHeight
-                };
-            }
-
-
-            // 축소
-            newWidth = Math.min(newWidth, ORIGINAL_WIDTH);
-            newHeight = Math.min(newHeight, ORIGINAL_HEIGHT);
-
-            if (newWidth >= ORIGINAL_WIDTH || newHeight >= ORIGINAL_HEIGHT) {
-                return {
-                    x: 0,
-                    y: 0,
-                    width: ORIGINAL_WIDTH,
-                    height: ORIGINAL_HEIGHT
-                };
-            }
-
-            const restoreRatio = (newWidth - prev.width) / (ORIGINAL_WIDTH - prev.width);
-
-            const newCenterX = currentCenterX + (originalCenterX - currentCenterX) * restoreRatio;
-            const newCenterY = currentCenterY + (originalCenterY - currentCenterY) * restoreRatio;
-
-            return {
-                x: newCenterX - newWidth / 2,
-                y: newCenterY - newHeight / 2,
-                width: newWidth,
-                height: newHeight
-            };
-        });
+        dragRef.current = {
+            isDragging: true,
+            startClientX: event.clientX,
+            startClientY: event.clientY,
+            startX: viewBox.x,
+            startY: viewBox.y,
+            startWidth: viewBox.width,
+            startHeight: viewBox.height
+        };
     };
 
 
     //--------------------------------------------------------------------------------------
-    // 마우스 위치 → 배열 index / timestamp
+    // 마우스 위치 → 배열 index / 드래그 이동
     //--------------------------------------------------------------------------------------
     const handleMouseMove = (event) => {
+
+        //----------------------------------------------------------------------------------
+        // 드래그 중
+        //----------------------------------------------------------------------------------
+        if (dragRef.current.isDragging) {
+            const svg = event.currentTarget;
+            const rect = svg.getBoundingClientRect();
+
+            const deltaClientX = event.clientX - dragRef.current.startClientX;
+            const deltaClientY = event.clientY - dragRef.current.startClientY;
+
+            const deltaSvgX = deltaClientX * (dragRef.current.startWidth / rect.width);
+            const deltaSvgY = deltaClientY * (dragRef.current.startHeight / rect.height);
+
+            let newX = dragRef.current.startX - deltaSvgX;
+            let newY = dragRef.current.startY - deltaSvgY;
+
+            const maxX = ORIGINAL_WIDTH - dragRef.current.startWidth;
+            const maxY = ORIGINAL_HEIGHT - dragRef.current.startHeight;
+
+            newX = Math.max(0, Math.min(newX, maxX));
+            newY = Math.max(0, Math.min(newY, maxY));
+
+            setViewBox((prev) => {
+                return {
+                    ...prev,
+                    x: newX,
+                    y: newY
+                };
+            });
+
+            return;
+        }
+
+
+        //----------------------------------------------------------------------------------
+        // 일반 hover
+        //----------------------------------------------------------------------------------
         const svg = event.currentTarget;
         const point = svg.createSVGPoint();
 
@@ -197,15 +193,24 @@ function TwoMiniLineChart_for_detail({
         const idx = slotIndex - emptyCount;
 
 
-        setMouseoveridx(() => {
-            return{
-                "idx" : idx
-            }
+        // 데이터가 없는 영역
+        if (idx < 0 || idx >= targetYawrateData.length) {
+            setMouseoveridx({ idx: null });
+
+            setMouseovertimestamp({
+                first_timestamp: null,
+                last_timestamp: null,
+                cutoff_timestamp : null
+            });
+
+            return;
+        }
+
+
+        setMouseoveridx({
+            idx: idx
         });
 
-
-        // 현재 idx가 어느 초 구간에 있는지 확인
-        let timestampFound = false;
 
         for (let i = 0; i < timestamparr.length - 1; i++) {
             if (timestamparr[i][0] <= idx && idx < timestamparr[i + 1][0]) {
@@ -214,31 +219,106 @@ function TwoMiniLineChart_for_detail({
                     last_timestamp: timestamparr[i + 1][1]
                 });
 
-                timestampFound = true;
                 break;
             }
         }
 
+        setMouseovertimestamp((prev) => {
+            return {
+                ...prev,
+                cutoff_timestamp: timestamparr[timestamparr.length - 1][1]
+            }
+        })
 
-        // 해당 timestamp 구간이 없을 경우 이전 값이 남지 않게 초기화
-        if (!timestampFound) {
-            setMouseovertimestamp({
-                first_timestamp: null,
-                last_timestamp: null
-            });
-        }
+        setStopsignal((prev) => {
+            return{
+                ...prev,
+                "yawrate" : preYawrateData.current,
+                "desired_yawrate" : preDesiredYawrateData.current
+            }
+        })
+
     };
 
 
     //--------------------------------------------------------------------------------------
-    // 마우스가 그래프 밖으로 나감
+    // 드래그 종료
+    //--------------------------------------------------------------------------------------
+    const handleMouseUp = () => {
+        dragRef.current.isDragging = false;
+    };
+
+
+    //--------------------------------------------------------------------------------------
+    // Wheel 확대 / 축소
+    // 마우스 커서 위치 기준 확대
+    //--------------------------------------------------------------------------------------
+    const handleMouseWheel = (event) => {
+        event.preventDefault();
+
+        if (targetYawrateData.length === 0 && targetDesiredYawrateData.length === 0) return;
+
+        const svg = event.currentTarget;
+        const point = svg.createSVGPoint();
+
+        point.x = event.clientX;
+        point.y = event.clientY;
+
+        const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
+        const mouseX = svgPoint.x;
+        const mouseY = svgPoint.y;
+
+        const scale = Math.exp(event.deltaY * 0.001);
+
+        setViewBox((prev) => {
+            let newWidth = prev.width * scale;
+            let newHeight = prev.height * scale;
+
+            if (newWidth >= ORIGINAL_WIDTH || newHeight >= ORIGINAL_HEIGHT) {
+                return {
+                    x: 0,
+                    y: 0,
+                    width: ORIGINAL_WIDTH,
+                    height: ORIGINAL_HEIGHT
+                };
+            }
+
+            const mouseRatioX = (mouseX - prev.x) / prev.width;
+            const mouseRatioY = (mouseY - prev.y) / prev.height;
+
+            let newX = mouseX - mouseRatioX * newWidth;
+            let newY = mouseY - mouseRatioY * newHeight;
+
+            const maxX = ORIGINAL_WIDTH - newWidth;
+            const maxY = ORIGINAL_HEIGHT - newHeight;
+
+            newX = Math.max(0, Math.min(newX, maxX));
+            newY = Math.max(0, Math.min(newY, maxY));
+
+            return {
+                x: newX,
+                y: newY,
+                width: newWidth,
+                height: newHeight
+            };
+        });
+    };
+
+
+    //--------------------------------------------------------------------------------------
+    // 마우스 leave
     //--------------------------------------------------------------------------------------
     const handleMouseLeave = () => {
-        setMouseoveridx({ idx: null });
+        dragRef.current.isDragging = false;
+
+        setMouseoveridx({
+            idx: null
+        });
 
         setMouseovertimestamp({
             first_timestamp: null,
-            last_timestamp: null
+            last_timestamp: null,
+            cutoff_timestamp : null
         });
     };
 
@@ -246,19 +326,12 @@ function TwoMiniLineChart_for_detail({
     //--------------------------------------------------------------------------------------
     // 현재 viewBox 기준 Y축 값
     //--------------------------------------------------------------------------------------
-    const visibleMax = Math.round(
-        min + ((ORIGINAL_HEIGHT - viewBox.y) / ORIGINAL_HEIGHT) * (max - min)
-    );
-
-    const visibleMin = Math.round(
-        min + ((ORIGINAL_HEIGHT - (viewBox.y + viewBox.height)) / ORIGINAL_HEIGHT) * (max - min)
-    );
-
+    const visibleMax = Math.round(min + ((ORIGINAL_HEIGHT - viewBox.y) / ORIGINAL_HEIGHT) * (max - min));
+    const visibleMin = Math.round(min + ((ORIGINAL_HEIGHT - (viewBox.y + viewBox.height)) / ORIGINAL_HEIGHT) * (max - min));
     const visibleMiddle = Math.round((visibleMax + visibleMin) / 2);
 
     const zoom = ORIGINAL_WIDTH / viewBox.width;
     const fontSize = 10 / zoom;
-
     const centerY = viewBox.y + viewBox.height / 2;
 
 
@@ -270,8 +343,9 @@ function TwoMiniLineChart_for_detail({
             <svg
                 className="tmini-line-chart-for-detail"
                 viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
-                preserveAspectRatio="none"
+                onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseLeave}
                 onWheel={handleMouseWheel}
             >
@@ -321,23 +395,23 @@ function TwoMiniLineChart_for_detail({
 
 
                 {/* yawrate */}
-                {visibleYawrate.length >= 2 && (
+                {targetYawrateData.length >= 2 && (
                     <polyline
                         points={yawratePoints}
                         fill="none"
                         stroke={color}
-                        strokeWidth="0.1"
+                        strokeWidth={strokewidth}
                     />
                 )}
 
 
                 {/* desired yawrate */}
-                {visibleDesiredYawrate.length >= 2 && (
+                {targetDesiredYawrateData.length >= 2 && (
                     <polyline
                         points={desiredYawratePoints}
                         fill="none"
                         stroke={desiredColor}
-                        strokeWidth="0.1"
+                        strokeWidth={strokewidth}
                     />
                 )}
 

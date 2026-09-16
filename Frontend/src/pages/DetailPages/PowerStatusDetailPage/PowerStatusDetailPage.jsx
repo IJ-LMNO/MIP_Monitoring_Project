@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import MiniLineChart_for_detail from "../../../components/common/MinLineChart_for_detail/MiniLineChart_for_detail"
 import GpsPannel from "../../../components/pannels/GpsMapPannel/GpsMapPannel_for_detail"
+import StopButton from "../../DetailPageStopButon/DetailPageStopButton"
 
 import "./PowerStatusDetailPage.css"
 
@@ -52,7 +53,8 @@ function PowerStatusDetailPage(){
     //--------------------------------------------------------------------------------------- 
     const[mouseovertimestamp, setMouseovertimestamp] = useState({
         "first_timestamp" : null,
-        "last_timestamp" : null
+        "last_timestamp" : null,
+        "cutoff_timestamp" : null
     })
 
 
@@ -73,7 +75,21 @@ function PowerStatusDetailPage(){
 
 
 
+    //--------------------------------------------------------------------------------------
+    // slice 개수
+    //--------------------------------------------------------------------------------------- 
+    const powerstatusSliceValue = 6000
+    const gpsSliceValue = 120
 
+
+    //--------------------------------------------------------------------------------------
+    // DetailPageStop state
+    //--------------------------------------------------------------------------------------- 
+    const [stopsiginal, setStopsignal] = useState({
+        "state" : false, // false : 진행, true : 멈춤
+        "color" : "red",
+        "text" : "Stop!"
+    })
 
 
     //--------------------------------------------------------------------------------------
@@ -91,7 +107,7 @@ function PowerStatusDetailPage(){
                             CurrentL
                         </div>
                         <div className="powerstatus-detail-page-value-value">
-                            {can0.history.current_left[mouseoveridx.idx][0]}
+                            {stopsiginal.state ? stopsiginal.data[mouseoveridx.idx][0] : can0.history.current_left[mouseoveridx.idx][0]}
                         </div>
                     </>   
                 )
@@ -108,7 +124,7 @@ function PowerStatusDetailPage(){
                             CurrentR
                         </div>
                         <div className="powerstatus-detail-page-value-value">
-                            {can0.history.current_right[mouseoveridx.idx][0]}
+                            {stopsiginal.state ? stopsiginal.data[mouseoveridx.idx][0] : can0.history.current_right[mouseoveridx.idx][0]}
                         </div>
                     </>  
                     
@@ -127,7 +143,7 @@ function PowerStatusDetailPage(){
                             Avg_power
                         </div>
                         <div className="powerstatus-detail-page-value-value">
-                            {can0.history.avg_power[mouseoveridx.idx][0]}
+                            {stopsiginal.state ? stopsiginal.data[mouseoveridx.idx][0] : can0.history.avg_power[mouseoveridx.idx][0]}
                         </div>
                     </>   
                     
@@ -144,6 +160,7 @@ function PowerStatusDetailPage(){
         let timer = null;
         let ws_can0 = null;
         let ws_gps = null;
+        const reTelemetryTime = 1000
 
         const telemetry = async () => {
             let current_right_arr = [];
@@ -191,17 +208,17 @@ function PowerStatusDetailPage(){
 
 
 
-                    if(current_left_arr.length > 6000){
-                        current_left_arr = current_left_arr.slice(-6000)
+                    if(current_left_arr.length > powerstatusSliceValue){
+                        current_left_arr = current_left_arr.slice(-powerstatusSliceValue)
                     }
-                    if (current_right_arr.length > 6000) {
-                        current_right_arr = current_right_arr.slice(-6000)
+                    if (current_right_arr.length > powerstatusSliceValue) {
+                        current_right_arr = current_right_arr.slice(-powerstatusSliceValue)
                     }
-                    if (avg_power_arr.length > 6000) {
-                        avg_power_arr = avg_power_arr.slice(-6000)
+                    if (avg_power_arr.length > powerstatusSliceValue) {
+                        avg_power_arr = avg_power_arr.slice(-powerstatusSliceValue)
                     }
-                    if(gps_arr.length > 120){
-                        gps_arr = gps_arr.slice(-120)
+                    if(gps_arr.length > gpsSliceValue){
+                        gps_arr = gps_arr.slice(-gpsSliceValue)
                     }
 
 
@@ -228,11 +245,11 @@ function PowerStatusDetailPage(){
 
                         telemetry();
                     } else {
-                        timer = setTimeout(telemetry, 100);
+                        timer = setTimeout(telemetry, reTelemetryTime);
                     }
                 } catch (err) {
                     setError(err);
-                    timer = setTimeout(telemetry, 100);
+                    timer = setTimeout(telemetry, reTelemetryTime);
                 }
             } else {
                 console.log("두번째 로직 시작");
@@ -265,7 +282,7 @@ function PowerStatusDetailPage(){
                                         data["latest"]["current_right"],
                                         data["timestamp"]
                                     ]
-                                ].slice(-6000),
+                                ].slice(-powerstatusSliceValue),
 
                                 current_left: [
                                     ...prev.history.current_left,
@@ -273,7 +290,7 @@ function PowerStatusDetailPage(){
                                         data["latest"]["current_left"],
                                         data["timestamp"]
                                     ]
-                                ].slice(-6000),
+                                ].slice(-powerstatusSliceValue),
 
                                 avg_power: [
                                     ...prev.history.avg_power,
@@ -286,7 +303,7 @@ function PowerStatusDetailPage(){
                                         ) / 10,
                                         data["timestamp"]
                                     ]
-                                ].slice(-6000)
+                                ].slice(-powerstatusSliceValue)
                             }
                         };
                     });
@@ -300,7 +317,7 @@ function PowerStatusDetailPage(){
                             gps: [
                                 ...prev.gps,
                                 data
-                            ].slice(-6000)
+                            ].slice(-gpsSliceValue)
                         };
                     });
                 };
@@ -356,6 +373,9 @@ function PowerStatusDetailPage(){
                         max={100}
                         setMouseoveridx={setMouseoveridx}
                         setMouseovertimestamp={setMouseovertimestamp}
+                        stopsiginal = {stopsiginal}
+                        setStopsignal={setStopsignal}
+                        maxlen={powerstatusSliceValue}
                     />
                 </div>
                 <div className="powerstatus-detail-page-chart-current-r">
@@ -366,6 +386,9 @@ function PowerStatusDetailPage(){
                         max={100}
                         setMouseoveridx={setMouseoveridx}
                         setMouseovertimestamp={setMouseovertimestamp}
+                        stopsiginal={stopsiginal}
+                        setStopsignal={setStopsignal}
+                        maxlen={powerstatusSliceValue}
                     />
                 </div>
                 <div className="powerstatus-detail-page-chart-avg-power">
@@ -376,17 +399,29 @@ function PowerStatusDetailPage(){
                         max={15}
                         setMouseoveridx={setMouseoveridx}
                         setMouseovertimestamp={setMouseovertimestamp}
+                        stopsiginal={stopsiginal}
+                        setStopsignal={setStopsignal}
+                        maxlen={powerstatusSliceValue}
                     />
                 </div>
             </div>
 
             <div className="powerstatus-detail-page-gps-and-value">
-                <div className="powerstatus-detail-page-gps">
-                    <GpsPannel 
-                        gps={gps.gps} 
-                        mouseovertimestamp={mouseovertimestamp} />
-                        slicevalue = {6000}
-                </div>          
+                <div className="powerstatus-detail-page-gps-pannel">
+                    <div className="powerstatus-detail-page-gps">
+                        <GpsPannel
+                            gps={gps.gps}
+                            mouseovertimestamp={mouseovertimestamp}
+                            stopsiginal={stopsiginal}
+                        />
+                    </div>
+
+                    <div className="powerstatus-detail-page-button">
+                        <StopButton 
+                            stopsiginal = {stopsiginal} 
+                            setStopsiginal={setStopsignal}/>
+                    </div>  
+                </div>        
 
                 <div className="powerstatus-detail-page-value">
                     {returnValue()}

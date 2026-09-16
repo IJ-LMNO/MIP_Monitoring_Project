@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import "./MiniLineChart_for_detail.css";
 
 function MiniLineChart({
@@ -7,7 +7,11 @@ function MiniLineChart({
     min = -150,
     max = 150,
     setMouseoveridx,
-    setMouseovertimestamp
+    setMouseovertimestamp,
+    strokeWidth = 0.1,
+    stopsiginal,
+    setStopsignal,
+    maxlen
 }) {
 
     //--------------------------------------------------------------------------------------
@@ -15,9 +19,7 @@ function MiniLineChart({
     //--------------------------------------------------------------------------------------
     const ORIGINAL_WIDTH = 300;
     const ORIGINAL_HEIGHT = 75;
-
-    const maxLength = 6000;
-    const emptyCount = maxLength - data.length;
+    const maxLength = maxlen;
 
 
     //--------------------------------------------------------------------------------------
@@ -32,6 +34,47 @@ function MiniLineChart({
 
 
     //--------------------------------------------------------------------------------------
+    // 드래그 상태
+    //--------------------------------------------------------------------------------------
+    const dragRef = useRef({
+        isDragging: false,
+        startClientX: 0,
+        startClientY: 0,
+        startX: 0,
+        startY: 0,
+        startWidth: ORIGINAL_WIDTH,
+        startHeight: ORIGINAL_HEIGHT
+    });
+
+
+    //--------------------------------------------------------------------------------------
+    // 그래프 정지용 이전 데이터
+    //--------------------------------------------------------------------------------------
+    const prevData = useRef([]);
+
+
+    //--------------------------------------------------------------------------------------
+    // 이번 렌더에서 실제 사용할 데이터 결정
+    // 실행 중 -> 최신 data 사용 + snapshot 갱신
+    // 정지 중 -> 마지막 snapshot 사용
+    //--------------------------------------------------------------------------------------
+    let targetData = data;
+
+    if (stopsiginal.state === true) {
+        targetData = prevData.current;
+    }
+    else {
+        prevData.current = data;
+    }
+
+
+    //--------------------------------------------------------------------------------------
+    // 현재 실제 표시되는 데이터 기준으로 빈 영역 계산
+    //--------------------------------------------------------------------------------------
+    const emptyCount = maxLength - targetData.length;
+
+
+    //--------------------------------------------------------------------------------------
     // timestamp 배열
     //--------------------------------------------------------------------------------------
     const timestamparr = [];
@@ -40,9 +83,8 @@ function MiniLineChart({
 
     //--------------------------------------------------------------------------------------
     // 실제 그래프 좌표 생성
-    // 좌표계 자체는 항상 300 x 75로 고정
     //--------------------------------------------------------------------------------------
-    const points = data.map((value, index) => {
+    const points = targetData.map((value, index) => {
         const slotIndex = emptyCount + index;
         const pointX = (slotIndex / (maxLength - 1)) * ORIGINAL_WIDTH;
         const pointY = ORIGINAL_HEIGHT - ((value[0] - min) / (max - min)) * ORIGINAL_HEIGHT;
@@ -59,9 +101,66 @@ function MiniLineChart({
 
 
     //--------------------------------------------------------------------------------------
-    // 마우스 위치 → 데이터 index
+    // 드래그 시작
+    //--------------------------------------------------------------------------------------
+    const handleMouseDown = (event) => {
+        if (event.button !== 0) return;
+        if (viewBox.width >= ORIGINAL_WIDTH && viewBox.height >= ORIGINAL_HEIGHT) return;
+
+        dragRef.current = {
+            isDragging: true,
+            startClientX: event.clientX,
+            startClientY: event.clientY,
+            startX: viewBox.x,
+            startY: viewBox.y,
+            startWidth: viewBox.width,
+            startHeight: viewBox.height
+        };
+    };
+
+
+    //--------------------------------------------------------------------------------------
+    // 마우스 위치 → 데이터 index / 드래그 이동
     //--------------------------------------------------------------------------------------
     const handleMouseMove = (event) => {
+
+        //----------------------------------------------------------------------------------
+        // 드래그 중
+        //----------------------------------------------------------------------------------
+        if (dragRef.current.isDragging) {
+            const svg = event.currentTarget;
+            const rect = svg.getBoundingClientRect();
+
+            const deltaClientX = event.clientX - dragRef.current.startClientX;
+            const deltaClientY = event.clientY - dragRef.current.startClientY;
+
+            const deltaSvgX = deltaClientX * (dragRef.current.startWidth / rect.width);
+            const deltaSvgY = deltaClientY * (dragRef.current.startHeight / rect.height);
+
+            let newX = dragRef.current.startX - deltaSvgX;
+            let newY = dragRef.current.startY - deltaSvgY;
+
+            const maxX = ORIGINAL_WIDTH - dragRef.current.startWidth;
+            const maxY = ORIGINAL_HEIGHT - dragRef.current.startHeight;
+
+            newX = Math.max(0, Math.min(newX, maxX));
+            newY = Math.max(0, Math.min(newY, maxY));
+
+            setViewBox((prev) => {
+                return {
+                    ...prev,
+                    x: newX,
+                    y: newY
+                };
+            });
+
+            return;
+        }
+
+
+        //----------------------------------------------------------------------------------
+        // 일반 hover
+        //----------------------------------------------------------------------------------
         const svg = event.currentTarget;
         const point = svg.createSVGPoint();
 
@@ -74,113 +173,81 @@ function MiniLineChart({
         const slotIndex = Math.round((mouseX / ORIGINAL_WIDTH) * (maxLength - 1));
         const idx = slotIndex - emptyCount;
 
+
+        // 데이터가 없는 영역
+        if (idx < 0 || idx >= targetData.length) {
+            setMouseoveridx({
+                type: null,
+                idx: null
+            });
+
+            setMouseovertimestamp({
+                first_timestamp: null,
+                last_timestamp: null,
+                cutoff_timestamp : null,
+            });
+
+            return;
+        }
+
+
         for (let i = 0; i < timestamparr.length - 1; i++) {
             if (timestamparr[i][0] <= idx && idx <= timestamparr[i + 1][0]) {
-                setMouseovertimestamp(() => {
-                    return {
-                        first_timestamp: timestamparr[i][1],
-                        last_timestamp: timestamparr[i + 1][1]
-                    };
+                setMouseovertimestamp({
+                    first_timestamp: timestamparr[i][1],
+                    last_timestamp: timestamparr[i + 1][1],
                 });
+
+                break;
             }
         }
 
-        setMouseoveridx(() => {
-            return {
-                type: color,
-                idx: idx
-            };
+        setMouseovertimestamp((prev) => {
+            return{
+                ...prev,
+                cutoff_timestamp : timestamparr[timestamparr.length - 1][1]
+            }
+        })
+
+
+        setMouseoveridx({
+            type: color,
+            idx: idx
         });
+
+        setStopsignal((prev) => {
+            return{
+                ...prev,
+                "data": prevData.current
+            }
+        })
     };
 
 
     //--------------------------------------------------------------------------------------
     // Wheel 확대 / 축소
-    //
-    // 확대:
-    // 현재 데이터가 존재하는 중심 방향으로 점진적으로 이동
-    //
-    // 축소:
-    // 원래 SVG 중심으로 점진적으로 복구
-    //
-    // 최대로 축소:
-    // viewBox = 0 0 300 75
     //--------------------------------------------------------------------------------------
     const handleMouseWheel = (event) => {
         event.preventDefault();
 
-        if (data.length === 0) return;
+        if (targetData.length === 0) return;
+
+        const svg = event.currentTarget;
+        const point = svg.createSVGPoint();
+
+        point.x = event.clientX;
+        point.y = event.clientY;
+
+        const svgPoint = point.matrixTransform(svg.getScreenCTM().inverse());
+        const mouseX = svgPoint.x;
+        const mouseY = svgPoint.y;
 
         const scale = Math.exp(event.deltaY * 0.001);
-
-        //----------------------------------------------------------------------------------
-        // 현재 데이터가 실제로 존재하는 영역 계산
-        //----------------------------------------------------------------------------------
-        let minPointX = Infinity;
-        let maxPointX = -Infinity;
-        let minPointY = Infinity;
-        let maxPointY = -Infinity;
-
-        data.forEach((value, index) => {
-            const slotIndex = emptyCount + index;
-            const pointX = (slotIndex / (maxLength - 1)) * ORIGINAL_WIDTH;
-            const pointY = ORIGINAL_HEIGHT - ((value[0] - min) / (max - min)) * ORIGINAL_HEIGHT;
-
-            minPointX = Math.min(minPointX, pointX);
-            maxPointX = Math.max(maxPointX, pointX);
-            minPointY = Math.min(minPointY, pointY);
-            maxPointY = Math.max(maxPointY, pointY);
-        });
-
-
-        //----------------------------------------------------------------------------------
-        // 현재 그래프 데이터의 중심
-        //----------------------------------------------------------------------------------
-        const dataCenterX = (minPointX + maxPointX) / 2;
-        const dataCenterY = (minPointY + maxPointY) / 2;
-
-
-        //----------------------------------------------------------------------------------
-        // 원래 화면 중심
-        //----------------------------------------------------------------------------------
-        const originalCenterX = ORIGINAL_WIDTH / 2;
-        const originalCenterY = ORIGINAL_HEIGHT / 2;
-
 
         setViewBox((prev) => {
             let newWidth = prev.width * scale;
             let newHeight = prev.height * scale;
 
-            const currentCenterX = prev.x + prev.width / 2;
-            const currentCenterY = prev.y + prev.height / 2;
-
-
-            //------------------------------------------------------------------------------
-            // 확대
-            //------------------------------------------------------------------------------
-            if (scale < 1) {
-                const moveRatio = 1 - scale;
-
-                const newCenterX = currentCenterX + (dataCenterX - currentCenterX) * moveRatio;
-                const newCenterY = currentCenterY + (dataCenterY - currentCenterY) * moveRatio;
-
-                return {
-                    x: newCenterX - newWidth / 2,
-                    y: newCenterY - newHeight / 2,
-                    width: newWidth,
-                    height: newHeight
-                };
-            }
-
-
-            //------------------------------------------------------------------------------
-            // 축소
-            //------------------------------------------------------------------------------
-            newWidth = Math.min(newWidth, ORIGINAL_WIDTH);
-            newHeight = Math.min(newHeight, ORIGINAL_HEIGHT);
-
-
-            // 원본 크기로 완전히 돌아오면 초기화
             if (newWidth >= ORIGINAL_WIDTH || newHeight >= ORIGINAL_HEIGHT) {
                 return {
                     x: 0,
@@ -190,17 +257,21 @@ function MiniLineChart({
                 };
             }
 
+            const mouseRatioX = (mouseX - prev.x) / prev.width;
+            const mouseRatioY = (mouseY - prev.y) / prev.height;
 
-            // 현재 확대 상태에서 원본 크기로 얼마나 복구됐는지
-            const restoreRatio = (newWidth - prev.width) / (ORIGINAL_WIDTH - prev.width);
+            let newX = mouseX - mouseRatioX * newWidth;
+            let newY = mouseY - mouseRatioY * newHeight;
 
-            // 원래 화면 중앙 방향으로 복귀
-            const newCenterX = currentCenterX + (originalCenterX - currentCenterX) * restoreRatio;
-            const newCenterY = currentCenterY + (originalCenterY - currentCenterY) * restoreRatio;
+            const maxX = ORIGINAL_WIDTH - newWidth;
+            const maxY = ORIGINAL_HEIGHT - newHeight;
+
+            newX = Math.max(0, Math.min(newX, maxX));
+            newY = Math.max(0, Math.min(newY, maxY));
 
             return {
-                x: newCenterX - newWidth / 2,
-                y: newCenterY - newHeight / 2,
+                x: newX,
+                y: newY,
                 width: newWidth,
                 height: newHeight
             };
@@ -212,19 +283,26 @@ function MiniLineChart({
     // 마우스 leave
     //--------------------------------------------------------------------------------------
     const handleMouseLeave = () => {
-        setMouseoveridx(() => {
-            return {
-                type: null,
-                idx: null
-            };
+        dragRef.current.isDragging = false;
+
+        setMouseoveridx({
+            type: null,
+            idx: null
         });
 
-        setMouseovertimestamp(() => {
-            return {
-                first_timestamp: null,
-                last_timestamp: null
-            };
+        setMouseovertimestamp({
+            first_timestamp: null,
+            last_timestamp: null,
+            cutoff_timestamp : null
         });
+    };
+
+
+    //--------------------------------------------------------------------------------------
+    // 마우스 up
+    //--------------------------------------------------------------------------------------
+    const handleMouseUp = () => {
+        dragRef.current.isDragging = false;
     };
 
 
@@ -235,17 +313,8 @@ function MiniLineChart({
     const visibleMin = Math.round(min + ((ORIGINAL_HEIGHT - (viewBox.y + viewBox.height)) / ORIGINAL_HEIGHT) * (max - min));
     const visibleMiddle = Math.round((visibleMax + visibleMin) / 2);
 
-
-    //--------------------------------------------------------------------------------------
-    // 확대해도 글자 크기 일정하게 유지
-    //--------------------------------------------------------------------------------------
     const zoom = ORIGINAL_WIDTH / viewBox.width;
     const fontSize = 10 / zoom;
-
-
-    //--------------------------------------------------------------------------------------
-    // 그래프의 가운데 선 기준 좌표계
-    //--------------------------------------------------------------------------------------
     const centerY = viewBox.y + viewBox.height / 2;
 
 
@@ -254,7 +323,9 @@ function MiniLineChart({
             <svg
                 className="detail-chart-line-chart"
                 viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
+                onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseLeave}
                 onWheel={handleMouseWheel}
             >
@@ -304,12 +375,12 @@ function MiniLineChart({
 
 
                 {/* 그래프 */}
-                {data.length >= 2 && (
+                {targetData.length >= 2 && (
                     <polyline
                         points={points}
                         fill="none"
                         stroke={`var(--${color})`}
-                        strokeWidth="0.1"
+                        strokeWidth={strokeWidth}
                     />
                 )}
 

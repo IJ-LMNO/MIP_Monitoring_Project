@@ -411,6 +411,53 @@ async def gps_detial_page(websocket : WebSocket):
 
 
 
+gps_lock_rollrate = thread.Lock()
+@app.get("/first/detail/gps/rollrate")
+def gps_detail_page_first_telemetry():
+    if(len(gps_detail_dequeue_for_rollrate) == 0):
+        print("gps detail no data")
+        raise HTTPException(
+            status_code = 404,
+            detail = "no data in gps detail dequeue"
+        )
+    else:
+        with gps_lock_rollrate:
+            return_deque = copy.deepcopy(gps_detail_dequeue_for_rollrate)
+
+        return(
+            return_deque
+        )
+
+gps_detail_asyncio_event_rollrate = asyncio.Event()
+gps_detail_event_loop_rollrate = None
+@app.websocket("/detail/gps/rollrate")
+async def gps_detial_page(websocket : WebSocket):
+    global gps_detail_event_loop_rollrate
+    await websocket.accept()
+
+    gps_detail_event_loop_rollrate = asyncio.get_running_loop()
+
+    while True:
+        if len(gps_detail_dequeue_for_rollrate) == 0:
+            await gps_detail_asyncio_event_rollrate.wait()
+
+        else:
+            gps_detail_dequeue_len = len(gps_detail_dequeue_for_rollrate)
+
+            while gps_detail_dequeue_len > 0:
+                gps = gps_detail_dequeue_for_rollrate.popleft()
+
+                await websocket.send_json(
+                    gps
+                )
+
+                gps_detail_dequeue_len-= 1
+
+            if len(gps_detail_dequeue_for_rollrate) == 0:
+                gps_detail_asyncio_event_rollrate.clear()
+
+
+
 
 
 
@@ -527,6 +574,10 @@ async def yawrate_detial_page(websocket : WebSocket):
 
 # =========================================================
 # rolrate detail 처리
+# {
+#     "rollrate" : data["rollrate"],
+#     "timestamp" : data["timestamp"]
+# }
 # =========================================================
 
 rollrate_lock = thread.Lock()
@@ -567,7 +618,7 @@ async def rollrate_detial_page(websocket : WebSocket):
                 rollrate = rollrate_detail_dequeue.popleft()
 
                 await websocket.send_json({
-                    "rollrate" : rollrate["latest"],
+                    "rollrate" : rollrate,
                 })
                 rollrate_detail_dequeue_len-= 1
 
@@ -661,6 +712,9 @@ def get_gps_data(data):
     with gps_lock_yawrate:
         gps_detail_dequeue_for_yawrate.append(data)
 
+    with gps_lock_rollrate:
+        gps_detail_dequeue_for_rollrate.append(data)
+
 
 
     if gps_event_loop is not None:
@@ -676,6 +730,11 @@ def get_gps_data(data):
     if gps_detail_event_loop_yawrate is not None:
         gps_detail_event_loop_yawrate.call_soon_threadsafe(
             gps_detail_asyncio_event_yawrate.set
+        )
+
+    if gps_detail_event_loop_rollrate is not None:
+        gps_detail_event_loop_rollrate.call_soon_threadsafe(
+            gps_detail_asyncio_event_rollrate.set
         )
 
 

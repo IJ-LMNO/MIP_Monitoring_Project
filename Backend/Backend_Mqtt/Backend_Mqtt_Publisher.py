@@ -8,7 +8,7 @@ import paho.mqtt.client as mqtt
 
 #  "100.70.221.71"
 #  "127.0.0.1"
-BROKER_HOST = "127.0.0.1"
+BROKER_HOST = "100.70.221.71"
 BROKER_PORT = 1883
 KEEPALIVE = 60
 QOS = 0

@@ -16,15 +16,15 @@ function DropdownMenu() {
 
             <div className="dropdown-menu">
                 <button onClick={() => handleClick("powerstatus")}>
-                    powerstatus 상세보기
+                    Powerstatus 상세보기
                 </button>
 
                 <button onClick={() => handleClick("yawrate")}>
-                    yawrate 상세보기
+                    Yawrate 상세보기
                 </button>
 
                 <button onClick={() => handleClick("rollrate")}>
-                    rollrate 상세보기
+                    Rollrate 상세보기
                 </button>
 
                 <button>설정</button>

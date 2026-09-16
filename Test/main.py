@@ -6,6 +6,7 @@ from create_can1_data import main as can1_main
 from create_gps_data import main as gps_main
 from mqtt_subscriber import main as mqtt_subscriber
 from mqtt_publisher import main as mqtt_publisher
+from dashboard import main as dashboard
 
 from Shared_Data.shared_data import can0_queue
 from Shared_Data.shared_data import can1_queue
@@ -58,7 +59,15 @@ def main():
             target=mqtt_subscriber,
             args=(pace_queue,),
             daemon=True,
+        ),
+
+        threading.Thread(
+            name="dashboard",
+            target=dashboard,
+            args=(pace_queue,),
+            daemon=True,
         )
+
     ]
 
     try:

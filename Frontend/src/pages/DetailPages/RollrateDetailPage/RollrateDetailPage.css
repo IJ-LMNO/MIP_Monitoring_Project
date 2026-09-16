@@ -17,8 +17,65 @@ body {
     align-items: center;
 }
 
-.rollrate-detail-page{
+* {
+    box-sizing: border-box;
+}
+
+.rollrate-detail-page {
     width: 100%;
+    height: 90%;
+
+    display: flex;
+    flex-direction: row;
+
+    justify-content: center;
+    align-items: center;
+}
+
+
+.rollrate-detail-page-chart {
+    flex: 2;
+    height: 40%;
+
+    justify-content: center;
+    align-items: center;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.rollrate-detail-page-gps-and-value {
+    height: 90%;
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+
+    color: white;
+}
+
+
+.rollrate-detail-page-gps-pannel {
+    flex: 3;
+    width: 90%;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+
+    color: white;
+
+    gap: 10px;
+}
+
+
+.rollrate-detail-page-gps {
+    width: 90%;
     height: 90%;
 
     display: flex;
@@ -28,15 +85,52 @@ body {
     align-items: center;
 }
 
+.rollrate-detail-page-button {
+    width: 50%;
+    height: 30px;
+    display: flex;
+    flex-direction: column;
 
-.rollrate-detail-page-chart {
-    flex: 2;
+    justify-content: center;
+    align-items: center;
+}
+
+.rollrate-detail-page-value {
+    flex: 1;
     width: 100%;
+
+    display: flex;
+    flex-direction: column;
 
     justify-content: center;
     align-items: center;
 
+    font-size: 40px;
+}
+
+.rollrate-detail-page-value-type {
+    flex: 1;
+    width: 100%;
+
     display: flex;
-    flex-direction: row;
+
+    justify-content: start;
+    align-items: center;
+
+    font-size: 60px;
+    padding-left: 20px;
+}
+
+.rollrate-detail-page-value-value {
+    flex: 1;
+    width: 100%;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    font-size: 50px;
+    padding-bottom: 10px;
 }
 

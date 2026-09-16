@@ -907,13 +907,13 @@ function Dashboard() {
                 />
 
                 <FaceButton 
-                    text="FaceUp"
+                    text="PaceUp"
                     onClick={FaceUpFetchButton}
                     state={face.state}
                     color={face["state"] === "Up" ? "green" : "white"}
                 />
                 <FaceButton
-                    text="FaceDown"
+                    text="PaceDown"
                     onClick={FaceDownFetchButton}
                     state={face.state}
                     color={face["state"] === "Down" ? "red" : "white"}

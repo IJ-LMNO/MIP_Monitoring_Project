@@ -23,7 +23,7 @@ body {
 
 .powerstatus-detail-page{
     width: 100%;
-    height: 100%;
+    height: 90%;
 
     display: flex;
     flex-direction: row;
@@ -34,7 +34,7 @@ body {
 
 
 .powerstatus-detail-page-chart {
-    height: 100%;
+    height: 90%;
     flex: 2;
 
     display: flex;
@@ -49,7 +49,7 @@ body {
 
 
 .powerstatus-detail-page-gps-and-value{
-    height: 100%;
+    height: 90%;
     flex: 1;
 
     display: flex;
@@ -62,7 +62,7 @@ body {
 }
 
 
-.powerstatus-detail-page-gps {
+.powerstatus-detail-page-gps-pannel {
     flex: 3;
     width: 90%;
 
@@ -73,6 +73,30 @@ body {
     align-items: center;
 
     color: white;
+
+    gap: 10px;
+}
+
+
+.powerstatus-detail-page-gps {
+    width: 90%;
+    height: 90%;
+
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
+}
+
+.powerstatus-detail-page-button{
+    width: 50%;
+    height: 30px;
+    display: flex;
+    flex-direction: column;
+
+    justify-content: center;
+    align-items: center;
 }
 
 .powerstatus-detail-page-value{
