@@ -1,20 +1,10 @@
+"""Decode 0x202 throttle, steering and yaw data; no CAN connection or GUI."""
+
 from datetime import datetime, timezone
-import queue
-import time
-import copy
-
-import can
 
 
-CAN_CHANNEL = "can1"
-
-
-PUBLISH_INTERVAL = 0.1
-
-RECONNECT_INTERVAL = 2.0
-
-
-MAX_FRAMES_PER_CYCLE = 200
+# Logical CAN1 telemetry currently arrives on the physical can0 interface.
+CAN_CHANNEL = "can0"
 
 
 TIRE_DEGREE_TABLE = [
@@ -128,52 +118,28 @@ TIRE_DEGREE_TABLE = [
 
 
 class Can1:
+    CAN_IDS = (0x202,)
+
     def __init__(self, channel=CAN_CHANNEL):
         self.channel = channel
-        self.bus = None
-
         self.throttle_percent = 0
         self.steering_handle_degree = 0.0
         self.desired_yaw_rate = 0.0
         self.measured_yaw_rate = 0.0
         self.measured_roll_rate = 0.0
 
-        self.last_no_data_log_time = 0.0
-        self.received_frame_count = 0
-
-    def init_can(self):
-        if self.bus is not None:
-            return True
-
-        try:
-            self.bus = can.interface.Bus(
-                channel=self.channel,
-                interface="socketcan",
-            )
-
-            print(
-                f"[CAN1] 인터페이스 연결 성공: "
-                f"{self.channel}"
-            )
-
-            return True
-
-        except (can.CanError, OSError) as error:
-            print(
-                f"[CAN1] 인터페이스 연결 실패: "
-                f"{error}"
-            )
-
-            self.bus = None
-            return False
-
-    def process_message(self, message):
-        if message.arbitration_id != 0x202:
+    def process_message(self, message, now=None):
+        if (
+            message.arbitration_id != 0x202
+            or message.is_extended_id
+            or message.is_remote_frame
+            or message.is_error_frame
+        ):
             return False
 
         if len(message.data) < 8:
             print(
-                f"[CAN1] 데이터 길이 부족: "
+                f"[CAN1] data length short: "
                 f"{len(message.data)}"
             )
             return False
@@ -220,52 +186,41 @@ class Can1:
             / 100.0
         )
 
-        self.received_frame_count += 1
-
-        if (
-            self.received_frame_count == 1
-            or self.received_frame_count % 100 == 0
-        ):
-            print(
-                f"[CAN1] 0x202 수신 "
-                f"#{self.received_frame_count}"
-            )
-
         return True
 
     def calculate_tire_degree(self):
-            handle_degree = self.steering_handle_degree
+        handle_degree = self.steering_handle_degree
 
-            absolute_degree = abs(handle_degree)
+        absolute_degree = abs(handle_degree)
 
-            maximum_index = len(TIRE_DEGREE_TABLE) - 1
+        maximum_index = len(TIRE_DEGREE_TABLE) - 1
 
-            clamped_degree = min(
-                max(absolute_degree, 0.0),
-                float(maximum_index),
-            )
+        clamped_degree = min(
+            max(absolute_degree, 0.0),
+            float(maximum_index),
+        )
 
-            lower_index = int(clamped_degree)
+        lower_index = int(clamped_degree)
 
-            upper_index = min(
-                lower_index + 1,
-                maximum_index,
-            )
+        upper_index = min(
+            lower_index + 1,
+            maximum_index,
+        )
 
-            ratio = clamped_degree - lower_index
+        ratio = clamped_degree - lower_index
 
-            lower_value = TIRE_DEGREE_TABLE[lower_index]
-            upper_value = TIRE_DEGREE_TABLE[upper_index]
+        lower_value = TIRE_DEGREE_TABLE[lower_index]
+        upper_value = TIRE_DEGREE_TABLE[upper_index]
 
-            tire_degree = (
-                lower_value
-                + (upper_value - lower_value) * ratio
-            )
+        tire_degree = (
+            lower_value
+            + (upper_value - lower_value) * ratio
+        )
 
-            if handle_degree < 0:
-                tire_degree *= -1
+        if handle_degree < 0:
+            tire_degree *= -1
 
-            return round(tire_degree, 1)
+        return round(tire_degree, 1)
     
     def make_payloads(self):
         return ({
@@ -278,75 +233,9 @@ class Can1:
             "timestamp" : datetime.now(timezone.utc).isoformat()
         })
     
-    def shutdown(self):
-        if self.bus is not None:
-            try:
-                self.bus.shutdown()
 
-            except (can.CanError, OSError):
-                pass
+    def snapshot(self, now):
+        return self.make_payloads(), None
 
-            self.bus = None
-
-    def read_can_data(self):
-        if self.bus is None:
-            return False
-
-        cur_can1_count = 0
-        init_can1_count = 0
-
-        try:
-            for frame_index in range(MAX_FRAMES_PER_CYCLE):
-                timeout = 0.05 if frame_index == 0 else 0
-
-                message = self.bus.recv(timeout=timeout)
-
-                if message is None:
-                    break
-
-                if self.process_message(message):
-                    cur_can1_count += 1
-
-        except (can.CanError, OSError):
-            print("fuck you can1")
-            raise
-
-        if(cur_can1_count == init_can1_count):
-            return False
-        else:
-            return True
-
-
-
-def main(can1_queue):
-    can1 = Can1()
-
-    while True:
-        if can1.bus is None:
-            if not can1.init_can():
-                time.sleep(RECONNECT_INTERVAL)
-                continue
-            else:
-                break
-
-    while True:
-        try:
-            if not can1.read_can_data():
-                time.sleep(RECONNECT_INTERVAL)
-                continue
-            else:
-                payloads = can1.make_payloads()
-                can1_queue.put(copy.deepcopy(payloads))
-        except(can.CanError, OSError) as error:
-            print(f"error : {error}")
-
-            while True:
-                if can1.bus is None:
-                    if not can1.init_can():
-                        time.sleep(RECONNECT_INTERVAL)
-                        continue
-                    else:
-                        break
-        except KeyboardInterrupt:
-            can1.shutdown()
-
+    def mark_disconnected(self):
+        pass

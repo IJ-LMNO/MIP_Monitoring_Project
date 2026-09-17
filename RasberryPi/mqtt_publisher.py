@@ -1,4 +1,5 @@
 import json
+import queue as queue_module
 import socket
 import threading
 import time
@@ -41,23 +42,26 @@ def publish_worker(
         data = queue.get()
 
         try:
-            try:
-                payload = json.dumps(
-                    data,
-                    ensure_ascii=False,
-                    separators=(",", ":"),
-                )
-
-            except (TypeError, ValueError) as error:
-                print(
-                    f"[MQTT][{telemetry_name}] "
-                    f"JSON 변환 실패: {error}"
-                )
-                continue
-
             while True:
-                if not mqtt_connected.wait(timeout=1):
+                if not mqtt_connected.wait(timeout=0.01):
                     continue
+
+                # On reconnect/retry, replace the held sample with newer data.
+                while True:
+                    try:
+                        newer_data = queue.get_nowait()
+                    except queue_module.Empty:
+                        break
+                    queue.task_done()
+                    data = newer_data
+
+                try:
+                    payload = json.dumps(
+                        data, ensure_ascii=False, separators=(",", ":")
+                    )
+                except (TypeError, ValueError) as error:
+                    print(f"[MQTT][{telemetry_name}] JSON 변환 실패: {error}")
+                    break
 
                 try:
                     publish_info = client.publish(
@@ -78,14 +82,11 @@ def publish_worker(
                         time.sleep(1)
                         continue
 
-                    publish_info.wait_for_publish(timeout=10)
+                    publish_info.wait_for_publish(timeout=0.01)
 
                     if not publish_info.is_published():
-                        print(
-                            f"[MQTT][{telemetry_name}] "
-                            "publish 완료 대기 시간 초과"
-                        )
-                        time.sleep(1)
+
+                        time.sleep(0.02)
                         continue
 
                     publish_count += 1
@@ -116,7 +117,6 @@ def main(
     can0_queue,
     can1_queue,
     gps_queue,
-    button_queue
 ):
     client_id = f"car-01-publisher-{socket.gethostname()}"
 
@@ -153,11 +153,6 @@ def main(
             gps_queue,
             "vehicle/car_01/gps",
             "gps",
-        ),
-        (
-            button_queue,
-            "vehicle/car_01/button",
-            "button",
         ),
     ]
 

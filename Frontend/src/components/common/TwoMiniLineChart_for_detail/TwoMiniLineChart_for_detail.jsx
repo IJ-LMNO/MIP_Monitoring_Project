@@ -12,7 +12,9 @@ function TwoMiniLineChart_for_detail({
     setMouseovertimestamp,
     strokewidth,
     stopsiginal,
-    setStopsignal
+    setStopsignal,
+    maxlen
+
 }) {
 
     //--------------------------------------------------------------------------------------
@@ -20,7 +22,7 @@ function TwoMiniLineChart_for_detail({
     //--------------------------------------------------------------------------------------
     const ORIGINAL_WIDTH = 300;
     const ORIGINAL_HEIGHT = 75;
-    const maxLength = 2400;
+    const maxLength = maxlen;
 
     const visibleYawrate = yawrate;
     const visibleDesiredYawrate = desiredyawrate;

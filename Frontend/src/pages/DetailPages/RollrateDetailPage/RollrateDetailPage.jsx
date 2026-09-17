@@ -68,7 +68,7 @@ function RollrateDetailPage() {
     //--------------------------------------------------------------------------------------
     // yawrate, desired_yawrate state slice 개수
     //--------------------------------------------------------------------------------------- 
-    const rollrateSliceValue = 2400
+    const rollrateSliceValue = 6000
     const gpsSliceValue = 120
 
 

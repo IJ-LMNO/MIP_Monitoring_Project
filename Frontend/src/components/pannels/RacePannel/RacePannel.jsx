@@ -46,7 +46,7 @@ function RacePannel({ rapcount }) {
                     </div>
 
                     <div className="race-rap-pannel-rap">
-                        Rap : {index + 1}
+                        Lap : {index + 1}
                     </div>
                 </div>
             );

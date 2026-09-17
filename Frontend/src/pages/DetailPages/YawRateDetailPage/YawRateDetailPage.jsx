@@ -78,7 +78,7 @@ function YawRateDetailPage(){
     //--------------------------------------------------------------------------------------
     // slice 개수
     //--------------------------------------------------------------------------------------- 
-    const yawrateSliceValue = 2400
+    const yawrateSliceValue = 6000
     const gpsSliceValue = 120
 
     
@@ -319,6 +319,7 @@ function YawRateDetailPage(){
                     strokeWidth = {0.5}
                     stopsiginal ={stopsiginal}
                     setStopsignal={setStopsignal}
+                    maxlen = {yawrateSliceValue}
                 />
             </div>
 

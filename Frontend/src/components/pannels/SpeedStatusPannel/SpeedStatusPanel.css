@@ -6,18 +6,21 @@
     border-radius: 8px;
     position: relative;
     color: hsl(220, 13%, 91%);
+
     display: flex;
     justify-content: center;
     align-items: center;
 
     font-family: Arial, sans-serif;
 
-    margin : 16px 16px 2px;
+    margin: 16px 16px 2px;
 }
+
 
 .speed-value {
     position: absolute;
     top: 0%;
+
     font-size: 20px;
     color: #f9fafb;
 
@@ -29,75 +32,119 @@
     align-items: center;
 
     gap: 4px;
-
 }
 
-.speed-value-data{
+
+.speed-value-data {
     font-size: 30px;
 }
 
+
+/* =========================
+   속도계 반원 영역
+   ========================= */
 .speed-gauge {
     position: relative;
-    width: 300px;
-    height: 150px;
+
+    /* 기존 300px 대신 부모 기준 */
+    width: 80%;
+
+    /* 항상 가로 : 세로 = 2 : 1 */
+    aspect-ratio: 2 / 1;
+
     margin-top: 35px;
-    border-top-left-radius: 300px;
-    border-top-right-radius: 300px;
+
+    border-top-left-radius: 999px;
+    border-top-right-radius: 999px;
+
     overflow: hidden;
-
-
-
 }
 
+
+/* =========================
+   실제 원
+   speed-gauge가 반원이므로
+   높이는 부모 높이의 2배
+   ========================= */
 .gauge-arc {
-    width: 290px;
-    height: 300px;
+    width: 100%;
+    height: 200%;
+
+    box-sizing: border-box;
+
     border-radius: 50%;
+
     border: 5px solid #374151;
+
     border-bottom-color: transparent;
     border-left-color: #2563eb;
     border-right-color: #ef4444;
 }
 
+
+/* =========================
+   바늘
+   ========================= */
 .speed-needle {
     position: absolute;
+
     width: 4px;
-    height: 92px;
+    height: 62%;
+
     background: #f9fafb;
+
     bottom: 0;
     left: 50%;
+
     transform-origin: bottom center;
+
     border-radius: 999px;
 }
 
+
+/* =========================
+   바늘 중심
+   ========================= */
 .needle-center {
     position: absolute;
+
     width: 24px;
     height: 24px;
+
     border: 2px solid #f9fafb;
     border-radius: 50%;
+
     bottom: -12px;
     left: calc(50% - 12px);
+
     background: #070b12;
 }
 
+
+/* =========================
+   속도계 숫자
+   ========================= */
 .speed-label {
     position: absolute;
-    font-size: 15px;
 
+    font-size: 15px;
     color: #e5e7eb;
 }
+
 
 .speed-label.left {
     left: 5%;
     bottom: 0;
 }
 
+
 .speed-label.top {
     top: 5%;
     left: 50%;
+
     transform: translateX(-50%);
 }
+
 
 .speed-label.right {
     right: 5%;

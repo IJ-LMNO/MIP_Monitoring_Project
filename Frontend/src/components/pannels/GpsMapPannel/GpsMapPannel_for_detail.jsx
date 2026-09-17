@@ -291,7 +291,7 @@ function GpsMapPannel({
             lastIndex == null ||
             firstIndex > lastIndex
         ) {
-            selectedRoute([])
+            setSelectedRoute([])
             return;
         }
 

@@ -34,9 +34,9 @@ button_dequeue = deque(maxlen=dequeue_size)
 # =========================================================
 
 can0_detail_dequeue = deque(maxlen = 6000)
-yawrate_detail_dequeue = deque(maxlen= 2400)
-desired_yawrate_detail_dequeue = deque(maxlen = 2400)
-rollrate_detail_dequeue = deque(maxlen = 2400)
+yawrate_detail_dequeue = deque(maxlen= 6000)
+desired_yawrate_detail_dequeue = deque(maxlen = 6000)
+rollrate_detail_dequeue = deque(maxlen = 6000)
 
 gps_detail_dequeue_for_powerstatus = deque(maxlen = 120)
 gps_detail_dequeue_for_yawrate = deque(maxlen = 120)

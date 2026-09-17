@@ -70,7 +70,6 @@ function RpmPannel({rpm_left = 0, rpm_right = 0}) {
                 colorClass="front-rpm-fill"
             />
 
-            <div className="rpm-divider" />
 
             <RpmGauge
                 label="RIGHT_RPM"

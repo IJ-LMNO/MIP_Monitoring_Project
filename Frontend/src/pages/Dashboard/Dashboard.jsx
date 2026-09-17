@@ -14,6 +14,7 @@ import DropdownMenu from "../../components/pannels/DropdownMenu/DropdownMenu";
 import FaceButton from "../../components/pannels/FaceButton/FaceButton";
 import RacePannel from "../../components/pannels/RacePannel/RacePannel"
 import RapButton from "../../components/pannels/RapButton/RapButton"
+import TpsPannel from "../../components/pannels/TpsPannel/TpsPannel_for_mqtt"
 
 import "./Dashboard.css";
 
@@ -844,18 +845,25 @@ function Dashboard() {
                 </div>
 
                 <div className="dashboard-page-bottom">
-                    <div className="speedstatus-battery-pannel">
-                        <div className="speedstatus-pannel">
-                            <SpeedStatusPannel
-                                speed={can0.latest.speed}
-                            />
-                        </div>
+                    <div className="speedstatus-battery-tps-pannel">
+                        <div className="speedstatus-battery-pannel">
+                            <div className="speedstatus-pannel">
+                                <SpeedStatusPannel
+                                    speed={can0.latest.speed}
+                                />
+                            </div>
 
-                        <div className="battery-pannel">
-                            <BatteryStatusPannel
-                                battery={
-                                    can0.latest.avg_voltage
-                                }
+                            <div className="battery-pannel">
+                                <BatteryStatusPannel
+                                    battery={
+                                        can0.latest.avg_voltage
+                                    }
+                                />
+                            </div>
+                        </div>
+                        <div className="tps-pannel-area">
+                            <TpsPannel
+                                tps = {tps["latest"]}
                             />
                         </div>
                     </div>
