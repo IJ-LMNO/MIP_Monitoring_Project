@@ -2,11 +2,12 @@ from Backend.Backend_Mqtt.Backend_Mqtt_shared.shared_state import MQTT_event as 
 from Backend.Backend_Mqtt.Backend_Mqtt_shared.shared_state import MQTT_subscriber_event as MQTT_subscriber_event
 import paho.mqtt.client as mqtt
 import json
+import queue
 
 
 #  "100.70.221.71"
 #  "127.0.0.1
-BROKER_HOST = "127.0.0.1"
+BROKER_HOST = "100.70.221.71"
 BROKER_PORT = 1883
 
 
@@ -39,6 +40,21 @@ def on_connect(client, userdata, flags, reason_code):
         print(f"Monitoring_Server MQTT : {reason_code}")
 
 
+def put_latest(data_queue, data):
+    while True:
+        try:
+            data_queue.put_nowait(data)
+            return
+
+        except queue.Full:
+            try:
+                data_queue.get_nowait()
+                data_queue.task_done()
+
+            except queue.Empty:
+                pass
+
+
 def on_message(client, userdata, message):
     try:
         payload = message.payload.decode("utf-8")
@@ -47,19 +63,22 @@ def on_message(client, userdata, message):
         topic = message.topic.split("/")[-1]
 
         if topic == "can0":
-            userdata["can0_queue"].put(data)
+            put_latest(userdata["can0_queue"], data)
 
         elif topic == "can1":
-            userdata["can1_queue"].put(data)
+            put_latest(userdata["can1_queue"], data)
 
         elif topic == "gps":
-            userdata["gps_queue"].put(data)
+            put_latest(userdata["gps_queue"], data)
 
         elif topic == "button":
-            userdata["button_queue"].put(data)
+            put_latest(userdata["button_queue"], data)
 
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
-        print(f"subscriber MQTT 데이터 파싱 오류: {error}")
+        print(
+            f"[MQTT] 잘못된 데이터 무시: "
+            f"topic={message.topic}, error={error}"
+        )
 
 
 

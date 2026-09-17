@@ -20,10 +20,10 @@ from Backend.FastAPI.FastAPI import face_queue
 # MQTT Subscriber → sensor consumer로 전달할 Queue
 # =========================================================
 
-can0_queue = queue.Queue()
-can1_queue = queue.Queue()
-gps_queue = queue.Queue()
-button_queue = queue.Queue()
+can0_queue = queue.Queue(maxsize=1)
+can1_queue = queue.Queue(maxsize=1)
+gps_queue = queue.Queue(maxsize=1)
+button_queue = queue.Queue(maxsize=1)
 
 
 # =========================================================

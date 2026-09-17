@@ -21,7 +21,7 @@ app = FastAPI()
 # 센서별 Adapter 파일에서 새로 래핑한 데이터 구조를 저장하는 dequeue
 # =========================================================
 
-dequeue_size = 10
+dequeue_size = 1
 can0_dequeue = deque(maxlen=dequeue_size)
 can1_dequeue = deque(maxlen=dequeue_size)
 gps_dequeue = deque(maxlen=dequeue_size)
@@ -683,6 +683,7 @@ async def button_ws_endpoint(websocket: WebSocket):
 # =========================================================
 def get_can0_data(data):
     can0_dequeue.append(data)
+    print(len(can0_dequeue))
 
     with can0_lock:
         can0_detail_dequeue.append(data)
