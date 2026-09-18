@@ -80,7 +80,7 @@ function RapButton({ text, rapcount, setRapcount}) {
                 })
             })
 
-            telemetryRapcount(0)
+            telemetryRapcount(-1)
             
         }
 

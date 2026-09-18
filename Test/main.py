@@ -13,7 +13,7 @@ from Shared_Data.shared_data import can1_queue
 from Shared_Data.shared_data import gps_queue
 from Shared_Data.shared_data import pace_queue
 from Shared_Data.shared_data import button_queue
-from Shared_Data.shared_data import rap_queue
+from Shared_Data.shared_data import rap_datastructure
 
 
 
@@ -56,7 +56,7 @@ def main():
             name="mqtt-subscriber",
             target=mqtt_subscriber,
             args=(pace_queue,
-                  rap_queue),
+                  rap_datastructure),
             daemon=True,
         ),
 
@@ -64,7 +64,7 @@ def main():
             name="dashboard",
             target=dashboard,
             args=(pace_queue,
-                  rap_queue),
+                  rap_datastructure),
             daemon=True,
         )
 

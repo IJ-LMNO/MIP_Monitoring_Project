@@ -12,11 +12,11 @@ from data_channel import take_latest
 
 
 class MyClock(QtWidgets.QWidget):
-    def __init__(self, telemetry_queue, lap_queue, pace_queue):
+    def __init__(self, telemetry_queue, rap_datastructure, pace_queue):
         super().__init__()
         self.setFixedSize(1280, 400)
         self.telemetry_queue = telemetry_queue
-        self.lap_queue = lap_queue
+        self.rap_datastructure = rap_datastructure
         self.pace_queue = pace_queue
         self.last_displayed_lap = 0
         self.last_face_status = "hold"
@@ -168,7 +168,7 @@ class MyClock(QtWidgets.QWidget):
                 )
                 self.speed_is_red = should_be_red
 
-        lap_count = take_latest(self.lap_queue)
+        lap_count = self.rap_datastructure["cnt"]
         if lap_count is not None and lap_count != self.last_displayed_lap:
             self.lap.setText(f"LAP {lap_count}")
             self.last_displayed_lap = lap_count
@@ -183,9 +183,9 @@ class MyClock(QtWidgets.QWidget):
         event.accept()
 
 
-def main(telemetry_queue, lap_queue, pace_queue):
+def main(telemetry_queue, rap_datastructure, pace_queue):
     app = QtWidgets.QApplication(sys.argv)
-    window = MyClock(telemetry_queue, lap_queue, pace_queue)
+    window = MyClock(telemetry_queue, rap_datastructure, pace_queue)
     return app.exec_()
 
 

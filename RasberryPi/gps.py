@@ -51,7 +51,7 @@ class GPS:
                 "longitude": 0.0,
                 "status": STATUS_NO_VALID_POSITION
             },
-            "timestamp": 0.0
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
     def shutdown(self):
@@ -263,7 +263,7 @@ class GPS:
                         )
                         return True
 
-                    self.gps["latest"]["timestamp"] = (
+                    self.gps["timestamp"] = (
                         datetime.now(
                             timezone.utc
                         ).isoformat()

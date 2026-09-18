@@ -156,7 +156,7 @@ class Can1:
                 byteorder="little",
                 signed=True,
             )
-            / 100.0
+            / (-10.0)
         )
 
         self.desired_yaw_rate = (

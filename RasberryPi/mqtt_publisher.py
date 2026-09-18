@@ -82,12 +82,12 @@ def publish_worker(
                         time.sleep(1)
                         continue
 
-                    publish_info.wait_for_publish(timeout=0.01)
+                    #publish_info.wait_for_publish(timeout=0.01)
 
-                    if not publish_info.is_published():
+                    #if not publish_info.is_published():
 
-                        time.sleep(0.02)
-                        continue
+                    #    time.sleep(0.02)
+                    #    continue
 
                     publish_count += 1
 

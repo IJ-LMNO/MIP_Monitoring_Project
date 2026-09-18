@@ -9,4 +9,6 @@ gps_queue = queue.Queue(maxsize=QUEUE_MAX_SIZE)
 button_queue = queue.Queue(maxsize=QUEUE_MAX_SIZE)
 
 pace_queue = queue.Queue(maxsize=QUEUE_MAX_SIZE)
-rap_queue = queue.Queue(maxsize=QUEUE_MAX_SIZE)
+rap_datastructure = {
+    "cnt" : 0
+}

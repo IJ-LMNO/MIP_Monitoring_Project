@@ -1,6 +1,7 @@
 import queue
 
-def main(pace_queue, rap_queue):
+def main(pace_queue, rap_datastructure):
+    prevcnt = 0
     while True:
         try:
             cur = pace_queue.get_nowait()
@@ -8,11 +9,11 @@ def main(pace_queue, rap_queue):
         except queue.Empty:
             pass
 
-        try:
-            rap = rap_queue.get_nowait()
-            print(f"rap : {rap}")
-        except queue.Empty:
+        if(rap_datastructure["cnt"] == prevcnt):
             pass
+        else:
+            print(f"rap :{rap_datastructure["cnt"]}")
+            prevcnt = rap_datastructure["cnt"]
 
 
 if __name__ == "__main__":
