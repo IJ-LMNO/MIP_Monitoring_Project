@@ -7,8 +7,8 @@ BROKER_HOST = "100.70.221.71"
 BROKER_PORT = 1883
 KEEPALIVE = 60
 
-TOPIC_FACE = "vehicle/car_01/face"
-TOPIC_LAP = "vehicle/car_01/lap"
+TOPIC_PACE = "vehicle/car_01/pace"
+TOPIC_RAP = "vehicle/car_01/rap"
 
 
 def on_connect(client, userdata, connect_flags, reason_code, properties):
@@ -16,11 +16,11 @@ def on_connect(client, userdata, connect_flags, reason_code, properties):
         print("[MQTT] subscriber connect succeeded")
 
         client.subscribe(
-            TOPIC_FACE,
+            TOPIC_PACE,
             qos=0
         )
         client.subscribe(
-            TOPIC_LAP,
+            TOPIC_RAP,
             qos=0
         )
 
@@ -29,18 +29,18 @@ def on_connect(client, userdata, connect_flags, reason_code, properties):
 
 
 def on_message(client, userdata, message):
-    if message.topic not in (TOPIC_FACE, TOPIC_LAP):
+    if message.topic not in (TOPIC_PACE, TOPIC_RAP):
         return
 
     try:
         data = message.payload.decode("utf-8").strip()
 
-        if message.topic == TOPIC_LAP:
-            lap_count = int(data)
-            if lap_count < 0:
+        if message.topic == TOPIC_RAP:
+            rap_count = int(data)
+            if rap_count < 0:
                 raise ValueError("lap count must be non-negative")
-            put_latest(userdata["lap_queue"], lap_count)
-        elif message.topic == TOPIC_FACE:
+            put_latest(userdata["rap_queue"], rap_count)
+        elif message.topic == TOPIC_PACE:
             put_latest(userdata["pace_queue"], data)
     except (UnicodeDecodeError, ValueError) as error:
         print(f"[MQTT] 잘못된 메시지 무시: topic={message.topic}, error={error}")
@@ -56,7 +56,7 @@ def on_disconnect(
     print(f"[MQTT] subscriber 연결 종료: {reason_code}")
 
 
-def main(pace_queue, lap_queue):
+def main(pace_queue, rap_queue):
 
     client = mqtt.Client(
         callback_api_version=mqtt.CallbackAPIVersion.VERSION2
@@ -65,7 +65,7 @@ def main(pace_queue, lap_queue):
     # callback에서 사용할 데이터 등록
     client.user_data_set({
         "pace_queue": pace_queue,
-        "lap_queue": lap_queue,
+        "rap_queue" : rap_queue
     })
 
     # callback 등록

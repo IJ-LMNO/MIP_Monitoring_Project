@@ -7,7 +7,33 @@ function RapButton({ text, rapcount, setRapcount}) {
     const curtiemstamp = useRef(null)
     const prevtimestamp = useRef(null)
 
-    const RapButtononclick = (event) => {
+    const telemetryRapcount = async (rap) => {
+        try {
+            const response = await fetch("http://localhost:8000/race/rap", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "rap": rap
+                })
+            });
+
+            // HTTP 에러도 실패로 처리
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
+
+        } catch (error) {
+            console.log(error);
+
+            setTimeout(() => {
+                telemetryRapcount();
+            }, 1000);
+        }
+    };
+
+    const RapButtononclick =  (event) => {
         if(event.button == 0){
             if (rapcount.state == false) {
                 setRapcount((prev) => {
@@ -18,6 +44,8 @@ function RapButton({ text, rapcount, setRapcount}) {
                 })
 
                 prevtimestamp.current = performance.now()
+
+
             }
             else if (rapcount.state == true) {
                 curtiemstamp.current = performance.now()
@@ -36,7 +64,9 @@ function RapButton({ text, rapcount, setRapcount}) {
                 })
 
                 prevtimestamp.current = curtiemstamp.current
-            }
+
+                telemetryRapcount(rapcount["history"].length + 1)
+            } 
         }
         else if(event.button == 2){
             curtiemstamp.current = null
@@ -50,6 +80,7 @@ function RapButton({ text, rapcount, setRapcount}) {
                 })
             })
 
+            telemetryRapcount(0)
             
         }
 

@@ -19,8 +19,8 @@ def main():
     can1_queue = queue.Queue(maxsize=1)
     gps_queue = queue.Queue(maxsize=1)
     display_queue = queue.Queue(maxsize=1)
-    lap_queue = queue.Queue(maxsize=1)
     pace_queue = queue.Queue(maxsize=1)
+    rap_queue = queue.Queue(maxsize=1)
     stop_event = threading.Event()
 
     receivers = create_receivers([
@@ -55,7 +55,7 @@ def main():
         threading.Thread(
             name="mqtt-subscriber",
             target=mqtt_subscriber,
-            args=(pace_queue, lap_queue),
+            args=(pace_queue, rap_queue),
             daemon=True,
         ),
     ]
@@ -64,7 +64,7 @@ def main():
         for worker in threads:
             print(f"[MAIN] 스레드 시작: {worker.name}")
             worker.start()
-        return display(display_queue, lap_queue, pace_queue)
+        return display(display_queue, rap_queue, pace_queue)
     except KeyboardInterrupt:
         print("\n[MAIN] 프로그램을 종료합니다.")
         return 0

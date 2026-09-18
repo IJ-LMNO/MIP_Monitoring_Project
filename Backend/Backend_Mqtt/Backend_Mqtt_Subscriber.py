@@ -7,7 +7,7 @@ import queue
 
 #  "100.70.221.71"
 #  "127.0.0.1
-BROKER_HOST = "100.70.221.71"
+BROKER_HOST = "127.0.0.1"
 BROKER_PORT = 1883
 
 

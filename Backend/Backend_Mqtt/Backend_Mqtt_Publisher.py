@@ -8,7 +8,7 @@ import paho.mqtt.client as mqtt
 
 #  "100.70.221.71"
 #  "127.0.0.1"
-BROKER_HOST = "100.70.221.71"
+BROKER_HOST = "127.0.0.1"
 BROKER_PORT = 1883
 KEEPALIVE = 60
 QOS = 0
@@ -108,7 +108,8 @@ def publish_worker(
 # =========================================================
 
 def main(
-    faceup_queue
+    faceup_queue,
+    rap_queue
 ):
     client_id = f"car-01-backend-publisher-{socket.gethostname()}"
     client = mqtt.Client(client_id=client_id)
@@ -137,8 +138,13 @@ def main(
     publisher_configs = [
         (
             faceup_queue,
-            "vehicle/car_01/face",
+            "vehicle/car_01/pace",
             "face"
+        ),
+        (
+            rap_queue,
+            "vehicle/car_01/rap",
+            "rap"
         )
     ]
 

@@ -6,6 +6,8 @@ BROKER_PORT = 1883
 KEEPALIVE = 60
 
 TOPIC_FACE = "vehicle/car_01/face"
+TOPIC_RAP = "vehicle/car_01/rap"
+
 
 
 def on_connect(client, userdata, connect_flags, reason_code, properties):
@@ -14,6 +16,11 @@ def on_connect(client, userdata, connect_flags, reason_code, properties):
 
         client.subscribe(
             TOPIC_FACE,
+            qos=0
+        )
+
+        client.subscribe(
+            TOPIC_RAP,
             qos=0
         )
 
@@ -26,6 +33,8 @@ def on_message(client, userdata, message):
 
     if message.topic.split("/")[-1] == "face":
         userdata["pace_queue"].put(data)
+    elif message.topic.split("/")[-1] == "rap":
+        userdata["rap_queue"].put(data)
 
 
 def on_disconnect(
@@ -38,7 +47,7 @@ def on_disconnect(
     print(f"[MQTT] subscriber 연결 종료: {reason_code}")
 
 
-def main(pace_queue):
+def main(pace_queue, rap_queue):
 
     client = mqtt.Client(
         callback_api_version=mqtt.CallbackAPIVersion.VERSION2
@@ -47,6 +56,7 @@ def main(pace_queue):
     # callback에서 사용할 데이터 등록
     client.user_data_set({
         "pace_queue": pace_queue,
+        "rap_queue" : rap_queue
     })
 
     # callback 등록

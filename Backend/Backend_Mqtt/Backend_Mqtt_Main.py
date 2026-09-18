@@ -14,6 +14,8 @@ from Backend.Backend_Mqtt.Button_Adapter import main as mqtt_button_queue
 
 # API 쪽 Face queue
 from Backend.FastAPI.FastAPI import face_queue
+from Backend.FastAPI.FastAPI import rap_queue
+
 
 
 # =========================================================
@@ -34,7 +36,10 @@ def mqtt_publisher_thread():
     worker = thread.Thread(
         name="mqtt-publisher",
         target=mqtt_publisher,
-        args=(face_queue,),
+        args=(
+            face_queue,
+            rap_queue
+            ),
         daemon=True
     )
 

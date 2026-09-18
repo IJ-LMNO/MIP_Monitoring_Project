@@ -21,12 +21,12 @@ app = FastAPI()
 # 센서별 Adapter 파일에서 새로 래핑한 데이터 구조를 저장하는 dequeue
 # =========================================================
 
-dequeue_size = 1
+queue_size = 1
 
-can0_dequeue = deque(maxlen=dequeue_size)
-can1_dequeue = deque(maxlen=dequeue_size)
-gps_dequeue = deque(maxlen=dequeue_size)
-button_dequeue = deque(maxlen=dequeue_size)
+can0_dequeue = deque(maxlen=queue_size)
+can1_dequeue = deque(maxlen=queue_size)
+gps_dequeue = deque(maxlen=queue_size)
+button_dequeue = deque(maxlen=queue_size)
 
 
 # =========================================================
@@ -48,7 +48,12 @@ gps_detail_dequeue_for_rollrate = deque(maxlen=120)
 # pace up / down mqtt 통신을 위해 프론트에서 들어오는 데이터를 저장하는 queue
 # =========================================================
 
-face_queue = queue.Queue(maxsize=dequeue_size)
+face_queue = queue.Queue(maxsize=queue_size)
+
+# =========================================================
+# rap을 저장하는 변수
+# =========================================================
+rap_queue = queue.Queue(maxsize=queue_size)
 
 
 # =========================================================
@@ -86,6 +91,9 @@ class FrontendStartRequest(BaseModel):
 class FaceUpDownRequest(BaseModel):
     status: str
 
+class RapCountRequest(BaseModel):
+    rap : int
+
 
 # =========================================================
 # race start / stop / reset
@@ -118,6 +126,17 @@ def face_up(request: FaceUpDownRequest):
 @app.post("/face/down")
 def face_down(request: FaceUpDownRequest):
     face_queue.put(request.status)
+
+
+
+# =========================================================
+# rap count
+# =========================================================
+
+@app.post("/race/rap")
+def face_up(request: RapCountRequest):
+    print("race rap")
+    rap_queue.put(request.rap)
 
 
 # =========================================================

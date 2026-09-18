@@ -12,11 +12,9 @@ from Shared_Data.shared_data import can0_queue
 from Shared_Data.shared_data import can1_queue
 from Shared_Data.shared_data import gps_queue
 from Shared_Data.shared_data import pace_queue
-from Shared_Data.shared_data import button_queue_for_display
-from Shared_Data.shared_data import button_queue_for_mqtt
+from Shared_Data.shared_data import button_queue
+from Shared_Data.shared_data import rap_queue
 
-
-QUEUE_MAX_SIZE = 10
 
 
 def main():
@@ -28,7 +26,7 @@ def main():
                 can0_queue,
                 can1_queue,
                 gps_queue,
-                button_queue_for_mqtt
+                button_queue
             ),
             daemon=True,
         ),
@@ -57,14 +55,16 @@ def main():
         threading.Thread(
             name="mqtt-subscriber",
             target=mqtt_subscriber,
-            args=(pace_queue,),
+            args=(pace_queue,
+                  rap_queue),
             daemon=True,
         ),
 
         threading.Thread(
             name="dashboard",
             target=dashboard,
-            args=(pace_queue,),
+            args=(pace_queue,
+                  rap_queue),
             daemon=True,
         )
 
